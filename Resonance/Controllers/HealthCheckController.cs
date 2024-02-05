@@ -10,7 +10,7 @@ namespace Resonance.Controllers
         [HttpGet]
         public string Get()
         {
-            return "API is Running successfully";
+            return "Resonance API is Running successfully";
         }
     }
 }
