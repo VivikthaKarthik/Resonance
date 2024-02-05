@@ -1,13 +1,15 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication;
-using Resonance.Authentication;
+using Microsoft.EntityFrameworkCore;
+using ResoClassAPI.Authentication;
 using Serilog;
-using Resonance.Services.Interfaces;
-using Resonance.Services;
+using ResoClassAPI.Services.Interfaces;
+using ResoClassAPI.Services;
 using Microsoft.OpenApi.Models;
 using AutoMapper;
 using Resonance;
-using Resonance.Middleware;
+using ResoClassAPI.Middleware;
+using ResoClassAPI.Models.Domain;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -65,6 +67,11 @@ builder.Services.AddCors(o => o.AddPolicy("MyPolicy", builder =>
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddScheme<AuthenticationSchemeOptions, AuthTokenHandler>(JwtBearerDefaults.AuthenticationScheme, null);
+
+builder.Services.AddDbContext<RdsadminContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("SqlConnectionString"));
+});
 
 var app = builder.Build();
 
