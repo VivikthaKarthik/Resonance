@@ -1,12 +1,12 @@
 ﻿using Microsoft.IdentityModel.Tokens;
-using Resonance.DTOs;
-using Resonance.Services.Interfaces;
+using ResoClass.DTOs;
+using ResoClass.Services.Interfaces;
 using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace Resonance.Services
+namespace ResoClass.Services
 {
     public class AuthService : IAuthService
     {
@@ -19,11 +19,11 @@ namespace Resonance.Services
             //dbContext = _dbContext;
         }
 
-        public async Task<string> AuthenticateUser(LoginDto userDto)
+        public async Task<string> AuthenticateUser(WebLoginDto userDto)
         {
             string token = string.Empty;
 
-            token = await GenerateToken("TestUser", "Admin", "123");
+            token = await GenerateToken(userDto.UserName, "Admin", "1");
 
             //var userDetails = dbContext.Users.FirstOrDefault(item => item.UserName == userDto.UserName && item.Password == userDto.Password);
 

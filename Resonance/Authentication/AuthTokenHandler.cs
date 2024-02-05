@@ -7,7 +7,7 @@ using System.Text;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Resonance.Authentication
+namespace ResoClass.Authentication
 {
     public class AuthTokenHandler : AuthenticationHandler<AuthenticationSchemeOptions>
     {

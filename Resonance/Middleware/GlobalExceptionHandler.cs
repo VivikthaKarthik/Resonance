@@ -1,7 +1,7 @@
-﻿using Resonance.DTOs;
+﻿using ResoClass.DTOs;
 using System.Text.Json;
 
-namespace Resonance.Middleware
+namespace ResoClass.Middleware
 {
     public class GlobalExceptionHandler
     {

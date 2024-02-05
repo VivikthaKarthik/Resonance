@@ -1,16 +1,16 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace Resonance.Controllers
+namespace ResoClass.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class HealthCheckController : ControllerBase
     {
 
         [HttpGet]
         public string Get()
         {
-            return "Resonance API is Running successfully";
+            return "ResoClass API is Running successfully";
         }
     }
 }

@@ -3,10 +3,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Resonance.DTOs;
-using Resonance.Services.Interfaces;
+using ResoClass.DTOs;
+using ResoClass.Services.Interfaces;
 
-namespace Resonance.Controllers
+namespace ResoClass.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -26,7 +26,7 @@ namespace Resonance.Controllers
 
         [AllowAnonymous]
         [HttpPost]
-        public async Task<IActionResult> Login(LoginDto user)
+        public async Task<IActionResult> AuthenticateWeb(WebLoginDto user)
         {
             _logger.LogInformation("New Login Request");
             IActionResult response = Unauthorized("Invalid Credentials");

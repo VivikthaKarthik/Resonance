@@ -1,9 +1,9 @@
-﻿using Resonance.DTOs;
+﻿using ResoClass.DTOs;
 
-namespace Resonance.Services.Interfaces
+namespace ResoClass.Services.Interfaces
 {
     public interface IAuthService
     {
-        Task<string> AuthenticateUser(LoginDto user);
+        Task<string> AuthenticateUser(WebLoginDto user);
     }
 }

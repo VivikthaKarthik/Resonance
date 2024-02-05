@@ -1,13 +1,13 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication;
-using Resonance.Authentication;
+using ResoClass.Authentication;
 using Serilog;
-using Resonance.Services.Interfaces;
-using Resonance.Services;
+using ResoClass.Services.Interfaces;
+using ResoClass.Services;
 using Microsoft.OpenApi.Models;
 using AutoMapper;
 using Resonance;
-using Resonance.Middleware;
+using ResoClass.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
