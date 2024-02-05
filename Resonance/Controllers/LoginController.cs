@@ -26,6 +26,7 @@ namespace ResoClass.Controllers
 
         [AllowAnonymous]
         [HttpPost]
+        [Route("AuthenticateWeb")]
         public async Task<IActionResult> AuthenticateWeb(WebLoginDto user)
         {
             _logger.LogInformation("New Login Request");
