@@ -1,5 +1,6 @@
 ﻿using Microsoft.IdentityModel.Tokens;
 using ResoClassAPI.DTOs;
+using ResoClassAPI.Models.Domain;
 using ResoClassAPI.Services.Interfaces;
 using System.Data;
 using System.IdentityModel.Tokens.Jwt;
@@ -10,28 +11,27 @@ namespace ResoClassAPI.Services
 {
     public class AuthService : IAuthService
     {
-        //private readonly ConquerContext dbContext;
+        private readonly ResoClassContext dbContext;
         private IConfiguration _config;
 
-        public AuthService(IConfiguration configuration) //, ConquerContext _dbContext)
+        public AuthService(IConfiguration configuration, ResoClassContext _dbContext)
         {
             this._config = configuration;
-            //dbContext = _dbContext;
+            dbContext = _dbContext;
         }
 
         public async Task<string> AuthenticateWebUser(WebLoginDto userDto)
         {
             string token = string.Empty;
 
-            token = await GenerateToken(userDto.UserName, "Admin", "1");
+            var userDetails = dbContext.ResoUsers.FirstOrDefault(item =>
+            (item.Email == userDto.UserName || item.PhoneNumber == userDto.UserName) && item.Password == userDto.Password);
 
-            //var userDetails = dbContext.Users.FirstOrDefault(item => item.UserName == userDto.UserName && item.Password == userDto.Password);
-
-            //if (userDetails != null)
-            //{
-            //    var role = dbContext.Roles.FirstOrDefault(item => item.Id == userDetails.RoleId).Name;
-            //    token = await GenerateToken(userDetails.UserName, role, userDetails?.UserId);
-            //}
+            if (userDetails != null)
+            {
+                //var role = dbContext.Roles.FirstOrDefault(item => item.Id == userDetails.RoleId).Name;
+                token = await GenerateToken(userDetails.Email, "Admin", userDetails?.Id.ToString(), "");
+            }
             return await Task.FromResult(token);
         }
 
@@ -39,24 +39,29 @@ namespace ResoClassAPI.Services
         {
             string token = string.Empty;
 
-            token = await GenerateToken(userDto.UserName, "Admin", "1");
+            var userDetails = dbContext.ResoUsers.FirstOrDefault(item =>
+            (item.Email == userDto.UserName || item.PhoneNumber == userDto.UserName) && item.Password == userDto.Password);
 
-            //var userDetails = dbContext.Users.FirstOrDefault(item => item.UserName == userDto.UserName && item.Password == userDto.Password);
-
-            //if (userDetails != null)
-            //{
-            //    var role = dbContext.Roles.FirstOrDefault(item => item.Id == userDetails.RoleId).Name;
-            //    token = await GenerateToken(userDetails.UserName, role, userDetails?.UserId);
-            //}
+            if (userDetails != null)
+            {
+                //var role = dbContext.Roles.FirstOrDefault(item => item.Id == userDetails.RoleId).Name;
+                token = await GenerateToken(userDetails.Email, "Admin", userDetails?.Id.ToString(), userDto.DeviceId);
+            }
             return await Task.FromResult(token);
         }
 
-        private async Task<string> GenerateToken(string userName, string role, string userId)
+        private async Task<string> GenerateToken(string userName, string role, string userId, string deviceId)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-            var claims = new[] { new Claim(ClaimTypes.Name, userName), new Claim(ClaimTypes.Role, role), new Claim(ClaimTypes.Sid, userId) };
+            var claims = new[] 
+            { 
+                new Claim(ClaimTypes.Name, userName), 
+                new Claim(ClaimTypes.Role, role), 
+                new Claim(ClaimTypes.Sid, userId),
+                new Claim("DeviceId", deviceId)
+            };
 
             var token = new JwtSecurityToken(
                 _config["Jwt:Issuer"],
