@@ -1,9 +1,10 @@
-﻿using ResoClass.DTOs;
+﻿using ResoClassAPI.DTOs;
 
-namespace ResoClass.Services.Interfaces
+namespace ResoClassAPI.Services.Interfaces
 {
     public interface IAuthService
     {
-        Task<string> AuthenticateUser(WebLoginDto user);
+        Task<string> AuthenticateWebUser(WebLoginDto user);
+        Task<string> AuthenticateMobileUser(MobileLoginDto user);
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace ResoClass.DTOs
+﻿namespace ResoClassAPI.DTOs
 {
     public class WebLoginDto
     {

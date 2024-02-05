@@ -1,12 +1,12 @@
 ﻿using Microsoft.IdentityModel.Tokens;
-using ResoClass.DTOs;
-using ResoClass.Services.Interfaces;
+using ResoClassAPI.DTOs;
+using ResoClassAPI.Services.Interfaces;
 using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace ResoClass.Services
+namespace ResoClassAPI.Services
 {
     public class AuthService : IAuthService
     {
@@ -19,7 +19,23 @@ namespace ResoClass.Services
             //dbContext = _dbContext;
         }
 
-        public async Task<string> AuthenticateUser(WebLoginDto userDto)
+        public async Task<string> AuthenticateWebUser(WebLoginDto userDto)
+        {
+            string token = string.Empty;
+
+            token = await GenerateToken(userDto.UserName, "Admin", "1");
+
+            //var userDetails = dbContext.Users.FirstOrDefault(item => item.UserName == userDto.UserName && item.Password == userDto.Password);
+
+            //if (userDetails != null)
+            //{
+            //    var role = dbContext.Roles.FirstOrDefault(item => item.Id == userDetails.RoleId).Name;
+            //    token = await GenerateToken(userDetails.UserName, role, userDetails?.UserId);
+            //}
+            return await Task.FromResult(token);
+        }
+
+        public async Task<string> AuthenticateMobileUser(MobileLoginDto userDto)
         {
             string token = string.Empty;
 

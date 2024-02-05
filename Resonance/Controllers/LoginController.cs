@@ -3,10 +3,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using ResoClass.DTOs;
-using ResoClass.Services.Interfaces;
+using ResoClassAPI.DTOs;
+using ResoClassAPI.Services.Interfaces;
 
-namespace ResoClass.Controllers
+namespace ResoClassAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -34,7 +34,27 @@ namespace ResoClass.Controllers
 
             if (user != null && !string.IsNullOrEmpty(user.UserName) && !string.IsNullOrEmpty(user.Password))
             {
-                var token = await _authService.AuthenticateUser(user);
+                var token = await _authService.AuthenticateWebUser(user);
+
+                if (!string.IsNullOrEmpty(token))
+                {
+                    response = Ok(new { token = token });
+                }
+            }
+            return response;
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        [Route("AuthenticateMobile")]
+        public async Task<IActionResult> AuthenticateMobile(MobileLoginDto user)
+        {
+            _logger.LogInformation("New Login Request");
+            IActionResult response = Unauthorized("Invalid Credentials");
+
+            if (user != null && !string.IsNullOrEmpty(user.UserName) && !string.IsNullOrEmpty(user.Password))
+            {
+                var token = await _authService.AuthenticateMobileUser(user);
 
                 if (!string.IsNullOrEmpty(token))
                 {

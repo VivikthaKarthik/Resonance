@@ -1,7 +1,7 @@
-﻿using ResoClass.DTOs;
+﻿using ResoClassAPI.DTOs;
 using System.Text.Json;
 
-namespace ResoClass.Middleware
+namespace ResoClassAPI.Middleware
 {
     public class GlobalExceptionHandler
     {
