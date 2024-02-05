@@ -68,7 +68,7 @@ builder.Services.AddCors(o => o.AddPolicy("MyPolicy", builder =>
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddScheme<AuthenticationSchemeOptions, AuthTokenHandler>(JwtBearerDefaults.AuthenticationScheme, null);
 
-builder.Services.AddDbContext<RdsadminContext>(options =>
+builder.Services.AddDbContext<ResoClassContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("SqlConnectionString"));
 });
