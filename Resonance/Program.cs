@@ -1,13 +1,18 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication;
-using Resonance.Authentication;
+using Microsoft.EntityFrameworkCore;
+using ResoClassAPI.Authentication;
 using Serilog;
-using Resonance.Services.Interfaces;
-using Resonance.Services;
+using ResoClassAPI.Services.Interfaces;
+using ResoClassAPI.Services;
 using Microsoft.OpenApi.Models;
 using AutoMapper;
 using Resonance;
-using Resonance.Middleware;
+using ResoClassAPI.Middleware;
+using ResoClassAPI.Models.Domain;
+using ResoClassAPI.Utilities.Interfaces;
+using ResoClassAPI.Utilities;
+using ResoClassAPI.Interceptors;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,7 +47,9 @@ builder.Services.AddSwaggerGen(option =>
 });
 
 builder.Services.AddScoped<IAuthService, AuthService>();
-
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IExcelReader, ExcelReader>();
+builder.Services.AddSingleton<AuditInterceptor>();
 IMapper mapper = MapperConfig.RegisterMaps().CreateMapper();
 builder.Services.AddSingleton(mapper);
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
@@ -65,6 +72,13 @@ builder.Services.AddCors(o => o.AddPolicy("MyPolicy", builder =>
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddScheme<AuthenticationSchemeOptions, AuthTokenHandler>(JwtBearerDefaults.AuthenticationScheme, null);
+
+builder.Services.AddDbContext<ResoClassContext>((sp, options) =>
+{
+    var auditableInterceptor = sp.GetService<AuditInterceptor>();
+
+    options.UseSqlServer(builder.Configuration.GetConnectionString("SqlConnectionString")).AddInterceptors(auditableInterceptor);
+});
 
 var app = builder.Build();
 

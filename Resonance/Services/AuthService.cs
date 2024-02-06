@@ -1,52 +1,98 @@
-﻿using Microsoft.IdentityModel.Tokens;
-using Resonance.DTOs;
-using Resonance.Services.Interfaces;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.IdentityModel.Tokens;
+using ResoClassAPI.DTOs;
+using ResoClassAPI.Models;
+using ResoClassAPI.Models.Domain;
+using ResoClassAPI.Services.Interfaces;
 using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace Resonance.Services
+namespace ResoClassAPI.Services
 {
     public class AuthService : IAuthService
     {
-        //private readonly ConquerContext dbContext;
+        private readonly ResoClassContext dbContext;
         private IConfiguration _config;
+        private readonly IHttpContextAccessor _contextAccessor;
 
-        public AuthService(IConfiguration configuration) //, ConquerContext _dbContext)
+        public AuthService(IConfiguration configuration, ResoClassContext _dbContext, IHttpContextAccessor httpContextAccessor)
         {
             this._config = configuration;
-            //dbContext = _dbContext;
+            dbContext = _dbContext;
+            _contextAccessor = httpContextAccessor;
+        }
+        public CurrentUser GetCurrentUser()
+        {
+            CurrentUser currentUser = new CurrentUser();
+
+            if (_contextAccessor.HttpContext != null)
+            {
+                currentUser.UserId = _contextAccessor.HttpContext?.User?.Claims?.FirstOrDefault(x => x.Type == ClaimTypes.Sid)?.Value;
+                currentUser.Name = _contextAccessor.HttpContext?.User?.Claims?.FirstOrDefault(x => x.Type == ClaimTypes.Name)?.Value;
+                currentUser.Email = _contextAccessor.HttpContext?.User?.Claims?.FirstOrDefault(x => x.Type == ClaimTypes.Email)?.Value;
+                currentUser.Role = _contextAccessor.HttpContext?.User?.Claims?.FirstOrDefault(x => x.Type == ClaimTypes.Role)?.Value;
+                currentUser.DeviceId = _contextAccessor.HttpContext?.User?.Claims?.FirstOrDefault(x => x.Type == "DeviceId")?.Value;
+            }
+            return currentUser;
         }
 
-        public async Task<string> AuthenticateUser(LoginDto userDto)
+        public async Task<string> AuthenticateWebUser(WebLoginDto userDto)
         {
             string token = string.Empty;
 
-            token = await GenerateToken("TestUser", "Admin", "123");
+            var userDetails = dbContext.Users.FirstOrDefault(item =>
+            (item.Email == userDto.UserName || item.PhoneNumber == userDto.UserName) && item.Password == userDto.Password);
 
-            //var userDetails = dbContext.Users.FirstOrDefault(item => item.UserName == userDto.UserName && item.Password == userDto.Password);
-
-            //if (userDetails != null)
-            //{
-            //    var role = dbContext.Roles.FirstOrDefault(item => item.Id == userDetails.RoleId).Name;
-            //    token = await GenerateToken(userDetails.UserName, role, userDetails?.UserId);
-            //}
+            if (userDetails != null)
+            {
+                var role = dbContext.Roles.FirstOrDefault(item => item.Id == userDetails.RoleId).Name;
+                token = await GenerateToken(userDetails.FirstName + " " + userDetails.LastName, userDetails.Email, role, userDetails?.Id.ToString(), string.Empty);
+            }
             return await Task.FromResult(token);
         }
 
-        private async Task<string> GenerateToken(string userName, string role, string userId)
+        public async Task<string> AuthenticateMobileUser(MobileLoginDto userDto)
+        {
+            string token = string.Empty;
+
+            var userDetails = dbContext.Users.FirstOrDefault(item =>
+            (item.Email == userDto.UserName || item.PhoneNumber == userDto.UserName) && item.Password == userDto.Password);
+
+            if (userDetails != null)
+            {
+                userDetails.DeviceId = userDto.DeviceId;
+                userDetails.Longitude = userDto.Longitude;
+                userDetails.Latitude = userDto.Latitude;
+                userDetails.RegistrationId = userDto.RegistrationId;
+
+                await dbContext.SaveChangesAsync();
+                var role = dbContext.Roles.FirstOrDefault(item => item.Id == userDetails.RoleId).Name;
+                token = await GenerateToken(userDetails.FirstName + " " + userDetails.LastName, userDetails.Email, role, userDetails?.Id.ToString(), userDto.DeviceId);
+            }
+            return await Task.FromResult(token);
+        }
+
+        private async Task<string> GenerateToken(string email, string userName, string role, string userId, string deviceId)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-            var claims = new[] { new Claim(ClaimTypes.Name, userName), new Claim(ClaimTypes.Role, role), new Claim(ClaimTypes.Sid, userId) };
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.Email, email),
+                new Claim(ClaimTypes.Name, userName), 
+                new Claim(ClaimTypes.Role, role), 
+                new Claim(ClaimTypes.Sid, userId),
+                new Claim("DeviceId", deviceId)
+            };
 
             var token = new JwtSecurityToken(
                 _config["Jwt:Issuer"],
                 _config["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(20),
+                expires: !string.IsNullOrEmpty(deviceId) ? DateTime.Now.AddYears(1) : DateTime.Now.AddMinutes(20),
                 signingCredentials: credentials
                 );
 

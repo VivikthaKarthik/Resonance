@@ -1,4 +1,4 @@
-﻿namespace Resonance.DTOs
+﻿namespace ResoClassAPI.DTOs
 {
     public class ResponseDto
     {

@@ -1,9 +1,12 @@
-﻿using Resonance.DTOs;
+﻿using ResoClassAPI.DTOs;
+using ResoClassAPI.Models;
 
-namespace Resonance.Services.Interfaces
+namespace ResoClassAPI.Services.Interfaces
 {
     public interface IAuthService
     {
-        Task<string> AuthenticateUser(LoginDto user);
+        CurrentUser GetCurrentUser();
+        Task<string> AuthenticateWebUser(WebLoginDto user);
+        Task<string> AuthenticateMobileUser(MobileLoginDto user);
     }
 }
