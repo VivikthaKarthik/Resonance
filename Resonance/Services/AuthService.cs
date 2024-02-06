@@ -1,5 +1,7 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.IdentityModel.Tokens;
 using ResoClassAPI.DTOs;
+using ResoClassAPI.Models;
 using ResoClassAPI.Models.Domain;
 using ResoClassAPI.Services.Interfaces;
 using System.Data;
@@ -13,11 +15,27 @@ namespace ResoClassAPI.Services
     {
         private readonly ResoClassContext dbContext;
         private IConfiguration _config;
+        private readonly IHttpContextAccessor _contextAccessor;
 
-        public AuthService(IConfiguration configuration, ResoClassContext _dbContext)
+        public AuthService(IConfiguration configuration, ResoClassContext _dbContext, IHttpContextAccessor httpContextAccessor)
         {
             this._config = configuration;
             dbContext = _dbContext;
+            _contextAccessor = httpContextAccessor;
+        }
+        public CurrentUser GetCurrentUser()
+        {
+            CurrentUser currentUser = new CurrentUser();
+
+            if (_contextAccessor.HttpContext != null)
+            {
+                currentUser.UserId = _contextAccessor.HttpContext?.User?.Claims?.FirstOrDefault(x => x.Type == ClaimTypes.Sid)?.Value;
+                currentUser.Name = _contextAccessor.HttpContext?.User?.Claims?.FirstOrDefault(x => x.Type == ClaimTypes.Name)?.Value;
+                currentUser.Email = _contextAccessor.HttpContext?.User?.Claims?.FirstOrDefault(x => x.Type == ClaimTypes.Email)?.Value;
+                currentUser.Role = _contextAccessor.HttpContext?.User?.Claims?.FirstOrDefault(x => x.Type == ClaimTypes.Role)?.Value;
+                currentUser.DeviceId = _contextAccessor.HttpContext?.User?.Claims?.FirstOrDefault(x => x.Type == "DeviceId")?.Value;
+            }
+            return currentUser;
         }
 
         public async Task<string> AuthenticateWebUser(WebLoginDto userDto)
@@ -29,8 +47,8 @@ namespace ResoClassAPI.Services
 
             if (userDetails != null)
             {
-                //var role = dbContext.Roles.FirstOrDefault(item => item.Id == userDetails.RoleId).Name;
-                token = await GenerateToken(userDetails.Email, "Admin", userDetails?.Id.ToString(), "");
+                var role = dbContext.Roles.FirstOrDefault(item => item.Id == userDetails.RoleId).Name;
+                token = await GenerateToken(userDetails.FirstName + " " + userDetails.LastName, userDetails.Email, role, userDetails?.Id.ToString(), string.Empty);
             }
             return await Task.FromResult(token);
         }
@@ -44,19 +62,26 @@ namespace ResoClassAPI.Services
 
             if (userDetails != null)
             {
-                //var role = dbContext.Roles.FirstOrDefault(item => item.Id == userDetails.RoleId).Name;
-                token = await GenerateToken(userDetails.Email, "Admin", userDetails?.Id.ToString(), userDto.DeviceId);
+                userDetails.DeviceId = userDto.DeviceId;
+                userDetails.Longitude = userDto.Longitude;
+                userDetails.Latitude = userDto.Latitude;
+                userDetails.RegistrationId = userDto.RegistrationId;
+
+                await dbContext.SaveChangesAsync();
+                var role = dbContext.Roles.FirstOrDefault(item => item.Id == userDetails.RoleId).Name;
+                token = await GenerateToken(userDetails.FirstName + " " + userDetails.LastName, userDetails.Email, role, userDetails?.Id.ToString(), userDto.DeviceId);
             }
             return await Task.FromResult(token);
         }
 
-        private async Task<string> GenerateToken(string userName, string role, string userId, string deviceId)
+        private async Task<string> GenerateToken(string email, string userName, string role, string userId, string deviceId)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-            var claims = new[] 
-            { 
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.Email, email),
                 new Claim(ClaimTypes.Name, userName), 
                 new Claim(ClaimTypes.Role, role), 
                 new Claim(ClaimTypes.Sid, userId),
@@ -67,7 +92,7 @@ namespace ResoClassAPI.Services
                 _config["Jwt:Issuer"],
                 _config["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(20),
+                expires: !string.IsNullOrEmpty(deviceId) ? DateTime.Now.AddYears(1) : DateTime.Now.AddMinutes(20),
                 signingCredentials: credentials
                 );
 

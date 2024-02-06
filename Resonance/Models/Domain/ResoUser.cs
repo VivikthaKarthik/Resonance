@@ -29,6 +29,8 @@ public partial class ResoUser
 
     public bool? IsActive { get; set; }
 
+    public DateTime? LastLoginDate { get; set; }
+
     public string? CreatedBy { get; set; }
 
     public DateTime? CreatedOn { get; set; }
@@ -36,4 +38,6 @@ public partial class ResoUser
     public string? ModifiedBy { get; set; }
 
     public DateTime? ModifiedOn { get; set; }
+
+    public virtual Role Role { get; set; } = null!;
 }
