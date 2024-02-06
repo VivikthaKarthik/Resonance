@@ -31,6 +31,9 @@ namespace ResoClassAPI.Services
             {
                 currentUser.UserId = _contextAccessor.HttpContext?.User?.Claims?.FirstOrDefault(x => x.Type == ClaimTypes.Sid)?.Value;
                 currentUser.Name = _contextAccessor.HttpContext?.User?.Claims?.FirstOrDefault(x => x.Type == ClaimTypes.Name)?.Value;
+                currentUser.Email = _contextAccessor.HttpContext?.User?.Claims?.FirstOrDefault(x => x.Type == ClaimTypes.Email)?.Value;
+                currentUser.Role = _contextAccessor.HttpContext?.User?.Claims?.FirstOrDefault(x => x.Type == ClaimTypes.Role)?.Value;
+                currentUser.DeviceId = _contextAccessor.HttpContext?.User?.Claims?.FirstOrDefault(x => x.Type == "DeviceId")?.Value;
             }
             return currentUser;
         }
@@ -45,7 +48,7 @@ namespace ResoClassAPI.Services
             if (userDetails != null)
             {
                 var role = dbContext.Roles.FirstOrDefault(item => item.Id == userDetails.RoleId).Name;
-                token = await GenerateToken(userDetails.Email, role, userDetails?.Id.ToString(), string.Empty);
+                token = await GenerateToken(userDetails.FirstName + " " + userDetails.LastName, userDetails.Email, role, userDetails?.Id.ToString(), string.Empty);
             }
             return await Task.FromResult(token);
         }
@@ -66,18 +69,19 @@ namespace ResoClassAPI.Services
 
                 await dbContext.SaveChangesAsync();
                 var role = dbContext.Roles.FirstOrDefault(item => item.Id == userDetails.RoleId).Name;
-                token = await GenerateToken(userDetails.Email, role, userDetails?.Id.ToString(), userDto.DeviceId);
+                token = await GenerateToken(userDetails.FirstName + " " + userDetails.LastName, userDetails.Email, role, userDetails?.Id.ToString(), userDto.DeviceId);
             }
             return await Task.FromResult(token);
         }
 
-        private async Task<string> GenerateToken(string userName, string role, string userId, string deviceId)
+        private async Task<string> GenerateToken(string email, string userName, string role, string userId, string deviceId)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-            var claims = new[] 
-            { 
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.Email, email),
                 new Claim(ClaimTypes.Name, userName), 
                 new Claim(ClaimTypes.Role, role), 
                 new Claim(ClaimTypes.Sid, userId),

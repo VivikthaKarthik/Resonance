@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting.Internal;
 using OfficeOpenXml;
+using ResoClassAPI.Services.Interfaces;
 using ResoClassAPI.Utilities.Interfaces;
 using System.Data;
 
@@ -9,19 +10,21 @@ namespace ResoClassAPI.Utilities
 {
     public class ExcelReader : IExcelReader
     {
-        private IConfiguration _config;
-        private readonly IWebHostEnvironment _hostingEnvironment;
+        private IConfiguration config;
+        private readonly IWebHostEnvironment hostingEnvironment;
+        private readonly IAuthService authService;
 
-        public ExcelReader(IConfiguration configuration, IWebHostEnvironment hostingEnvironment)
+        public ExcelReader(IConfiguration configuration, IWebHostEnvironment _hostingEnvironment, IAuthService _authService)
         {
-            _config = configuration; 
-            _hostingEnvironment = hostingEnvironment;
+            config = configuration; 
+            hostingEnvironment = _hostingEnvironment;
+            authService = _authService;
         }
 
         public bool BulkUpload(IFormFile file, string tableName)
         {
             bool isUploaded = false;
-            string uploadsFolder = Path.Combine(_hostingEnvironment.ContentRootPath, "Uploads");
+            string uploadsFolder = Path.Combine(hostingEnvironment.ContentRootPath, "Uploads");
             if (!Directory.Exists(uploadsFolder))
                 Directory.CreateDirectory(uploadsFolder);
 
@@ -32,25 +35,20 @@ namespace ResoClassAPI.Utilities
                 file.CopyTo(stream);
             }
 
-            DataTable dataTable = ReadExcelToDataTable(filePath);
+            DataTable dataTable = ReadExcelToDataTable(filePath, tableName);
 
             if (dataTable != null && dataTable.Rows.Count > 0)
-            {
-                string connectionString = _config["ConnectionStrings:SqlConnectionString"];
-                SaveDataToDatabase(tableName, dataTable, connectionString);
-                isUploaded = true;
-            }
+                isUploaded = SaveDataToDatabase(tableName, dataTable);
 
             if (File.Exists(filePath))
-            {
                 File.Delete(filePath);
-            }
 
             return isUploaded;
         }
 
-        private DataTable ReadExcelToDataTable(string filePath)
+        private DataTable ReadExcelToDataTable(string filePath, string tableName)
         {
+            var currentUser = authService.GetCurrentUser();
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using (ExcelPackage package = new ExcelPackage(new FileInfo(filePath)))
             {
@@ -60,6 +58,13 @@ namespace ResoClassAPI.Utilities
                 foreach (var firstRowCell in worksheet.Cells[1, 1, 1, worksheet.Dimension.End.Column])
                 {
                     dataTable.Columns.Add(firstRowCell.Text.Trim());
+                }
+                if (tableName == SqlTableName.User)
+                {
+                    dataTable.Columns.Add("CreatedBy");
+                    dataTable.Columns.Add("CreatedOn");
+                    dataTable.Columns.Add("ModifiedBy");
+                    dataTable.Columns.Add("ModifiedOn");
                 }
 
                 for (int rowNumber = 2; rowNumber <= worksheet.Dimension.End.Row; rowNumber++)
@@ -71,16 +76,24 @@ namespace ResoClassAPI.Utilities
                     {
                         newRow[cell.Start.Column - 1] = cell.Text;
                     }
+
+                    if (tableName == SqlTableName.User)
+                    {
+                        newRow["CreatedBy"] = currentUser.Name;
+                        newRow["CreatedOn"] = DateTime.Now.ToString();
+                        newRow["ModifiedBy"] = currentUser.Name;
+                        newRow["ModifiedOn"] = DateTime.Now.ToString();
+                    }
                 }
 
                 return dataTable;
             }
         }
 
-        private bool SaveDataToDatabase(string tableName, DataTable dataTable, string connectionString)
+        private bool SaveDataToDatabase(string tableName, DataTable dataTable)
         {
             bool isUpdated = false;
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            using (SqlConnection connection = new SqlConnection(config["ConnectionStrings:SqlConnectionString"]))
             {
                 try
                 {
