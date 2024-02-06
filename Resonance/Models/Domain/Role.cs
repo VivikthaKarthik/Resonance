@@ -5,9 +5,9 @@ namespace ResoClassAPI.Models.Domain;
 
 public partial class Role
 {
-    public long Id { get; set; }
+    public int Id { get; set; }
 
     public string Name { get; set; } = null!;
 
-    public virtual ICollection<ResoUser> ResoUsers { get; } = new List<ResoUser>();
+    public virtual ICollection<User> Users { get; } = new List<User>();
 }

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace ResoClassAPI.Models.Domain;
 
-public partial class ResoUser
+public partial class User
 {
-    public long Id { get; set; }
+    public int Id { get; set; }
 
     public string? FirstName { get; set; }
 
@@ -15,7 +15,7 @@ public partial class ResoUser
 
     public string PhoneNumber { get; set; } = null!;
 
-    public long RoleId { get; set; }
+    public int RoleId { get; set; }
 
     public string Password { get; set; } = null!;
 
@@ -31,13 +31,13 @@ public partial class ResoUser
 
     public DateTime? LastLoginDate { get; set; }
 
-    public string? CreatedBy { get; set; }
+    public string CreatedBy { get; set; } = null!;
 
-    public DateTime? CreatedOn { get; set; }
+    public DateTime CreatedOn { get; set; }
 
-    public string? ModifiedBy { get; set; }
+    public string ModifiedBy { get; set; } = null!;
 
-    public DateTime? ModifiedOn { get; set; }
+    public DateTime ModifiedOn { get; set; }
 
     public virtual Role Role { get; set; } = null!;
 }

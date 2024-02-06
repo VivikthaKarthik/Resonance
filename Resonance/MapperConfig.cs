@@ -10,8 +10,8 @@ namespace Resonance
         {
             var mapperConfig = new MapperConfiguration(config =>
             {
-                config.CreateMap<UserDto, ResoUser>();
-                config.CreateMap<ResoUser, UserDto>();
+                config.CreateMap<UserDto, User>().ForMember(x => x.RoleId, opt => opt.Ignore()).ForMember(x => x.Role, opt => opt.Ignore());
+                config.CreateMap<User, UserDto>().ForMember(x => x.Role, opt => opt.Ignore());
             });
             return mapperConfig;
         }

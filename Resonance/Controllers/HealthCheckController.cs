@@ -10,7 +10,7 @@ namespace ResoClassAPI.Controllers
         [HttpGet]
         public string Get()
         {
-            return "ResoClass API is Running successfully\nVersion: 2";
+            return "ResoClass API is Running successfully\nVersion: 3";
         }
     }
 }
