@@ -10,6 +10,8 @@ using AutoMapper;
 using Resonance;
 using ResoClassAPI.Middleware;
 using ResoClassAPI.Models.Domain;
+using ResoClassAPI.Utilities.Interfaces;
+using ResoClassAPI.Utilities;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,6 +47,7 @@ builder.Services.AddSwaggerGen(option =>
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IExcelReader, ExcelReader>();
 
 IMapper mapper = MapperConfig.RegisterMaps().CreateMapper();
 builder.Services.AddSingleton(mapper);

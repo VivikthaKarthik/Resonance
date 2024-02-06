@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using ResoClassAPI.DTOs;
 using ResoClassAPI.Models.Domain;
 using ResoClassAPI.Services.Interfaces;
+using ResoClassAPI.Utilities;
+using ResoClassAPI.Utilities.Interfaces;
 
 namespace ResoClassAPI.Controllers
 {
@@ -13,127 +15,145 @@ namespace ResoClassAPI.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        private readonly IUserService _userService;
-        private readonly ILogger<UserController> _logger;
+        private readonly IUserService userService;
+        private readonly ILogger<UserController> logger;
+        private readonly IExcelReader excelReader;
 
-        public UserController(IUserService userService, ILogger<UserController> logger)
+        public UserController(IUserService _userService, ILogger<UserController> _logger, IExcelReader _excelReader)
         {
-            _userService = userService;
-            _logger = logger;
+            userService = _userService;
+            logger = _logger;
+            excelReader = _excelReader;
+        }
+
+        [HttpPost("Upload")]
+        public IActionResult UploadExcel(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("Invalid file.");
+
+            var extension = "." + file.FileName.Split('.')[file.FileName.Split('.').Length - 1];
+            if (extension != ".xlsx")
+                return BadRequest("Invalid file type.");
+
+            if (excelReader.BulkUpload(file, SqlTableName.User))
+                return Ok("Data uploaded successfully");
+            else
+                return BadRequest("Some Error occured!. Please check the format and try again");
         }
 
         [HttpGet]
         public async Task<ResponseDto> Get(int userId)
         {
-            ResponseDto _response = new ResponseDto();
+            ResponseDto responseDto = new ResponseDto();
             try
             {
-                _logger.LogInformation("GetUser is called");
-                var user = await _userService.GetUser(userId);
+                logger.LogInformation("GetUser is called");
+                var user = await userService.GetUser(userId);
 
                 if (user != null)
                 {
-                    _response.Result = user;
-                    _response.IsSuccess = true;
+                    responseDto.Result = user;
+                    responseDto.IsSuccess = true;
                 }
                 else
                 {
-                    _response.IsSuccess = false;
-                    _response.Message = "Not Found";
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
                 }
             }
             catch (Exception ex)
             {
-                _response.IsSuccess = false;
-                _response.Message = ex.Message;
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
             }
-            return _response;
+            return responseDto;
         }
 
         [HttpPost]
         public async Task<ResponseDto> Post(UserDto requestDto)
         {
-            ResponseDto _response = new ResponseDto();
+            ResponseDto responseDto = new ResponseDto();
             try
             {
                 if (requestDto == null)
                 {
-                    _response.IsSuccess = false;
-                    _response.Message = "Invalid Request";
-                    return _response;
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Invalid Request";
+                    return responseDto;
                 }
 
-                if (await _userService.CreateUser(requestDto))
+                if (await userService.CreateUser(requestDto))
                 {
-                    _response.Result = requestDto;
-                    _response.IsSuccess = true;
+                    responseDto.Result = requestDto;
+                    responseDto.IsSuccess = true;
                 }
                 else
                 {
-                    _response.IsSuccess = false;
-                    _response.Message = "Internal Server Error";
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Internal Server Error";
                 }
             }
             catch (Exception ex)
             {
-                _response.IsSuccess = false;
-                _response.Message = ex.Message;
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
             }
-            return _response;
+            return responseDto;
         }
 
         [HttpPut("{id}")]
         public async Task<ResponseDto> Put(int id, UserDto requestDto)
         {
-            ResponseDto _response = new ResponseDto();
+            ResponseDto responseDto = new ResponseDto();
             try
             {
                 if (requestDto == null)
                 {
-                    _response.IsSuccess = false;
-                    _response.Message = "Invalid Request";
-                    return _response;
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Invalid Request";
+                    return responseDto;
                 }
 
-                if (await _userService.UpdateUser(requestDto))
+                if (await userService.UpdateUser(requestDto))
                 {
-                    _response.Result = requestDto;
-                    _response.IsSuccess = true;
+                    responseDto.Result = requestDto;
+                    responseDto.IsSuccess = true;
                 }
                 else
                 {
-                    _response.IsSuccess = false;
-                    _response.Message = "Internal Server Error";
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Internal Server Error";
                 }
             }
             catch (Exception ex)
             {
-                _response.IsSuccess = false;
-                _response.Message = ex.Message;
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
             }
-            return _response;
+            return responseDto;
         }
 
         [HttpDelete("{id}")]
         public async Task<ResponseDto> DeleteCallVolume(int id)
         {
-            ResponseDto _response = new ResponseDto();
+            ResponseDto responseDto = new ResponseDto();
             try
             {
-                bool result = await _userService.DeleteUser(id);
+                bool result = await userService.DeleteUser(id);
 
                 if (!result)
                 {
-                    _response.IsSuccess = false;
-                    _response.Message = "Not Found";
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
                 }
             }
             catch (Exception ex)
             {
-                _response.IsSuccess = false;
-                _response.Message = ex.Message;
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
             }
-            return _response;
+            return responseDto;
         }
     }
 }
