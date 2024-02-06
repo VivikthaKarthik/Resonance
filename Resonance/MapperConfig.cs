@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using ResoClassAPI.DTOs;
+using ResoClassAPI.Models.Domain;
 
 namespace Resonance
 {
@@ -8,11 +10,8 @@ namespace Resonance
         {
             var mapperConfig = new MapperConfiguration(config =>
             {
-                //config.CreateMap<CallVolumeDto, CallVolume>();
-                //config.CreateMap<CallVolume, CallVolumeDto>();
-
-                //config.CreateMap<UserDto, User>();
-                //config.CreateMap<User, UserDto>();
+                config.CreateMap<UserDto, ResoUser>();
+                config.CreateMap<ResoUser, UserDto>();
             });
             return mapperConfig;
         }
