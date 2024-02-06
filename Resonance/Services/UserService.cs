@@ -20,7 +20,7 @@ namespace ResoClassAPI.Services
 
         public async Task<UserDto> GetUser(int userId)
         {
-            var user = await Task.FromResult(dbContext.ResoUsers.FirstOrDefault(item => item.Id == userId));
+            var user = await Task.FromResult(dbContext.Users.FirstOrDefault(item => item.Id == userId));
             if (user != null)
             {
                 var dtoObject = mapper.Map<UserDto>(user);
@@ -37,7 +37,7 @@ namespace ResoClassAPI.Services
 
             if (currentUser != null)
             {
-                var newUser = mapper.Map<ResoUser>(user);
+                var newUser = mapper.Map<User>(user);
                 if (!string.IsNullOrEmpty(user.Role))
                 {
                     var role = dbContext.Roles.FirstOrDefault(x => x.Name.ToLower() == user.Role.ToLower());
@@ -52,7 +52,7 @@ namespace ResoClassAPI.Services
                 newUser.CreatedBy = newUser.ModifiedBy = currentUser.Name;
                 newUser.CreatedOn = newUser.ModifiedOn = DateTime.Now;
                 newUser.IsActive = true;
-                dbContext.ResoUsers.Add(newUser);
+                dbContext.Users.Add(newUser);
                 await dbContext.SaveChangesAsync();
                 return true;
             }
@@ -62,7 +62,7 @@ namespace ResoClassAPI.Services
         public async Task<bool> UpdateUser(UserDto updatedUser)
         {
             var currentUser = authService.GetCurrentUser();
-            var existingItem = dbContext.ResoUsers.FirstOrDefault(item => item.Id == updatedUser.Id);
+            var existingItem = dbContext.Users.FirstOrDefault(item => item.Id == updatedUser.Id);
 
             if (existingItem != null)
             {
@@ -82,7 +82,7 @@ namespace ResoClassAPI.Services
                 existingItem.ModifiedOn = DateTime.Now;
 
                 await dbContext.SaveChangesAsync();
-                return false;
+                return true;
             }
             else
             {
@@ -94,7 +94,7 @@ namespace ResoClassAPI.Services
         public async Task<bool> DeleteUser(int userId)
         {
             var currentUser = authService.GetCurrentUser();
-            var existingItem = dbContext.ResoUsers.FirstOrDefault(item => item.Id == userId);
+            var existingItem = dbContext.Users.FirstOrDefault(item => item.Id == userId);
 
             if (existingItem != null)
             {

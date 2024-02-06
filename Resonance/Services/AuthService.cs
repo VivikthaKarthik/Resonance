@@ -42,7 +42,7 @@ namespace ResoClassAPI.Services
         {
             string token = string.Empty;
 
-            var userDetails = dbContext.ResoUsers.FirstOrDefault(item =>
+            var userDetails = dbContext.Users.FirstOrDefault(item =>
             (item.Email == userDto.UserName || item.PhoneNumber == userDto.UserName) && item.Password == userDto.Password);
 
             if (userDetails != null)
@@ -57,7 +57,7 @@ namespace ResoClassAPI.Services
         {
             string token = string.Empty;
 
-            var userDetails = dbContext.ResoUsers.FirstOrDefault(item =>
+            var userDetails = dbContext.Users.FirstOrDefault(item =>
             (item.Email == userDto.UserName || item.PhoneNumber == userDto.UserName) && item.Password == userDto.Password);
 
             if (userDetails != null)
