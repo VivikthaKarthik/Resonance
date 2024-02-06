@@ -21,7 +21,7 @@ namespace ResoClassAPI.Utilities
         public bool BulkUpload(IFormFile file, string tableName)
         {
             bool isUploaded = false;
-            string uploadsFolder = Path.Combine(_hostingEnvironment.ContentRootPath, "uploads");
+            string uploadsFolder = Path.Combine(_hostingEnvironment.ContentRootPath, "Uploads");
             if (!Directory.Exists(uploadsFolder))
                 Directory.CreateDirectory(uploadsFolder);
 
