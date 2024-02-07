@@ -43,10 +43,13 @@ namespace ResoClassAPI.Services
             string token = string.Empty;
 
             var userDetails = dbContext.Users.FirstOrDefault(item =>
-            (item.Email == userDto.UserName || item.PhoneNumber == userDto.UserName) && item.Password == userDto.Password);
+            (item.Email == userDto.UserName || item.PhoneNumber == userDto.UserName) && item.Password == userDto.Password && item.IsActive == true);
 
             if (userDetails != null)
             {
+                userDetails.LastLoginDate = DateTime.Now;
+                await dbContext.SaveChangesAsync();
+
                 var role = dbContext.Roles.FirstOrDefault(item => item.Id == userDetails.RoleId).Name;
                 token = await GenerateToken(userDetails.FirstName + " " + userDetails.LastName, userDetails.Email, role, userDetails?.Id.ToString(), string.Empty);
             }
@@ -58,7 +61,7 @@ namespace ResoClassAPI.Services
             string token = string.Empty;
 
             var userDetails = dbContext.Users.FirstOrDefault(item =>
-            (item.Email == userDto.UserName || item.PhoneNumber == userDto.UserName) && item.Password == userDto.Password);
+            (item.Email == userDto.UserName || item.PhoneNumber == userDto.UserName) && item.Password == userDto.Password && item.IsActive == true);
 
             if (userDetails != null)
             {
@@ -66,6 +69,7 @@ namespace ResoClassAPI.Services
                 userDetails.Longitude = userDto.Longitude;
                 userDetails.Latitude = userDto.Latitude;
                 userDetails.RegistrationId = userDto.RegistrationId;
+                userDetails.LastLoginDate = DateTime.Now;
 
                 await dbContext.SaveChangesAsync();
                 var role = dbContext.Roles.FirstOrDefault(item => item.Id == userDetails.RoleId).Name;

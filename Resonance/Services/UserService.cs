@@ -3,6 +3,7 @@ using Microsoft.IdentityModel.Tokens;
 using ResoClassAPI.DTOs;
 using ResoClassAPI.Models.Domain;
 using ResoClassAPI.Services.Interfaces;
+using System.Collections.Generic;
 
 namespace ResoClassAPI.Services
 {
@@ -18,9 +19,40 @@ namespace ResoClassAPI.Services
             mapper = _mapper;
         }
 
+        public async Task<List<UserDto>> GetAllUsers()
+        {
+            var users = await Task.FromResult(dbContext.Users.Where(item => item.IsActive == true).ToList());
+            if (users != null && users.Count > 0)
+            {
+                List<UserDto> dtoObjects = new List<UserDto>();     
+                foreach (var user in users)
+                {
+                    var dtoObject = mapper.Map<UserDto>(user);
+                    dtoObject.Role = dbContext.Roles.First(item => item.Id == user.RoleId).Name;
+                    dtoObjects.Add(dtoObject);
+                }
+                return dtoObjects;
+            }
+            else
+                throw new Exception("Not Found");
+        }
+
         public async Task<UserDto> GetUser(int userId)
         {
-            var user = await Task.FromResult(dbContext.Users.FirstOrDefault(item => item.Id == userId));
+            var user = await Task.FromResult(dbContext.Users.FirstOrDefault(item => item.Id == userId && item.IsActive == true));
+            if (user != null)
+            {
+                var dtoObject = mapper.Map<UserDto>(user);
+                dtoObject.Role = dbContext.Roles.First(item => item.Id == user.RoleId).Name;
+                return dtoObject;
+            }
+            else
+                throw new Exception("Not Found");
+        }
+
+        public async Task<UserDto> GetUserWithUserName(string userName)
+        {
+            var user = await Task.FromResult(dbContext.Users.FirstOrDefault(item => (item.Email.ToLower() == userName.ToLower() || item.PhoneNumber.ToLower() == userName.ToLower()) && item.IsActive == true));
             if (user != null)
             {
                 var dtoObject = mapper.Map<UserDto>(user);
@@ -62,7 +94,7 @@ namespace ResoClassAPI.Services
         public async Task<bool> UpdateUser(UserDto updatedUser)
         {
             var currentUser = authService.GetCurrentUser();
-            var existingItem = dbContext.Users.FirstOrDefault(item => item.Id == updatedUser.Id);
+            var existingItem = dbContext.Users.FirstOrDefault(item => item.Id == updatedUser.Id && item.IsActive == true);
 
             if (existingItem != null)
             {
@@ -84,11 +116,24 @@ namespace ResoClassAPI.Services
                 await dbContext.SaveChangesAsync();
                 return true;
             }
-            else
+            return false;
+        }
+
+        public async Task<bool> ChangePassword(int id, string password)
+        {
+            var currentUser = authService.GetCurrentUser();
+            var existingItem = dbContext.Users.FirstOrDefault(item => item.Id == id && item.IsActive == true);
+
+            if (existingItem != null)
             {
-                return false;
-                throw new Exception("Not Found");
+                existingItem.Password = password;
+                existingItem.ModifiedBy = currentUser.Name;
+                existingItem.ModifiedOn = DateTime.Now;
+
+                await dbContext.SaveChangesAsync();
+                return true;
             }
+            return false;
         }
 
         public async Task<bool> DeleteUser(int userId)
@@ -105,10 +150,7 @@ namespace ResoClassAPI.Services
                 await dbContext.SaveChangesAsync();
                 return true;
             }
-            else
-            {
-                throw new Exception("Not Found");
-            }
+            return false;
         }
     }
 }
