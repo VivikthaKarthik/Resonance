@@ -5,7 +5,9 @@ namespace ResoClassAPI.Models.Domain;
 
 public partial class User
 {
-    public int Id { get; set; }
+    public long Id { get; set; }
+
+    public string UserId { get; set; } = null!;
 
     public string? FirstName { get; set; }
 
@@ -15,21 +17,13 @@ public partial class User
 
     public string PhoneNumber { get; set; } = null!;
 
-    public int RoleId { get; set; }
+    public long RoleId { get; set; }
 
     public string Password { get; set; } = null!;
 
-    public string? DeviceId { get; set; }
-
-    public string? RegistrationId { get; set; }
-
-    public string? Longitude { get; set; }
-
-    public string? Latitude { get; set; }
+    public DateTime? LastLoginDate { get; set; }
 
     public bool? IsActive { get; set; }
-
-    public DateTime? LastLoginDate { get; set; }
 
     public string CreatedBy { get; set; } = null!;
 
