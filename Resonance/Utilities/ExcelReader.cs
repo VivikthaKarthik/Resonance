@@ -1,7 +1,4 @@
-﻿using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting.Internal;
-using OfficeOpenXml;
+﻿using OfficeOpenXml;
 using ResoClassAPI.Services.Interfaces;
 using ResoClassAPI.Utilities.Interfaces;
 using System.Data;
@@ -10,45 +7,57 @@ namespace ResoClassAPI.Utilities
 {
     public class ExcelReader : IExcelReader
     {
-        private IConfiguration config;
         private readonly IWebHostEnvironment hostingEnvironment;
         private readonly IAuthService authService;
+        private readonly ICommonService commonService;
 
-        public ExcelReader(IConfiguration configuration, IWebHostEnvironment _hostingEnvironment, IAuthService _authService)
+        public ExcelReader(IWebHostEnvironment _hostingEnvironment, IAuthService _authService
+            ,ICommonService _commonService)
         {
-            config = configuration; 
             hostingEnvironment = _hostingEnvironment;
             authService = _authService;
+            commonService = _commonService;
         }
 
-        public bool BulkUpload(IFormFile file, string tableName)
+        public async Task<bool> BulkUpload(IFormFile file, string tableName)
         {
             bool isUploaded = false;
-            string uploadsFolder = Path.Combine(hostingEnvironment.ContentRootPath, "Uploads");
-            if (!Directory.Exists(uploadsFolder))
-                Directory.CreateDirectory(uploadsFolder);
-
-            string filePath = Path.Combine(uploadsFolder, Guid.NewGuid().ToString() + Path.GetExtension(file.FileName));
-
-            using (FileStream stream = new FileStream(filePath, FileMode.Create))
+            string filePath = string.Empty;
+            try
             {
-                file.CopyTo(stream);
+                string uploadsFolder = Path.Combine(hostingEnvironment.ContentRootPath, "Uploads");
+                if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);
+
+                filePath = Path.Combine(uploadsFolder, Guid.NewGuid().ToString() + Path.GetExtension(file.FileName));
+
+                using (FileStream stream = new FileStream(filePath, FileMode.Create))
+                {
+                    file.CopyTo(stream);
+                }
+
+                var foreignKeyColumns = await commonService.GetForeignKeyColumns(tableName);
+                DataTable dataTable = ReadExcelToDataTable(filePath, tableName, foreignKeyColumns);
+
+                if (dataTable != null && dataTable.Rows.Count > 0)
+                    isUploaded = await commonService.SaveDataToDatabase(tableName, dataTable, foreignKeyColumns);
             }
-
-            DataTable dataTable = ReadExcelToDataTable(filePath, tableName);
-
-            if (dataTable != null && dataTable.Rows.Count > 0)
-                isUploaded = SaveDataToDatabase(tableName, dataTable);
-
-            if (File.Exists(filePath))
-                File.Delete(filePath);
-
+            catch(Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                if (File.Exists(filePath))
+                    File.Delete(filePath);
+            }
             return isUploaded;
         }
 
-        private DataTable ReadExcelToDataTable(string filePath, string tableName)
+        private DataTable ReadExcelToDataTable(string filePath, string tableName, List<string> foreignKeyColumns)
         {
             var currentUser = authService.GetCurrentUser();
+
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using (ExcelPackage package = new ExcelPackage(new FileInfo(filePath)))
             {
@@ -57,10 +66,14 @@ namespace ResoClassAPI.Utilities
 
                 foreach (var firstRowCell in worksheet.Cells[1, 1, 1, worksheet.Dimension.End.Column])
                 {
-                    dataTable.Columns.Add(firstRowCell.Text.Trim());
+                    if (foreignKeyColumns != null && foreignKeyColumns.Contains(firstRowCell.Text.Trim() + "Id"))
+                        dataTable.Columns.Add(firstRowCell.Text.Trim() + "Id");
+                    else
+                        dataTable.Columns.Add(firstRowCell.Text.Trim());
                 }
                 if (tableName == SqlTableName.User)
                 {
+                    dataTable.Columns.Add("IsActive");
                     dataTable.Columns.Add("CreatedBy");
                     dataTable.Columns.Add("CreatedOn");
                     dataTable.Columns.Add("ModifiedBy");
@@ -73,12 +86,13 @@ namespace ResoClassAPI.Utilities
                     DataRow newRow = dataTable.Rows.Add();
 
                     foreach (var cell in row)
-                    {
+                    {                        
                         newRow[cell.Start.Column - 1] = cell.Text;
                     }
 
                     if (tableName == SqlTableName.User)
                     {
+                        newRow["IsActive"] = true;
                         newRow["CreatedBy"] = currentUser.Name;
                         newRow["CreatedOn"] = DateTime.Now.ToString();
                         newRow["ModifiedBy"] = currentUser.Name;
@@ -90,34 +104,5 @@ namespace ResoClassAPI.Utilities
             }
         }
 
-        private bool SaveDataToDatabase(string tableName, DataTable dataTable)
-        {
-            bool isUpdated = false;
-            using (SqlConnection connection = new SqlConnection(config["ConnectionStrings:SqlConnectionString"]))
-            {
-                try
-                {
-                    connection.Open();
-
-                    using (SqlBulkCopy bulkCopy = new SqlBulkCopy(connection))
-                    {
-                        bulkCopy.DestinationTableName = tableName;
-
-                        foreach (DataColumn column in dataTable.Columns)
-                        {
-                            bulkCopy.ColumnMappings.Add(column.ColumnName, column.ColumnName);
-                        }
-
-                        bulkCopy.WriteToServer(dataTable);
-                        isUpdated = true;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception("Error saving data to the database: " + ex.Message);
-                }
-                return isUpdated;
-            }
-        }
     }
 }

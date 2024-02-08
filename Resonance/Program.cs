@@ -48,6 +48,7 @@ builder.Services.AddSwaggerGen(option =>
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ICommonService, CommonService>();
 builder.Services.AddScoped<IExcelReader, ExcelReader>();
 builder.Services.AddSingleton<AuditInterceptor>();
 IMapper mapper = MapperConfig.RegisterMaps().CreateMapper();
@@ -82,8 +83,8 @@ builder.Services.AddDbContext<ResoClassContext>((sp, options) =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+// Configure the HTTP request pipeline. 
+//if (app.Environment.IsDevelopment()) UnComment this line when deploying in Prod
 {
     app.UseSwagger();
     app.UseSwaggerUI();

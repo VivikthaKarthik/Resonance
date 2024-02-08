@@ -30,7 +30,7 @@ namespace ResoClassAPI.Interceptors
                     var properties = entry.Properties.ToList();
                     if (properties.Any(x => x.Metadata.Name == "Id"))
                     {
-                        int primaryKey = Convert.ToInt32(properties.Where(x => x.Metadata.Name == "Id").FirstOrDefault().OriginalValue);
+                        long primaryKey = Convert.ToInt64(properties.Where(x => x.Metadata.Name == "Id").FirstOrDefault().OriginalValue);
 
                         if (properties.Any(x => x.Metadata.Name == "ModifiedBy"))
                             createdBy = properties.Where(x => x.Metadata.Name == "ModifiedBy").FirstOrDefault().OriginalValue.ToString();
@@ -45,10 +45,10 @@ namespace ResoClassAPI.Interceptors
                             {
                                 var auditLog = new Audit
                                 {
-                                    ParentId = primaryKey,
+                                    RecordId = primaryKey,
                                     TableName = tableName,
                                     ColumnName = columnName,
-                                    CreatedDate = DateTime.Now,
+                                    CreatedOn = DateTime.Now,
                                     CreatedBy = createdBy,
                                     OldValue = originalValue,
                                     NewValue = updatedValue

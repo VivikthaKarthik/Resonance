@@ -5,11 +5,11 @@ namespace ResoClassAPI.Models.Domain;
 
 public partial class Audit
 {
-    public int Id { get; set; }
+    public long Id { get; set; }
 
     public string TableName { get; set; } = null!;
 
-    public int ParentId { get; set; }
+    public long RecordId { get; set; }
 
     public string ColumnName { get; set; } = null!;
 
@@ -17,7 +17,7 @@ public partial class Audit
 
     public string NewValue { get; set; } = null!;
 
-    public DateTime CreatedDate { get; set; }
+    public DateTime CreatedOn { get; set; }
 
     public string CreatedBy { get; set; } = null!;
 }

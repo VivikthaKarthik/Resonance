@@ -43,33 +43,53 @@ namespace ResoClassAPI.Services
             string token = string.Empty;
 
             var userDetails = dbContext.Users.FirstOrDefault(item =>
-            (item.Email == userDto.UserName || item.PhoneNumber == userDto.UserName) && item.Password == userDto.Password);
+            (item.Email == userDto.UserName || item.PhoneNumber == userDto.UserName) && item.Password == userDto.Password && item.IsActive == true);
 
             if (userDetails != null)
             {
+                userDetails.LastLoginDate = DateTime.Now;
+                await dbContext.SaveChangesAsync();
+
                 var role = dbContext.Roles.FirstOrDefault(item => item.Id == userDetails.RoleId).Name;
                 token = await GenerateToken(userDetails.FirstName + " " + userDetails.LastName, userDetails.Email, role, userDetails?.Id.ToString(), string.Empty);
             }
             return await Task.FromResult(token);
         }
 
-        public async Task<string> AuthenticateMobileUser(MobileLoginDto userDto)
+        public async Task<string> AuthenticateWebStudent(WebLoginDto userDto)
         {
             string token = string.Empty;
 
-            var userDetails = dbContext.Users.FirstOrDefault(item =>
-            (item.Email == userDto.UserName || item.PhoneNumber == userDto.UserName) && item.Password == userDto.Password);
+            var studentDetails = dbContext.Students.FirstOrDefault(item =>
+            (item.EmailAddress == userDto.UserName || item.MobileNumber == userDto.UserName) && item.Password == userDto.Password && item.IsActive == true);
 
-            if (userDetails != null)
+            if (studentDetails != null)
             {
-                userDetails.DeviceId = userDto.DeviceId;
-                userDetails.Longitude = userDto.Longitude;
-                userDetails.Latitude = userDto.Latitude;
-                userDetails.RegistrationId = userDto.RegistrationId;
+                studentDetails.LastLoginDate = DateTime.Now;
+                await dbContext.SaveChangesAsync();
+
+                token = await GenerateToken(studentDetails.Name, studentDetails.EmailAddress, "", studentDetails?.Id.ToString(), string.Empty);
+            }
+            return await Task.FromResult(token);
+        }
+
+        public async Task<string> AuthenticateMobileStudent(MobileLoginDto userDto)
+        {
+            string token = string.Empty;
+
+            var studentDetails = dbContext.Students.FirstOrDefault(item =>
+            (item.MobileNumber == userDto.UserName || item.EmailAddress.ToLower() == userDto.UserName.ToLower()) && item.Password == userDto.Password && item.IsActive == true);
+
+            if (studentDetails != null)
+            {
+                studentDetails.DeviceId = userDto.DeviceId;
+                studentDetails.Longitude = userDto.Longitude;
+                studentDetails.Latitude = userDto.Latitude;
+                studentDetails.FirebaseId = userDto.RegistrationId;
+                studentDetails.LastLoginDate = DateTime.Now;
 
                 await dbContext.SaveChangesAsync();
-                var role = dbContext.Roles.FirstOrDefault(item => item.Id == userDetails.RoleId).Name;
-                token = await GenerateToken(userDetails.FirstName + " " + userDetails.LastName, userDetails.Email, role, userDetails?.Id.ToString(), userDto.DeviceId);
+                token = await GenerateToken(studentDetails.Name, studentDetails.EmailAddress, "", studentDetails?.Id.ToString(), userDto.DeviceId);
             }
             return await Task.FromResult(token);
         }
