@@ -151,19 +151,43 @@ namespace ResoClassAPI.Controllers
         }
 
         [HttpPost("Upload")]
-        public async Task<IActionResult> UploadExcel(IFormFile file)
+        public async Task<ResponseDto> UploadExcel(IFormFile file)
         {
-            if (file == null || file.Length == 0)
-                return BadRequest("Invalid file.");
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                if (file == null || file.Length == 0)
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Invalid file.";
+                    return responseDto;
+                }
 
-            var extension = "." + file.FileName.Split('.')[file.FileName.Split('.').Length - 1];
-            if (extension != ".xlsx")
-                return BadRequest("Invalid file type.");
+                var extension = "." + file.FileName.Split('.')[file.FileName.Split('.').Length - 1];
+                if (extension != ".xlsx")
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Invalid file type.";
+                    return responseDto;
+                }
 
-            if (await excelReader.BulkUpload(file, SqlTableName.User))
-                return Ok("Data uploaded successfully");
-            else
-                return BadRequest("Some Error occured!. Please check the format and try again");
+                if (await excelReader.BulkUpload(file, SqlTableName.User))
+                {
+                    responseDto.Result = "Data uploaded successfully";
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Some Error occured!. Please check the format and try again";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;           
         }
 
         [HttpPut("{id}")]
