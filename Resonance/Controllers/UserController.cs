@@ -26,31 +26,79 @@ namespace ResoClassAPI.Controllers
             excelReader = _excelReader;
         }
 
-        [HttpPost("Upload")]
-        public IActionResult UploadExcel(IFormFile file)
-        {
-            if (file == null || file.Length == 0)
-                return BadRequest("Invalid file.");
-
-            var extension = "." + file.FileName.Split('.')[file.FileName.Split('.').Length - 1];
-            if (extension != ".xlsx")
-                return BadRequest("Invalid file type.");
-
-            if (excelReader.BulkUpload(file, SqlTableName.User))
-                return Ok("Data uploaded successfully");
-            else
-                return BadRequest("Some Error occured!. Please check the format and try again");
-        }
-
         [HttpGet]
         public async Task<ResponseDto> Get(int userId)
         {
             ResponseDto responseDto = new ResponseDto();
             try
             {
-                logger.LogInformation("GetUser is called");
+                logger.LogInformation("Requested GetUser");
                 var user = await userService.GetUser(userId);
 
+                if (user != null)
+                {
+                    responseDto.Result = user;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
+        [HttpGet]
+        [Route("GetAll")]
+        public async Task<ResponseDto> GetAll()
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                logger.LogInformation("Requested GetAllUsers");
+                var users = await userService.GetAllUsers();
+
+                if (users != null)
+                {
+                    responseDto.Result = users;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
+        [HttpGet]
+        [Route("GetUserWithUserName")]
+        public async Task<ResponseDto> GetUserWithUserName(string userName)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                logger.LogInformation("Requested IsUserExists");
+
+                if (string.IsNullOrEmpty(userName))
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Invalid Request";
+                    return responseDto;
+                }
+                var user = await userService.GetUserWithUserName(userName);
                 if (user != null)
                 {
                     responseDto.Result = user;
@@ -102,6 +150,46 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
+        [HttpPost("Upload")]
+        public async Task<ResponseDto> UploadExcel(IFormFile file)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                if (file == null || file.Length == 0)
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Invalid file.";
+                    return responseDto;
+                }
+
+                var extension = "." + file.FileName.Split('.')[file.FileName.Split('.').Length - 1];
+                if (extension != ".xlsx")
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Invalid file type.";
+                    return responseDto;
+                }
+
+                if (await excelReader.BulkUpload(file, SqlTableName.User))
+                {
+                    responseDto.Result = "Data uploaded successfully";
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Some Error occured!. Please check the format and try again";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;           
+        }
+
         [HttpPut("{id}")]
         public async Task<ResponseDto> Put(int id, UserDto requestDto)
         {
@@ -134,6 +222,39 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
+        [HttpPut]
+        [Route("ChangePassword")]
+        public async Task<ResponseDto> ChangePassword(int id, string password)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                if (id <= 0 || string.IsNullOrEmpty(password))
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Invalid Request";
+                    return responseDto;
+                }
+
+                if (await userService.ChangePassword(id, password))
+                {
+                    responseDto.Result = "Password Updated Successfully";
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Internal Server Error";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
         [HttpDelete("{id}")]
         public async Task<ResponseDto> DeleteCallVolume(int id)
         {
@@ -146,6 +267,11 @@ namespace ResoClassAPI.Controllers
                 {
                     responseDto.IsSuccess = false;
                     responseDto.Message = "Not Found";
+                }
+                else
+                {
+                    responseDto.Result = "User Deleted Successfully";
+                    responseDto.IsSuccess = true;
                 }
             }
             catch (Exception ex)

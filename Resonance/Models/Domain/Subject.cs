@@ -3,11 +3,13 @@ using System.Collections.Generic;
 
 namespace ResoClassAPI.Models.Domain;
 
-public partial class Role
+public partial class Subject
 {
     public long Id { get; set; }
 
     public string Name { get; set; } = null!;
+
+    public string Thumbnail { get; set; } = null!;
 
     public bool IsActive { get; set; }
 
@@ -19,5 +21,7 @@ public partial class Role
 
     public DateTime ModifiedOn { get; set; }
 
-    public virtual ICollection<User> Users { get; } = new List<User>();
+    public virtual ICollection<Chapter> Chapters { get; } = new List<Chapter>();
+
+    public virtual ICollection<ExamResult> ExamResults { get; } = new List<ExamResult>();
 }
