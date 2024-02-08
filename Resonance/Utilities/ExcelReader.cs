@@ -25,41 +25,30 @@ namespace ResoClassAPI.Utilities
             string filePath = string.Empty;
             try
             {
-                string uploadsFolder = Path.Combine(hostingEnvironment.ContentRootPath, "Uploads");
-                if (!Directory.Exists(uploadsFolder))
-                    Directory.CreateDirectory(uploadsFolder);
-
-                filePath = Path.Combine(uploadsFolder, Guid.NewGuid().ToString() + Path.GetExtension(file.FileName));
-
-                using (FileStream stream = new FileStream(filePath, FileMode.Create))
+                using (var stream = new MemoryStream())
                 {
-                    file.CopyTo(stream);
+                    await file.CopyToAsync(stream);
+                    stream.Position = 0;
+
+                    var foreignKeyColumns = await commonService.GetForeignKeyColumns(tableName);
+                    DataTable dataTable = ReadExcelToDataTable(stream, tableName, foreignKeyColumns);
+                    if (dataTable != null && dataTable.Rows.Count > 0)
+                        isUploaded = await commonService.SaveDataToDatabase(tableName, dataTable, foreignKeyColumns);
                 }
-
-                var foreignKeyColumns = await commonService.GetForeignKeyColumns(tableName);
-                DataTable dataTable = ReadExcelToDataTable(filePath, tableName, foreignKeyColumns);
-
-                if (dataTable != null && dataTable.Rows.Count > 0)
-                    isUploaded = await commonService.SaveDataToDatabase(tableName, dataTable, foreignKeyColumns);
             }
             catch(Exception ex)
             {
                 throw ex;
             }
-            finally
-            {
-                if (File.Exists(filePath))
-                    File.Delete(filePath);
-            }
             return isUploaded;
         }
 
-        private DataTable ReadExcelToDataTable(string filePath, string tableName, List<string> foreignKeyColumns)
+        private DataTable ReadExcelToDataTable(Stream stream, string tableName, List<string> foreignKeyColumns)
         {
             var currentUser = authService.GetCurrentUser();
 
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-            using (ExcelPackage package = new ExcelPackage(new FileInfo(filePath)))
+            using (ExcelPackage package = new ExcelPackage(stream))
             {
                 ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
                 DataTable dataTable = new DataTable();
