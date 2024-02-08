@@ -310,15 +310,10 @@ public partial class ResoClassContext : DbContext
 
             entity.ToTable("User");
 
-            entity.HasIndex(e => e.UserId, "UQ__User__1788CC4D8E078A27").IsUnique();
-
             entity.Property(e => e.CreatedBy).HasMaxLength(50);
             entity.Property(e => e.CreatedOn).HasColumnType("datetime");
             entity.Property(e => e.Email).HasMaxLength(128);
             entity.Property(e => e.FirstName).HasMaxLength(50);
-            entity.Property(e => e.IsActive)
-                .IsRequired()
-                .HasDefaultValueSql("((1))");
             entity.Property(e => e.LastLoginDate).HasColumnType("datetime");
             entity.Property(e => e.LastName).HasMaxLength(50);
             entity.Property(e => e.ModifiedBy).HasMaxLength(50);
@@ -327,7 +322,6 @@ public partial class ResoClassContext : DbContext
                 .HasMaxLength(128)
                 .HasDefaultValueSql("('Resonance@123')");
             entity.Property(e => e.PhoneNumber).HasMaxLength(20);
-            entity.Property(e => e.UserId).HasMaxLength(128);
 
             entity.HasOne(d => d.Role).WithMany(p => p.Users)
                 .HasForeignKey(d => d.RoleId)

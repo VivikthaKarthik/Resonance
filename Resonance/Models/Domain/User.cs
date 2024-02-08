@@ -7,11 +7,9 @@ public partial class User
 {
     public long Id { get; set; }
 
-    public string UserId { get; set; } = null!;
+    public string FirstName { get; set; } = null!;
 
-    public string? FirstName { get; set; }
-
-    public string? LastName { get; set; }
+    public string LastName { get; set; } = null!;
 
     public string Email { get; set; } = null!;
 
@@ -23,7 +21,7 @@ public partial class User
 
     public DateTime? LastLoginDate { get; set; }
 
-    public bool? IsActive { get; set; }
+    public bool IsActive { get; set; }
 
     public string CreatedBy { get; set; } = null!;
 

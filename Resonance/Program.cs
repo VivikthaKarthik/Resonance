@@ -48,6 +48,7 @@ builder.Services.AddSwaggerGen(option =>
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ICommonService, CommonService>();
 builder.Services.AddScoped<IExcelReader, ExcelReader>();
 builder.Services.AddSingleton<AuditInterceptor>();
 IMapper mapper = MapperConfig.RegisterMaps().CreateMapper();

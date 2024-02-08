@@ -2,6 +2,6 @@
 {
     public static class SqlTableName
     {
-        public const string User = "ResoUser";
+        public const string User = "User";
     }
 }

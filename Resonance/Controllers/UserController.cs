@@ -151,7 +151,7 @@ namespace ResoClassAPI.Controllers
         }
 
         [HttpPost("Upload")]
-        public IActionResult UploadExcel(IFormFile file)
+        public async Task<IActionResult> UploadExcel(IFormFile file)
         {
             if (file == null || file.Length == 0)
                 return BadRequest("Invalid file.");
@@ -160,7 +160,7 @@ namespace ResoClassAPI.Controllers
             if (extension != ".xlsx")
                 return BadRequest("Invalid file type.");
 
-            if (excelReader.BulkUpload(file, SqlTableName.User))
+            if (await excelReader.BulkUpload(file, SqlTableName.User))
                 return Ok("Data uploaded successfully");
             else
                 return BadRequest("Some Error occured!. Please check the format and try again");

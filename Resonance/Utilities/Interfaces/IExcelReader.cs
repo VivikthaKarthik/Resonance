@@ -2,6 +2,6 @@
 {
     public interface IExcelReader
     {
-        bool BulkUpload(IFormFile file, string tableName);
+        Task<bool> BulkUpload(IFormFile file, string tableName);
     }
 }
