@@ -118,5 +118,7 @@ namespace ResoClassAPI.Services
 
             return await Task.FromResult(new JwtSecurityTokenHandler().WriteToken(token));
         }
+
+        
     }
 }
