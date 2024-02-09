@@ -60,14 +60,12 @@ namespace ResoClassAPI.Utilities
                     else
                         dataTable.Columns.Add(firstRowCell.Text.Trim());
                 }
-                if (tableName == SqlTableName.User)
-                {
-                    dataTable.Columns.Add("IsActive");
-                    dataTable.Columns.Add("CreatedBy");
-                    dataTable.Columns.Add("CreatedOn");
-                    dataTable.Columns.Add("ModifiedBy");
-                    dataTable.Columns.Add("ModifiedOn");
-                }
+
+                dataTable.Columns.Add("IsActive");
+                dataTable.Columns.Add("CreatedBy");
+                dataTable.Columns.Add("CreatedOn");
+                dataTable.Columns.Add("ModifiedBy");
+                dataTable.Columns.Add("ModifiedOn");
 
                 for (int rowNumber = 2; rowNumber <= worksheet.Dimension.End.Row; rowNumber++)
                 {
@@ -79,14 +77,11 @@ namespace ResoClassAPI.Utilities
                         newRow[cell.Start.Column - 1] = cell.Text;
                     }
 
-                    if (tableName == SqlTableName.User)
-                    {
-                        newRow["IsActive"] = true;
-                        newRow["CreatedBy"] = currentUser.Name;
-                        newRow["CreatedOn"] = DateTime.Now.ToString();
-                        newRow["ModifiedBy"] = currentUser.Name;
-                        newRow["ModifiedOn"] = DateTime.Now.ToString();
-                    }
+                    newRow["IsActive"] = true;
+                    newRow["CreatedBy"] = currentUser.Name;
+                    newRow["CreatedOn"] = DateTime.Now.ToString();
+                    newRow["ModifiedBy"] = currentUser.Name;
+                    newRow["ModifiedOn"] = DateTime.Now.ToString();
                 }
 
                 return dataTable;
