@@ -46,9 +46,16 @@ builder.Services.AddSwaggerGen(option =>
     });
 });
 
+
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICommonService, CommonService>();
+builder.Services.AddScoped<ISubjectService, SubjectService>();
+builder.Services.AddScoped<IChapterService, ChapterService>();
+builder.Services.AddScoped<ITopicService, TopicService>();
+builder.Services.AddScoped<ISubTopicService, SubTopicService>();
+builder.Services.AddScoped<IVideoService, VideoService>();
+builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<IExcelReader, ExcelReader>();
 builder.Services.AddSingleton<AuditInterceptor>();
 IMapper mapper = MapperConfig.RegisterMaps().CreateMapper();
