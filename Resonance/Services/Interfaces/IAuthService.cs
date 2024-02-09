@@ -7,7 +7,7 @@ namespace ResoClassAPI.Services.Interfaces
     {
         CurrentUser GetCurrentUser();
         Task<string> AuthenticateWebUser(WebLoginDto user);
-        Task<string> AuthenticateWebStudent(WebLoginDto user);
-        Task<string> AuthenticateMobileStudent(MobileLoginDto user);
+        Task<StudentLoginResponseDto> AuthenticateWebStudent(WebLoginDto user);
+        Task<StudentLoginResponseDto> AuthenticateMobileStudent(MobileLoginDto user);
     }
 }

@@ -3,7 +3,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using OfficeOpenXml.FormulaParsing.LexicalAnalysis;
 using ResoClassAPI.DTOs;
+using ResoClassAPI.Models.Domain;
+using ResoClassAPI.Services;
 using ResoClassAPI.Services.Interfaces;
 
 namespace ResoClassAPI.Controllers
@@ -47,41 +50,79 @@ namespace ResoClassAPI.Controllers
         [AllowAnonymous]
         [HttpPost]
         [Route("Student/Authenticate")]
-        public async Task<IActionResult> AuthenticateWebStudent(WebLoginDto user)
+        public async Task<ResponseDto> AuthenticateWebStudent(WebLoginDto student)
         {
-            _logger.LogInformation("New Login Request");
-            IActionResult response = Unauthorized("Invalid Credentials");
-
-            if (user != null && !string.IsNullOrEmpty(user.UserName) && !string.IsNullOrEmpty(user.Password))
+            ResponseDto responseDto = new ResponseDto();
+            try
             {
-                var token = await _authService.AuthenticateWebStudent(user);
+                _logger.LogInformation("Student Login Requested from Web");
 
-                if (!string.IsNullOrEmpty(token))
+                if (student != null && !string.IsNullOrEmpty(student.UserName) && !string.IsNullOrEmpty(student.Password))
                 {
-                    response = Ok(new { token = token });
+                    var studentDetails = await _authService.AuthenticateWebStudent(student);
+
+                    if (studentDetails != null && !string.IsNullOrEmpty(studentDetails.Token))
+                    {
+                        responseDto.Result = studentDetails;
+                        responseDto.IsSuccess = true;
+                    }
+                    else
+                    {
+                        responseDto.IsSuccess = false;
+                        responseDto.Message = "Invalid Credentials";
+                    }
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Invalid Credentials";
                 }
             }
-            return response;
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
         }
 
         [AllowAnonymous]
         [HttpPost]
         [Route("Student/Mobile/Authenticate")]
-        public async Task<IActionResult> AuthenticateMobileStudent(MobileLoginDto user)
+        public async Task<ResponseDto> AuthenticateMobileStudent(MobileLoginDto student)
         {
-            _logger.LogInformation("New Login Request");
-            IActionResult response = Unauthorized("Invalid Credentials");
-
-            if (user != null && !string.IsNullOrEmpty(user.UserName) && !string.IsNullOrEmpty(user.Password))
+            ResponseDto responseDto = new ResponseDto();
+            try
             {
-                var token = await _authService.AuthenticateMobileStudent(user);
+                _logger.LogInformation("Student Login Requested from Mobile");
 
-                if (!string.IsNullOrEmpty(token))
+                if (student != null && !string.IsNullOrEmpty(student.UserName) && !string.IsNullOrEmpty(student.Password))
                 {
-                    response = Ok(new { token = token });
+                    var studentDetails = await _authService.AuthenticateMobileStudent(student);
+
+                    if (studentDetails != null && !string.IsNullOrEmpty(studentDetails.Token))
+                    {
+                        responseDto.Result = studentDetails;
+                        responseDto.IsSuccess = true;
+                    }
+                    else
+                    {
+                        responseDto.IsSuccess = false;
+                        responseDto.Message = "Invalid Credentials";
+                    }
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Invalid Credentials";
                 }
             }
-            return response;
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
         }
     }
 }

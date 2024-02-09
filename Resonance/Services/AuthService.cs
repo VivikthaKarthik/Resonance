@@ -56,42 +56,62 @@ namespace ResoClassAPI.Services
             return await Task.FromResult(token);
         }
 
-        public async Task<string> AuthenticateWebStudent(WebLoginDto userDto)
+        public async Task<StudentLoginResponseDto> AuthenticateWebStudent(WebLoginDto userDto)
         {
-            string token = string.Empty;
+            StudentLoginResponseDto response = new StudentLoginResponseDto();
 
             var studentDetails = dbContext.Students.FirstOrDefault(item =>
-            (item.EmailAddress == userDto.UserName || item.MobileNumber == userDto.UserName) && item.Password == userDto.Password && item.IsActive == true);
+            (item.MobileNumber == userDto.UserName || item.EmailAddress.ToLower() == userDto.UserName.ToLower() || item.AdmissionId.ToLower() == userDto.UserName.ToLower()) && item.Password == userDto.Password && item.IsActive == true);
 
             if (studentDetails != null)
             {
                 studentDetails.LastLoginDate = DateTime.Now;
                 await dbContext.SaveChangesAsync();
 
-                token = await GenerateToken(studentDetails.Name, studentDetails.EmailAddress, "", studentDetails?.Id.ToString(), string.Empty);
+                response.StudentId = studentDetails.Id;
+                response.Name = studentDetails.Name;
+
+                if (dbContext.Courses.Any(x => x.Id == studentDetails.CourseId))
+                {
+                    var courseDetails = dbContext.Courses.Where(x => x.Id == studentDetails.CourseId).First();
+                    response.CourseId = courseDetails.Id;
+                    response.CourseName = courseDetails.Name;
+                }
+
+                response.Token = await GenerateToken(studentDetails.Name, studentDetails.EmailAddress, "", studentDetails?.Id.ToString(), string.Empty);
             }
-            return await Task.FromResult(token);
+            return await Task.FromResult(response);
         }
 
-        public async Task<string> AuthenticateMobileStudent(MobileLoginDto userDto)
+        public async Task<StudentLoginResponseDto> AuthenticateMobileStudent(MobileLoginDto userDto)
         {
-            string token = string.Empty;
+            StudentLoginResponseDto response = new StudentLoginResponseDto();
 
             var studentDetails = dbContext.Students.FirstOrDefault(item =>
-            (item.MobileNumber == userDto.UserName || item.EmailAddress.ToLower() == userDto.UserName.ToLower()) && item.Password == userDto.Password && item.IsActive == true);
+            (item.MobileNumber == userDto.UserName || item.EmailAddress.ToLower() == userDto.UserName.ToLower() || item.AdmissionId.ToLower() == userDto.UserName.ToLower()) && item.Password == userDto.Password && item.IsActive == true);
 
             if (studentDetails != null)
             {
                 studentDetails.DeviceId = userDto.DeviceId;
                 studentDetails.Longitude = userDto.Longitude;
                 studentDetails.Latitude = userDto.Latitude;
-                studentDetails.FirebaseId = userDto.RegistrationId;
+                studentDetails.FirebaseId = userDto.FireBaseId;
                 studentDetails.LastLoginDate = DateTime.Now;
 
                 await dbContext.SaveChangesAsync();
-                token = await GenerateToken(studentDetails.Name, studentDetails.EmailAddress, "", studentDetails?.Id.ToString(), userDto.DeviceId);
+
+                response.StudentId = studentDetails.Id;
+                response.Name = studentDetails.Name;
+
+                if (dbContext.Courses.Any(x => x.Id == studentDetails.CourseId))
+                {
+                    var courseDetails = dbContext.Courses.Where(x => x.Id == studentDetails.CourseId).First();
+                    response.CourseId = courseDetails.Id;
+                    response.CourseName = courseDetails.Name;
+                }
+                response.Token = await GenerateToken(studentDetails.Name, studentDetails.EmailAddress, "", studentDetails?.Id.ToString(), userDto.DeviceId);
             }
-            return await Task.FromResult(token);
+            return await Task.FromResult(response);
         }
 
         private async Task<string> GenerateToken(string email, string userName, string role, string userId, string deviceId)
@@ -116,7 +136,7 @@ namespace ResoClassAPI.Services
                 signingCredentials: credentials
                 );
 
-            return await Task.FromResult(new JwtSecurityTokenHandler().WriteToken(token));
+            return await Task.FromResult("bearer " + new JwtSecurityTokenHandler().WriteToken(token));
         }
     }
 }

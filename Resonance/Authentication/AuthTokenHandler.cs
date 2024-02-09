@@ -6,6 +6,7 @@ using System.Text.Encodings.Web;
 using System.Text;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
+using ResoClassAPI.Models.Domain;
 
 namespace ResoClassAPI.Authentication
 {
@@ -13,11 +14,14 @@ namespace ResoClassAPI.Authentication
     {
         private readonly string AuthorizationText = "Authorization";
         private IConfiguration _config;
+        private readonly ResoClassContext dbContext;
 
         public AuthTokenHandler(IOptionsMonitor<AuthenticationSchemeOptions> options,
-            ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock, IConfiguration configuration) : base(options, logger, encoder, clock)
+            ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock, IConfiguration configuration, ResoClassContext _dbContext) : 
+            base(options, logger, encoder, clock)
         {
             this._config = configuration;
+            dbContext = _dbContext;
         }
 
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -68,11 +72,26 @@ namespace ResoClassAPI.Authentication
                 }
                 else
                 {
-                    //var nameClaim = token.Claims.Where(t => t.Type == ClaimTypes.Name).FirstOrDefault();
-                    //var roleClaim = token.Claims.Where(t => t.Type == ClaimTypes.Role).FirstOrDefault();
+                    var deviceId = token.Claims.Where(t => t.Type == "DeviceId").FirstOrDefault();
 
-                    //if (nameClaim != null)
-                    result = AuthenticateResult.Success(GetAuthenticationTicket(token.Claims.ToList()));
+                    if (deviceId == null || string.IsNullOrEmpty(deviceId.Value))
+                    {
+                        result = AuthenticateResult.Success(GetAuthenticationTicket(token.Claims.ToList()));
+                    }
+                    else
+                    {
+                        var studentId = token.Claims.Where(t => t.Type == ClaimTypes.Sid).FirstOrDefault();
+
+                        if(studentId != null && !string.IsNullOrEmpty(studentId.Value) && dbContext.Students.Any(x => 
+                        x.Id == Convert.ToInt64(studentId.Value) && x.DeviceId == deviceId.Value.ToString()))
+                        {
+                            result = AuthenticateResult.Success(GetAuthenticationTicket(token.Claims.ToList()));
+                        }
+                        else
+                        {
+                            result = AuthenticateResult.Fail("Device is not registered with the User");
+                        }
+                    }
                 }
 
             }
