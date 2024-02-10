@@ -26,7 +26,9 @@ namespace ResoClassAPI.Controllers
             logger = _logger;
             excelReader = _excelReader;
         }
+
         [HttpGet]
+        [Route("api/Admin/Topic/Get")]
         public async Task<ResponseDto> Get(int Id)
         {
             ResponseDto responseDto = new ResponseDto();
@@ -55,7 +57,7 @@ namespace ResoClassAPI.Controllers
         }
 
         [HttpGet]
-        [Route("GetAll")]
+        [Route("api/Admin/Topic/GetAll")]
         public async Task<ResponseDto> GetAll()
         {
             ResponseDto responseDto = new ResponseDto();
@@ -86,6 +88,7 @@ namespace ResoClassAPI.Controllers
 
 
         [HttpPost]
+        [Route("api/Admin/Topic/Create")]
         public async Task<ResponseDto> Post(TopicDto requestDto)
         {
             ResponseDto responseDto = new ResponseDto();
@@ -118,7 +121,8 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
-        [HttpPost("Upload")]
+        [HttpPost]
+        [Route("api/Admin/Topic/Upload")]
         public async Task<ResponseDto> UploadExcel(IFormFile file)
         {
             ResponseDto responseDto = new ResponseDto();
@@ -158,8 +162,9 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
-        [HttpPut("{id}")]
-        public async Task<ResponseDto> Put(int id, TopicDto requestDto)
+        [HttpPut]
+        [Route("api/Admin/Topic/Update/{id}")]
+        public async Task<ResponseDto> Put(long id, TopicDto requestDto)
         {
             ResponseDto responseDto = new ResponseDto();
             try
@@ -190,9 +195,8 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
-
-
-        [HttpDelete("{id}")]
+        [HttpDelete]
+        [Route("api/Admin/Topic/Delete/{id}")]
         public async Task<ResponseDto> Delete(int id)
         {
             ResponseDto responseDto = new ResponseDto();
