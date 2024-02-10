@@ -228,13 +228,13 @@ namespace ResoClassAPI.Controllers
         #region Student
 
         [HttpGet]
-        [Route("api/Student/SubTopic/GetByTopicId")]
-        public async Task<ResponseDto> GetByTopicId(long topicId)
+        [Route("api/Student/SubTopic/GetSubTopicsByTopicId")]
+        public async Task<ResponseDto> GetSubTopicsByTopicId(long topicId)
         {
             ResponseDto responseDto = new ResponseDto();
             try
             {
-                logger.LogInformation("Requested GetTopic");
+                logger.LogInformation("Requested GetSubTopicsByTopicId");
                 var subTopics = await subtopicService.GetByTopicId(topicId);
 
                 if (subTopics != null && subTopics.Count > 0)
@@ -258,13 +258,13 @@ namespace ResoClassAPI.Controllers
 
 
         [HttpGet]
-        [Route("api/Student/SubTopic/GetById")]
-        public async Task<ResponseDto> GetById(long Id)
+        [Route("api/Student/SubTopic/GetSubTopicById")]
+        public async Task<ResponseDto> GetSubTopicById(long Id)
         {
             ResponseDto responseDto = new ResponseDto();
             try
             {
-                logger.LogInformation("Requested GetTopic");
+                logger.LogInformation("Requested GetSubTopicById");
                 var chapter = await subtopicService.GetSubTopic(Id);
 
                 if (chapter != null)

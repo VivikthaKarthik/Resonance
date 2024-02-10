@@ -228,13 +228,13 @@ namespace ResoClassAPI.Controllers
 
 
         [HttpGet]
-        [Route("api/Student/Chapter/GetRecommendedByCourseId")]
-        public async Task<ResponseDto> GetRecommendedByCourseId(long courseId)
+        [Route("api/Student/Chapter/GetRecommendedChaptersByCourseId")]
+        public async Task<ResponseDto> GetRecommendedChaptersByCourseId(long courseId)
         {
             ResponseDto responseDto = new ResponseDto();
             try
             {
-                logger.LogInformation("Requested GetRecommendedByCourseId");
+                logger.LogInformation("Requested GetRecommendedChaptersByCourseId");
                 var users = await chapterService.GetRecommendedChaptersWithCourseId(courseId);
 
                 if (users != null)
@@ -258,13 +258,13 @@ namespace ResoClassAPI.Controllers
 
 
         [HttpGet]
-        [Route("api/Student/Chapter/GetBySubjectId")]
-        public async Task<ResponseDto> GetBySubjectId(long subjectId)
+        [Route("api/Student/Chapter/GetChaptersBySubjectId")]
+        public async Task<ResponseDto> GetChaptersBySubjectId(long subjectId)
         {
             ResponseDto responseDto = new ResponseDto();
             try
             {
-                logger.LogInformation("Requested GetBySubjectId");
+                logger.LogInformation("Requested GetChaptersBySubjectId");
                 var users = await chapterService.GetChaptersWithSubjectId(subjectId);
 
                 if (users != null)

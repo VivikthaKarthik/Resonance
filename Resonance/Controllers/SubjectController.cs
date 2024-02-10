@@ -228,13 +228,13 @@ namespace ResoClassAPI.Controllers
 
 
         [HttpGet]
-        [Route("api/Student/Subject/GetByCourseId")]
-        public async Task<ResponseDto> GetByCourseId(long courseId)
+        [Route("api/Student/Subject/GetSubjectsByCourseId")]
+        public async Task<ResponseDto> GetSubjectsByCourseId(long courseId)
         {
             ResponseDto responseDto = new ResponseDto();
             try
             {
-                logger.LogInformation("Requested GetByCourseId");
+                logger.LogInformation("Requested GetSubjectsByCourseId");
                 var subjects = await subjectService.GetSubjectsWithCourseId(courseId);
 
                 if (subjects != null && subjects.Count > 0)
