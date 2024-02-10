@@ -28,6 +28,32 @@ namespace ResoClassAPI.Services
             if (currentUser != null)
             {
                 Video newvideo = mapper.Map<Video>(newItem);
+
+
+                if (newItem.SubTopicId > 0)
+                {
+                    if (dbContext.SubTopics.Any(x => x.Id == newItem.SubTopicId))
+                        newvideo.SubTopicId = newItem.SubTopicId;
+                    else
+                        throw new Exception("Invalid SubTopicId");
+                }
+
+                if (newItem.TopicId > 0)
+                {
+                    if (dbContext.Topics.Any(x => x.Id == newItem.TopicId))
+                        newvideo.TopicId = newItem.TopicId;
+                    else
+                        throw new Exception("Invalid TopicId");
+                }
+
+                if (newItem.ChapterId > 0)
+                {
+                    if (dbContext.Chapters.Any(x => x.Id == newItem.ChapterId))
+                        newvideo.ChapterId = newItem.ChapterId;
+                    else
+                        throw new Exception("Invalid ChapterId");
+                }
+
                 newvideo.IsActive = true;
                 newvideo.CreatedBy = newvideo.ModifiedBy = currentUser.Name;
                 newvideo.CreatedOn = newvideo.ModifiedOn = DateTime.Now;
@@ -39,7 +65,7 @@ namespace ResoClassAPI.Services
             return 0;
         }
 
-        public async Task<bool> DeleteVideo(int Id)
+        public async Task<bool> DeleteVideo(long Id)
         {
             var currentUser = authService.GetCurrentUser();
             var existingItem = dbContext.Videos.FirstOrDefault(item => item.Id == Id);
@@ -74,7 +100,7 @@ namespace ResoClassAPI.Services
                 throw new Exception("Not Found");
         }
 
-        public async Task<VideoDto> GetVideo(int Id)
+        public async Task<VideoDto> GetVideo(long Id)
         {
             var vrVideos = await Task.FromResult(dbContext.Videos.FirstOrDefault(item => item.Id == Id && item.IsActive == true));
             if (vrVideos != null)
@@ -97,19 +123,43 @@ namespace ResoClassAPI.Services
                 {
                     if (!string.IsNullOrEmpty(updatedItem.Title))
                         existingItem.Title = updatedItem.Title;
+
                     if (!string.IsNullOrEmpty(updatedItem.Description))
                         existingItem.Description = updatedItem.Description;
+
                     if (!string.IsNullOrEmpty(updatedItem.ThumbNail))
                         existingItem.ThumbNail = updatedItem.ThumbNail;
+
                     if (!string.IsNullOrEmpty(updatedItem.SourceUrl))
                         existingItem.SourceUrl = updatedItem.SourceUrl;
-                    existingItem.SubTopicId = updatedItem.SubTopicId;
-                    existingItem.TopicId = updatedItem.TopicId;
-                    existingItem.ChapterId = updatedItem.ChapterId;
-                    existingItem.TopicId = updatedItem.TopicId;
+
+                    if (updatedItem.SubTopicId > 0)
+                    {
+                        if (dbContext.SubTopics.Any(x => x.Id == updatedItem.SubTopicId))
+                            existingItem.SubTopicId = updatedItem.SubTopicId;
+                        else
+                            throw new Exception("Invalid SubTopicId");
+                    }
+
+                    if (updatedItem.TopicId > 0)
+                    {
+                        if (dbContext.Topics.Any(x => x.Id == updatedItem.TopicId))
+                            existingItem.TopicId = updatedItem.TopicId;
+                        else
+                            throw new Exception("Invalid TopicId");
+                    }
+
+                    if (updatedItem.ChapterId > 0)
+                    {
+                        if (dbContext.Chapters.Any(x => x.Id == updatedItem.ChapterId))
+                            existingItem.ChapterId = updatedItem.ChapterId;
+                        else
+                            throw new Exception("Invalid ChapterId");
+                    }
+
                     if (!string.IsNullOrEmpty(updatedItem.HomeDisplay))
                         existingItem.HomeDisplay = updatedItem.HomeDisplay;
-                    existingItem.IsActive = true;
+
                     existingItem.ModifiedBy = currentUser.Name;
                     existingItem.ModifiedOn = DateTime.Now;
 

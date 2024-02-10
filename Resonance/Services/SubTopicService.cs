@@ -94,6 +94,17 @@ namespace ResoClassAPI.Services
             if (currentUser != null)
             {
                 SubTopic newSbTopic = mapper.Map<SubTopic>(subTopic);
+
+                if (subTopic.TopicId > 0)
+                {
+                    if (dbContext.SubTopics.Any(x => x.Id == subTopic.TopicId))
+                        newSbTopic.TopicId = subTopic.TopicId;
+                    else
+                        throw new Exception("Invalid TopicId");
+                }
+                else
+                    throw new Exception("TopicId is missing");
+
                 newSbTopic.IsActive = true;
                 newSbTopic.CreatedBy = newSbTopic.ModifiedBy = currentUser.Name;
                 newSbTopic.CreatedOn = newSbTopic.ModifiedOn = DateTime.Now;
@@ -114,10 +125,16 @@ namespace ResoClassAPI.Services
                 {
                     if (!string.IsNullOrEmpty(updatedSbTopic.Name))
                         existingItem.Name = updatedSbTopic.Name;
-                    existingItem.TopicId = updatedSbTopic.TopicId;
                     if (!string.IsNullOrEmpty(updatedSbTopic.Thumbnail))
                         existingItem.Thumbnail = updatedSbTopic.Thumbnail;
-                    existingItem.IsActive = true;
+
+                    if (updatedSbTopic.TopicId > 0)
+                    {
+                        if (dbContext.Topics.Any(x => x.Id == updatedSbTopic.TopicId))
+                            existingItem.TopicId = updatedSbTopic.TopicId;
+                        else
+                            throw new Exception("Invalid SubjectId");
+                    }
                     existingItem.ModifiedBy = currentUser.Name;
                     existingItem.ModifiedOn = DateTime.Now;
 

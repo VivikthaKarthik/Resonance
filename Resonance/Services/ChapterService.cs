@@ -43,17 +43,18 @@ namespace ResoClassAPI.Services
 
             if (currentUser != null)
             {
+                Chapter newChapter = mapper.Map<Chapter>(chapter);
+
                 if (chapter.SubjectId > 0)
                 {
                     if (dbContext.Subjects.Any(x => x.Id == chapter.SubjectId))
-                        chapter.SubjectId = chapter.SubjectId;
+                        newChapter.SubjectId = chapter.SubjectId;
                     else
                         throw new Exception("Invalid SubjectId");
                 }
                 else
                     throw new Exception("SubjectId is missing");
 
-                Chapter newChapter = mapper.Map<Chapter>(chapter);
                 newChapter.IsActive = true;
                 newChapter.CreatedBy = newChapter.ModifiedBy = currentUser.Name;
                 newChapter.CreatedOn = newChapter.ModifiedOn = DateTime.Now;

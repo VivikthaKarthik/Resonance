@@ -47,6 +47,17 @@ namespace ResoClassAPI.Services
             if (currentUser != null)
             {
                 Topic newTopic = mapper.Map<Topic>(topic);
+
+                if (topic.ChapterId > 0)
+                {
+                    if (dbContext.Chapters.Any(x => x.Id == topic.ChapterId))
+                        newTopic.ChapterId = topic.ChapterId;
+                    else
+                        throw new Exception("Invalid ChapterId");
+                }
+                else
+                    throw new Exception("ChapterId is missing");
+
                 newTopic.IsActive = true;
                 newTopic.CreatedBy = newTopic.ModifiedBy = currentUser.Name;
                 newTopic.CreatedOn = newTopic.ModifiedOn = DateTime.Now;
@@ -68,14 +79,20 @@ namespace ResoClassAPI.Services
                 {
                     if (!string.IsNullOrEmpty(updatedTopic.Name))
                         existingItem.Name = updatedTopic.Name;
-                    existingItem.ChapterId = updatedTopic.ChapterId;
+
                     if (!string.IsNullOrEmpty(updatedTopic.Thumbnail))
                         existingItem.Thumbnail = updatedTopic.Thumbnail;
-                    existingItem.IsActive = true;
-                    if (!string.IsNullOrEmpty(currentUser.Name))
-                        existingItem.ModifiedBy = currentUser.Name;
-                    existingItem.ModifiedOn = DateTime.Now;
 
+                    if (updatedTopic.ChapterId > 0)
+                    {
+                        if (dbContext.Chapters.Any(x => x.Id == updatedTopic.ChapterId))
+                            existingItem.ChapterId = updatedTopic.ChapterId;
+                        else
+                            throw new Exception("Invalid ChapterId");
+                    }
+
+                    existingItem.ModifiedBy = currentUser.Name;
+                    existingItem.ModifiedOn = DateTime.Now;
                     await dbContext.SaveChangesAsync();
                     return true;
                 }
@@ -83,10 +100,10 @@ namespace ResoClassAPI.Services
             
             return false;
         }
-        public async Task<bool> DeleteTopic(int topicId)
+        public async Task<bool> DeleteTopic(long topicId)
         {
             var currentUser = authService.GetCurrentUser();
-            var existingItem = dbContext.Topics.FirstOrDefault(item => item.Id == topicId);
+            var existingItem = dbContext.Topics.FirstOrDefault(item => item.Id == topicId && item.IsActive == true);
 
             if (existingItem != null)
             {
@@ -100,13 +117,12 @@ namespace ResoClassAPI.Services
             return false;
         }
 
-        public async Task<TopicDto> GetTopic(int topicId)
+        public async Task<TopicDto> GetTopic(long topicId)
         {
             var topic = await Task.FromResult(dbContext.Topics.FirstOrDefault(item => item.Id == topicId && item.IsActive == true));
             if (topic != null)
             {
                 var dtoObject = mapper.Map<TopicDto>(topic);
-                //dtoObject.Role = dbContext.Roles.First(item => item.Id == user.RoleId).Name;
                 return dtoObject;
             }
             else

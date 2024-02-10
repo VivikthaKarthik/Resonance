@@ -38,10 +38,10 @@ namespace ResoClassAPI.Services
             return 0;
         }
 
-        public async Task<bool> DeleteCourse(int courseId)
+        public async Task<bool> DeleteCourse(long courseId)
         {
             var currentUser = authService.GetCurrentUser();
-            var existingItem = dbContext.Courses.FirstOrDefault(item => item.Id == courseId);
+            var existingItem = dbContext.Courses.FirstOrDefault(item => item.Id == courseId && item.IsActive == true);
 
             if (existingItem != null)
             {
@@ -74,7 +74,7 @@ namespace ResoClassAPI.Services
 
         }
 
-        public async Task<CourseDto> GetCourse(int courseId)
+        public async Task<CourseDto> GetCourse(long courseId)
         {
             var course = await Task.FromResult(dbContext.Courses.FirstOrDefault(item => item.Id == courseId && item.IsActive == true));
             if (course != null)
@@ -99,7 +99,6 @@ namespace ResoClassAPI.Services
                 if (!string.IsNullOrEmpty(updatedCourse.Thumbnail))
                     existingItem.Thumbnail = updatedCourse.Thumbnail;
 
-                existingItem.IsActive = true;
                 existingItem.ModifiedBy = currentUser.Name;
                 existingItem.ModifiedOn = DateTime.Now;
 
