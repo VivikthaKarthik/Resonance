@@ -28,11 +28,11 @@ namespace Resonance
 
                 //Sub-Topic Mapper
                 config.CreateMap<SubTopicDto, SubTopic>();
-                config.CreateMap<SubTopic, SubTopicDto>();
+                config.CreateMap<SubTopic, SubTopicResponseDto>();
 
                 //Video Mapper
                 config.CreateMap<VideoDto, Video>();
-                config.CreateMap<Video, VideoDto>();
+                config.CreateMap<Video, VideoResponseDto>();
 
                 //Course Mapper
                 config.CreateMap<CourseDto, Course>();

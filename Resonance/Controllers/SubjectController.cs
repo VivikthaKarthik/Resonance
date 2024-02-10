@@ -27,6 +27,7 @@ namespace ResoClassAPI.Controllers
             excelReader = _excelReader;
         }
 
+        #region Admin
 
         [HttpGet]
         public async Task<ResponseDto> Get(int Id)
@@ -40,35 +41,6 @@ namespace ResoClassAPI.Controllers
                 if (chapter != null)
                 {
                     responseDto.Result = chapter;
-                    responseDto.IsSuccess = true;
-                }
-                else
-                {
-                    responseDto.IsSuccess = false;
-                    responseDto.Message = "Not Found";
-                }
-            }
-            catch (Exception ex)
-            {
-                responseDto.IsSuccess = false;
-                responseDto.Message = ex.Message;
-            }
-            return responseDto;
-        }
-
-        [HttpGet]
-        [Route("GetSubjectsWithCourseId")]
-        public async Task<ResponseDto> GetSubjectsWithCourseId(long courseId)
-        {
-            ResponseDto responseDto = new ResponseDto();
-            try
-            {
-                logger.LogInformation("Requested GetUser");
-                var subjects = await subjectService.GetSubjectsWithCourseId(courseId);
-
-                if (subjects != null && subjects.Count > 0)
-                {
-                    responseDto.Result = subjects;
                     responseDto.IsSuccess = true;
                 }
                 else
@@ -113,8 +85,6 @@ namespace ResoClassAPI.Controllers
             }
             return responseDto;
         }
-
-
 
         [HttpPost]
         public async Task<ResponseDto> Post(SubjectDto requestDto)
@@ -190,7 +160,7 @@ namespace ResoClassAPI.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ResponseDto> Put(int id, SubjectDto requestDto)
+        public async Task<ResponseDto> Put(long id, SubjectDto requestDto)
         {
             ResponseDto responseDto = new ResponseDto();
             try
@@ -221,10 +191,8 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
-
-
         [HttpDelete("{id}")]
-        public async Task<ResponseDto> Delete(int id)
+        public async Task<ResponseDto> Delete(long id)
         {
             ResponseDto responseDto = new ResponseDto();
             try
@@ -249,6 +217,8 @@ namespace ResoClassAPI.Controllers
             }
             return responseDto;
         }
+
+        #endregion
 
     }
 }

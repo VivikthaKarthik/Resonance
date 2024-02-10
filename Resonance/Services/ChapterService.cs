@@ -129,32 +129,5 @@ namespace ResoClassAPI.Services
             else
                 throw new Exception("Not Found");
         }
-
-        public async Task<List<ChapterResponseDto>> GetRecommendedChaptersWithCourseId(long courseId)
-        {
-            var query = from subjectCourse in dbContext.SubjectCourses
-                        where subjectCourse.CourseId == courseId
-                        join subject in dbContext.Subjects on subjectCourse.SubjectId equals subject.Id
-                        join chapter in dbContext.Chapters on subject.Id equals chapter.SubjectId
-                        where chapter.IsRecommended == true
-                        select new ChapterResponseDto()
-                        {
-                            Id = chapter.Id,
-                            Name = chapter.Name,
-                            SubjectId = subject.Id,
-                            SubjectName = subject.Name,
-                            Thumbnail = chapter.Thumbnail,
-                            IsRecommended = chapter.IsRecommended
-                        };
-
-            var result = query.ToList();
-            if (result != null)
-            {
-                var dtoObject = result;
-                return dtoObject;
-            }
-            else
-                throw new Exception("Not Found");
-        }
     }
 }

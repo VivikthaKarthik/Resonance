@@ -4,10 +4,11 @@ namespace ResoClassAPI.Services.Interfaces
 {
     public interface ISubTopicService
     {
-        Task<List<SubTopicDto>> GetAllSubTopics();
-        Task<SubTopicDto> GetSubTopic(int topicId);
+        Task<List<SubTopicResponseDto>> GetAllSubTopics();
+        Task<SubTopicResponseDto> GetSubTopic(long subTopicId);
+        Task<List<SubTopicResponseDto>> GetByTopicId(long topicId);
         Task<long> CreateSubTopic(SubTopicDto newItem);
         Task<bool> UpdateSubTopic(SubTopicDto updatedItem);
-        Task<bool> DeleteSubTopic(int topicId);
+        Task<bool> DeleteSubTopic(long subTopicId);
     }
 }

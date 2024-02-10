@@ -20,16 +20,16 @@ namespace ResoClassAPI.Services
             mapper = _mapper;
         }
 
-        public async Task<List<SubTopicDto>> GetAllSubTopics()
+        public async Task<List<SubTopicResponseDto>> GetAllSubTopics()
         {
-            List<SubTopicDto> dtoObjects = new List<SubTopicDto>();
+            List<SubTopicResponseDto> dtoObjects = new List<SubTopicResponseDto>();
             var topics = await Task.FromResult(dbContext.SubTopics.Where(item => item.IsActive == true).ToList());
             if (topics != null && topics.Count > 0)
             {
 
                 foreach (var topic in topics)
                 {
-                    var dtoObject = mapper.Map<SubTopicDto>(topic);
+                    var dtoObject = mapper.Map<SubTopicResponseDto>(topic);
                     dtoObjects.Add(dtoObject);
                 }
                 return dtoObjects;
@@ -37,18 +37,56 @@ namespace ResoClassAPI.Services
             else
                 throw new Exception("Not Found");
         }
-        public async Task<SubTopicDto> GetSubTopic(int subTopicId)
+        public async Task<SubTopicResponseDto> GetSubTopic(long subTopicId)
         {
-            var subTopic = await Task.FromResult(dbContext.SubTopics.FirstOrDefault(item => item.Id == subTopicId && item.IsActive == true));
-            if (subTopic != null)
-            {
-                var dtoObject = mapper.Map<SubTopicDto>(subTopic);
-                //dtoObject.Role = dbContext.Roles.First(item => item.Id == user.RoleId).Name;
-                return dtoObject;
-            }
+            var query = from subtopic in dbContext.SubTopics
+                        where subtopic.Id == subTopicId
+                        join topic in dbContext.Topics on subtopic.TopicId equals topic.Id
+                        join chapter in dbContext.Chapters on topic.ChapterId equals chapter.Id
+                        join subject in dbContext.Subjects on chapter.SubjectId equals subject.Id
+                        select new SubTopicResponseDto
+                        {
+                            Id = subtopic.Id,
+                            Name = subtopic.Name,
+                            Thumbnail = subtopic.Thumbnail,
+                            TopicId = topic.Id,
+                            TopicName = topic.Name,
+                            ChapterId = chapter.Id,
+                            ChapterName = chapter.Name,
+                            SubjectId = subject.Id,
+                            SubjectName = subject.Name,
+                        };
+
+            var result = query.ToList();
+
+            if (result != null && result.Count > 0)
+                return result.First();
             else
                 throw new Exception("Not Found");
         }
+
+        public async Task<List<SubTopicResponseDto>> GetByTopicId(long topicId)
+        {
+            var query = from subtopic in dbContext.SubTopics
+                        join topic in dbContext.Topics on subtopic.TopicId equals topic.Id
+                        where topic.Id == topicId
+                        select new SubTopicResponseDto
+                        {
+                            Id = subtopic.Id,
+                            Name = subtopic.Name,
+                            Thumbnail = subtopic.Thumbnail,
+                            TopicId = topic.Id,
+                            TopicName = topic.Name
+                        };
+
+            var result = query.ToList();
+
+            if (result != null && result.Count > 0)
+                return result;
+            else
+                throw new Exception("Not Found");
+        }
+
         public async  Task<long>CreateSubTopic(SubTopicDto subTopic)
         {
             var currentUser = authService.GetCurrentUser();
@@ -92,10 +130,10 @@ namespace ResoClassAPI.Services
         }
 
 
-        public async Task<bool> DeleteSubTopic(int topicId)
+        public async Task<bool> DeleteSubTopic(long subTopicId)
         {
             var currentUser = authService.GetCurrentUser();
-            var existingItem = dbContext.SubTopics.FirstOrDefault(item => item.Id == topicId);
+            var existingItem = dbContext.SubTopics.FirstOrDefault(item => item.Id == subTopicId);
 
             if (existingItem != null)
             {

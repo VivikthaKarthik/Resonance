@@ -9,6 +9,5 @@ namespace ResoClassAPI.Services.Interfaces
         Task<long> CreateSubject(SubjectDto newItem);
         Task<bool> UpdateSubject(SubjectDto updatedItem);
         Task<bool> DeleteSubject(long subjectId);
-        Task<List<SubjectDto>> GetSubjectsWithCourseId(long courseId);
     }
 }

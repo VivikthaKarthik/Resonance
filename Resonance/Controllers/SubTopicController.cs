@@ -12,8 +12,7 @@ using ResoClassAPI.Utilities.Interfaces;
 
 namespace ResoClassAPI.Controllers
 {
-    [Authorize]
-    [Route("api/[controller]")]
+    //[Authorize]
     [ApiController]
     public class SubTopicController : Controller
     {
@@ -27,7 +26,11 @@ namespace ResoClassAPI.Controllers
             logger = _logger;
             excelReader = _excelReader;
         }
+
+        #region Admin
         [HttpGet]
+        [HttpGet]
+        [Route("api/Admin/SubTopic/Get")]
         public async Task<ResponseDto> Get(int Id)
         {
             ResponseDto responseDto = new ResponseDto();
@@ -56,7 +59,7 @@ namespace ResoClassAPI.Controllers
         }
 
         [HttpGet]
-        [Route("GetAll")]
+        [Route("api/Admin/SubTopic/GetAll")]
         public async Task<ResponseDto> GetAll()
         {
             ResponseDto responseDto = new ResponseDto();
@@ -84,9 +87,8 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
-
-
         [HttpPost]
+        [Route("api/Admin/SubTopic/Create")]
         public async Task<ResponseDto> Post(SubTopicDto requestDto)
         {
             ResponseDto responseDto = new ResponseDto();
@@ -119,7 +121,7 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
-        [HttpPost("Upload")]
+        [HttpPost("api/Admin/SubTopic/Upload")]
         public async Task<ResponseDto> UploadExcel(IFormFile file)
         {
             ResponseDto responseDto = new ResponseDto();
@@ -159,8 +161,9 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
-        [HttpPut("{id}")]
-        public async Task<ResponseDto> Put(int id, SubTopicDto requestDto)
+        [HttpPut]
+        [Route("api/Admin/SubTopic/Update/{id}")]
+        public async Task<ResponseDto> Put(long id, SubTopicDto requestDto)
         {
             ResponseDto responseDto = new ResponseDto();
             try
@@ -191,10 +194,9 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
-
-
-        [HttpDelete("{id}")]
-        public async Task<ResponseDto> Delete(int id)
+        [HttpDelete]
+        [Route("api/Admin/SubTopic/Delete/{id}")]
+        public async Task<ResponseDto> Delete(long id)
         {
             ResponseDto responseDto = new ResponseDto();
             try
@@ -219,5 +221,70 @@ namespace ResoClassAPI.Controllers
             }
             return responseDto;
         }
+
+        #endregion
+
+        #region Student
+
+        [HttpGet]
+        [Route("api/Student/SubTopic/GetByTopicId")]
+        public async Task<ResponseDto> GetByTopicId(long topicId)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                logger.LogInformation("Requested GetTopic");
+                var subTopics = await subtopicService.GetByTopicId(topicId);
+
+                if (subTopics != null && subTopics.Count > 0)
+                {
+                    responseDto.Result = subTopics;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
+
+        [HttpGet]
+        [Route("api/Student/SubTopic/GetById")]
+        public async Task<ResponseDto> GetById(long Id)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                logger.LogInformation("Requested GetTopic");
+                var chapter = await subtopicService.GetSubTopic(Id);
+
+                if (chapter != null)
+                {
+                    responseDto.Result = chapter;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
+        #endregion
     }
 }

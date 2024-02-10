@@ -160,7 +160,7 @@ namespace ResoClassAPI.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ResponseDto> Put(int id, ChapterRequestDto requestDto)
+        public async Task<ResponseDto> Put(long id, ChapterRequestDto requestDto)
         {
             ResponseDto responseDto = new ResponseDto();
             try
@@ -192,7 +192,7 @@ namespace ResoClassAPI.Controllers
         }
         
         [HttpDelete("{id}")]
-        public async Task<ResponseDto> Delete(int id)
+        public async Task<ResponseDto> Delete(long id)
         {
             ResponseDto responseDto = new ResponseDto();
             try
@@ -208,39 +208,6 @@ namespace ResoClassAPI.Controllers
                 {
                     responseDto.Result = "Chapter Deleted Successfully";
                     responseDto.IsSuccess = true;
-                }
-            }
-            catch (Exception ex)
-            {
-                responseDto.IsSuccess = false;
-                responseDto.Message = ex.Message;
-            }
-            return responseDto;
-        }
-
-        #endregion
-
-        #region Student
-
-        [HttpGet]
-        [Route("GetRecommendedChaptersWithCourseId")]
-        public async Task<ResponseDto> GetRecommendedChaptersWithCourseId(long courseId)
-        {
-            ResponseDto responseDto = new ResponseDto();
-            try
-            {
-                logger.LogInformation("Requested GetChaptersWithCourseId");
-                var users = await chapterService.GetRecommendedChaptersWithCourseId(courseId);
-
-                if (users != null)
-                {
-                    responseDto.Result = users;
-                    responseDto.IsSuccess = true;
-                }
-                else
-                {
-                    responseDto.IsSuccess = false;
-                    responseDto.Message = "Not Found";
                 }
             }
             catch (Exception ex)
