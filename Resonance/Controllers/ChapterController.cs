@@ -30,6 +30,7 @@ namespace ResoClassAPI.Controllers
         #region Admin
 
         [HttpGet]
+        [Route("api/Admin/Chapter/Get")]
         public async Task<ResponseDto> Get(long chapterId)
         {
             ResponseDto responseDto = new ResponseDto();
@@ -58,7 +59,7 @@ namespace ResoClassAPI.Controllers
         }
 
         [HttpGet]
-        [Route("GetAll")]
+        [Route("api/Admin/Chapter/GetAll")]
         public async Task<ResponseDto> GetAll()
         {
             ResponseDto responseDto = new ResponseDto();
@@ -87,6 +88,7 @@ namespace ResoClassAPI.Controllers
         }
 
         [HttpPost]
+        [Route("api/Admin/Chapter/Create")]
         public async Task<ResponseDto> Post(ChapterRequestDto requestDto)
         {
             ResponseDto responseDto = new ResponseDto();
@@ -119,7 +121,8 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
-        [HttpPost("Upload")]
+        [HttpPost]
+        [Route("api/Admin/Chapter/Upload")]
         public async Task<ResponseDto> UploadExcel(IFormFile file)
         {
             ResponseDto responseDto = new ResponseDto();
@@ -159,7 +162,8 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
-        [HttpPut("{id}")]
+        [HttpPut]
+        [Route("api/Admin/Chapter/Update/{id}")]
         public async Task<ResponseDto> Put(long id, ChapterRequestDto requestDto)
         {
             ResponseDto responseDto = new ResponseDto();
@@ -190,8 +194,9 @@ namespace ResoClassAPI.Controllers
             }
             return responseDto;
         }
-        
-        [HttpDelete("{id}")]
+
+        [HttpDelete]
+        [Route("api/Admin/Chapter/Delete/{id}")]
         public async Task<ResponseDto> Delete(long id)
         {
             ResponseDto responseDto = new ResponseDto();

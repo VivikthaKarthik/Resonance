@@ -29,6 +29,7 @@ namespace ResoClassAPI.Controllers
         }
 
         [HttpGet]
+        [Route("api/Admin/Video/Get")]
         public async Task<ResponseDto> Get(int Id)
         {
             ResponseDto responseDto = new ResponseDto();
@@ -57,7 +58,7 @@ namespace ResoClassAPI.Controllers
         }
 
         [HttpGet]
-        [Route("GetAll")]
+        [Route("api/Admin/Video/GetAll")]
         public async Task<ResponseDto> GetAll()
         {
             ResponseDto responseDto = new ResponseDto();
@@ -85,9 +86,8 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
-
-
         [HttpPost]
+        [Route("api/Admin/Video/Create")]
         public async Task<ResponseDto> Post(VideoDto requestDto)
         {
             ResponseDto responseDto = new ResponseDto();
@@ -120,7 +120,8 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
-        [HttpPost("Upload")]
+        [HttpPost]
+        [Route("api/Admin/Video/Upload")]
         public async Task<ResponseDto> UploadExcel(IFormFile file)
         {
             ResponseDto responseDto = new ResponseDto();
@@ -160,7 +161,8 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
-        [HttpPut("{id}")]
+        [HttpPut]
+        [Route("api/Admin/Video/Update/{id}")]
         public async Task<ResponseDto> Put(int id, VideoDto requestDto)
         {
             ResponseDto responseDto = new ResponseDto();
@@ -193,8 +195,8 @@ namespace ResoClassAPI.Controllers
         }
 
 
-
-        [HttpDelete("{id}")]
+        [HttpDelete]
+        [Route("api/Admin/Video/Delete/{id}")]
         public async Task<ResponseDto> Delete(int id)
         {
             ResponseDto responseDto = new ResponseDto();

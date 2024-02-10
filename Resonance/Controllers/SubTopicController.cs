@@ -28,7 +28,7 @@ namespace ResoClassAPI.Controllers
         }
 
         #region Admin
-        [HttpGet]
+        
         [HttpGet]
         [Route("api/Admin/SubTopic/Get")]
         public async Task<ResponseDto> Get(int Id)
@@ -121,7 +121,8 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
-        [HttpPost("api/Admin/SubTopic/Upload")]
+        [HttpPost]
+        [Route("api/Admin/SubTopic/Upload")]
         public async Task<ResponseDto> UploadExcel(IFormFile file)
         {
             ResponseDto responseDto = new ResponseDto();
