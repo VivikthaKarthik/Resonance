@@ -256,6 +256,34 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
+        [HttpGet]
+        [Route("api/Student/Topic/GetTopicById")]
+        public async Task<ResponseDto> GetTopicById(long chapterId)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                logger.LogInformation("Requested GetTopicById");
+                var videos = await topicService.GetTopicById(chapterId);
+
+                if (videos != null)
+                {
+                    responseDto.Result = videos;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
 
         #endregion
     }

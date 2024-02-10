@@ -20,6 +20,18 @@ namespace ResoClassAPI.Services
             mapper = _mapper;
         }
 
+        public async Task<TopicDto> GetTopic(long topicId)
+        {
+            var topic = await Task.FromResult(dbContext.Topics.FirstOrDefault(item => item.Id == topicId && item.IsActive == true));
+            if (topic != null)
+            {
+                var dtoObject = mapper.Map<TopicDto>(topic);
+                return dtoObject;
+            }
+            else
+                throw new Exception("Not Found");
+        }
+
         public async Task<List<TopicDto>> GetAllTopics()
         {
             List<TopicDto> dtoObjects = new List<TopicDto>();
@@ -113,14 +125,26 @@ namespace ResoClassAPI.Services
             }
             return false;
         }
-        public async Task<TopicDto> GetTopic(long topicId)
+        public async Task<TopicResponseDto> GetTopicById(long topicId)
         {
-            var topic = await Task.FromResult(dbContext.Topics.FirstOrDefault(item => item.Id == topicId && item.IsActive == true));
-            if (topic != null)
-            {
-                var dtoObject = mapper.Map<TopicDto>(topic);
-                return dtoObject;
-            }
+            var query = from topic in dbContext.Topics
+                        where topic.Id == topicId
+                        join chapter in dbContext.Chapters on topic.ChapterId equals chapter.Id
+                        join subject in dbContext.Subjects on chapter.SubjectId equals subject.Id
+                        select new TopicResponseDto()
+                        {
+                            Id = topic.Id,
+                            Name = topic.Name,
+                            Thumbnail = topic.Thumbnail,
+                            SubjectId = subject.Id,
+                            SubjectName = subject.Name,
+                            ChapterId = chapter.Id,
+                            ChapterName = chapter.Name
+                        };
+
+            var result = query.ToList();
+            if (result != null && result.Count > 0)
+                return result.First();
             else
                 throw new Exception("Not Found");
         }
