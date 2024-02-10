@@ -286,6 +286,35 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
+        [HttpGet]
+        [Route("api/Student/Chapter/GetChapter")]
+        public async Task<ResponseDto> GetChapters(long id)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                logger.LogInformation("Requested GetChapter");
+                var users = await chapterService.GetChapter(id);
+
+                if (users != null)
+                {
+                    responseDto.Result = users;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
         #endregion
 
     }
