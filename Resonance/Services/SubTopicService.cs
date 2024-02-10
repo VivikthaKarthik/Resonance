@@ -97,7 +97,7 @@ namespace ResoClassAPI.Services
 
                 if (subTopic.TopicId > 0)
                 {
-                    if (dbContext.SubTopics.Any(x => x.Id == subTopic.TopicId))
+                    if (dbContext.Topics.Any(x => x.Id == subTopic.TopicId))
                         newSbTopic.TopicId = subTopic.TopicId;
                     else
                         throw new Exception("Invalid TopicId");
