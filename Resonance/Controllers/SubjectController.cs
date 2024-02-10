@@ -57,6 +57,35 @@ namespace ResoClassAPI.Controllers
         }
 
         [HttpGet]
+        [Route("GetSubjectsWithCourseId")]
+        public async Task<ResponseDto> GetSubjectsWithCourseId(long courseId)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                logger.LogInformation("Requested GetUser");
+                var subjects = await subjectService.GetSubjectsWithCourseId(courseId);
+
+                if (subjects != null && subjects.Count > 0)
+                {
+                    responseDto.Result = subjects;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
+        [HttpGet]
         [Route("GetAll")]
         public async Task<ResponseDto> GetAll()
         {

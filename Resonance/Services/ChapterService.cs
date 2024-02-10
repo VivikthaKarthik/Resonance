@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using ResoClassAPI.DTOs;
 using ResoClassAPI.Models.Domain;
@@ -19,16 +20,15 @@ namespace ResoClassAPI.Services
             mapper = _mapper;
         }
 
-        public async Task<List<ChapterDto>> GetAllChapters()
+        public async Task<List<ChapterResponseDto>> GetAllChapters()
         {
-            List<ChapterDto> dtoObjects = new List<ChapterDto>();
+            List<ChapterResponseDto> dtoObjects = new List<ChapterResponseDto>();
             var chapters =   await Task.FromResult(dbContext.Chapters.Where(item => item.IsActive == true).ToList());
             if (chapters != null && chapters.Count > 0)
-            {
-                
+            {                
                 foreach (var chapter in chapters)
                 {
-                    var dtoObject = mapper.Map<ChapterDto>(chapter);
+                    var dtoObject = mapper.Map<ChapterResponseDto>(chapter);
                     dtoObjects.Add(dtoObject);
                 }
                 return dtoObjects;
@@ -37,13 +37,22 @@ namespace ResoClassAPI.Services
                 throw new Exception("Not Found");
         }
 
-       
-        public async Task<long> CreateChapter(ChapterDto chapter)
+        public async Task<long> CreateChapter(ChapterRequestDto chapter)
         {
             var currentUser = authService.GetCurrentUser();
 
             if (currentUser != null)
             {
+                if (chapter.SubjectId > 0)
+                {
+                    if (dbContext.Subjects.Any(x => x.Id == chapter.SubjectId))
+                        chapter.SubjectId = chapter.SubjectId;
+                    else
+                        throw new Exception("Invalid SubjectId");
+                }
+                else
+                    throw new Exception("SubjectId is missing");
+
                 Chapter newChapter = mapper.Map<Chapter>(chapter);
                 newChapter.IsActive = true;
                 newChapter.CreatedBy = newChapter.ModifiedBy = currentUser.Name;
@@ -56,7 +65,7 @@ namespace ResoClassAPI.Services
             return 0;
         }
 
-        public async Task<bool> UpdateChapter(ChapterDto updatedChapter)
+        public async Task<bool> UpdateChapter(ChapterRequestDto updatedChapter)
         {
             var currentUser = authService.GetCurrentUser();
             var existingItem = dbContext.Chapters.FirstOrDefault(item => item.Id == updatedChapter.Id && item.IsActive == true);
@@ -65,14 +74,22 @@ namespace ResoClassAPI.Services
             {
                 if (!string.IsNullOrEmpty(updatedChapter.Name))
                     existingItem.Name = updatedChapter.Name;
-                existingItem.SubjectId = updatedChapter.SubjectId;
-                existingItem.CourseId = updatedChapter.CourseId;
+
                 if (!string.IsNullOrEmpty(updatedChapter.Thumbnail))
                     existingItem.Thumbnail = updatedChapter.Thumbnail;
-                existingItem.IsRecommended = updatedChapter.IsRecommended;
-                existingItem.IsActive = true;
-                if (!string.IsNullOrEmpty(updatedChapter.Name))
-                    existingItem.ModifiedBy = currentUser.Name;
+
+                if (updatedChapter.SubjectId > 0)
+                {
+                    if (dbContext.Subjects.Any(x => x.Id == updatedChapter.SubjectId))
+                        existingItem.SubjectId = updatedChapter.SubjectId;
+                    else
+                        throw new Exception("Invalid SubjectId");
+                }
+
+                if (updatedChapter.IsRecommended != null)
+                    existingItem.IsRecommended = updatedChapter.IsRecommended.Value;
+
+                existingItem.ModifiedBy = currentUser.Name;
                 existingItem.ModifiedOn = DateTime.Now;
 
                 await dbContext.SaveChangesAsync();
@@ -80,13 +97,11 @@ namespace ResoClassAPI.Services
             }
             return false;
         }
-
-       
-
-        public async Task<bool> DeleteChapter(int chapterId)
+             
+        public async Task<bool> DeleteChapter(long chapterId)
         {
             var currentUser = authService.GetCurrentUser();
-            var existingItem = dbContext.Users.FirstOrDefault(item => item.Id == chapterId);
+            var existingItem = dbContext.Users.FirstOrDefault(item => item.Id == chapterId && item.IsActive == true);
 
             if (existingItem != null)
             {
@@ -100,13 +115,42 @@ namespace ResoClassAPI.Services
             return false;
         }
 
-        public async  Task<ChapterDto> GetChapter(int chapterId)
+        public async  Task<ChapterResponseDto> GetChapter(long chapterId)
         {
             var chapter = await Task.FromResult(dbContext.Chapters.FirstOrDefault(item => item.Id == chapterId && item.IsActive == true));
             if (chapter != null)
             {
-                var dtoObject = mapper.Map<ChapterDto>(chapter);
-                //dtoObject.Role = dbContext.Roles.First(item => item.Id == user.RoleId).Name;
+                var dtoObject = mapper.Map<ChapterResponseDto>(chapter);
+
+                if (chapter.SubjectId > 0 && dbContext.Subjects.Any(x => x.Id == chapter.SubjectId))
+                    dtoObject.SubjectName = dbContext.Subjects.FirstOrDefault(x => x.Id == chapter.SubjectId).Name;
+                return dtoObject;
+            }
+            else
+                throw new Exception("Not Found");
+        }
+
+        public async Task<List<ChapterResponseDto>> GetRecommendedChaptersWithCourseId(long courseId)
+        {
+            var query = from subjectCourse in dbContext.SubjectCourses
+                        where subjectCourse.CourseId == courseId
+                        join subject in dbContext.Subjects on subjectCourse.SubjectId equals subject.Id
+                        join chapter in dbContext.Chapters on subject.Id equals chapter.SubjectId
+                        where chapter.IsRecommended == true
+                        select new ChapterResponseDto()
+                        {
+                            Id = chapter.Id,
+                            Name = chapter.Name,
+                            SubjectId = subject.Id,
+                            SubjectName = subject.Name,
+                            Thumbnail = chapter.Thumbnail,
+                            IsRecommended = chapter.IsRecommended
+                        };
+
+            var result = query.ToList();
+            if (result != null)
+            {
+                var dtoObject = result;
                 return dtoObject;
             }
             else

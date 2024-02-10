@@ -11,8 +11,6 @@ public partial class Chapter
 
     public long SubjectId { get; set; }
 
-    public long CourseId { get; set; }
-
     public string Thumbnail { get; set; } = null!;
 
     public bool IsRecommended { get; set; }
@@ -26,8 +24,6 @@ public partial class Chapter
     public string ModifiedBy { get; set; } = null!;
 
     public DateTime ModifiedOn { get; set; }
-
-    public virtual Course Course { get; set; } = null!;
 
     public virtual ICollection<ExamResult> ExamResults { get; } = new List<ExamResult>();
 

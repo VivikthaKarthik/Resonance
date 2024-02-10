@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using ResoClassAPI.DTOs;
 using ResoClassAPI.Models.Domain;
@@ -53,6 +54,15 @@ namespace ResoClassAPI.Services
                 dbContext.Subjects.Add(newSubject);
                 await dbContext.SaveChangesAsync();
 
+                SubjectCourse course = new SubjectCourse();
+                course.CourseId = subject.CourseId;
+                course.SubjectId = newSubject.Id;
+                course.IsActive = true;
+                course.CreatedBy = course.ModifiedBy = currentUser.Name;
+                course.CreatedOn = course.ModifiedOn = DateTime.Now;
+                dbContext.SubjectCourses.Add(course);
+                await dbContext.SaveChangesAsync();
+
                 return newSubject.Id;
             }
             return 0;
@@ -76,6 +86,9 @@ namespace ResoClassAPI.Services
                 existingItem.ModifiedOn = DateTime.Now;
 
                 await dbContext.SaveChangesAsync();
+
+                //TODO - Handle Link or Unlink to course
+
                 return true;
             }
             return false;
@@ -83,7 +96,7 @@ namespace ResoClassAPI.Services
 
 
 
-        public async Task<bool> DeleteSubject(int subjectId)
+        public async Task<bool> DeleteSubject(long subjectId)
         {
             var currentUser = authService.GetCurrentUser();
             var existingItem = dbContext.Subjects.FirstOrDefault(item => item.Id == subjectId);
@@ -100,13 +113,35 @@ namespace ResoClassAPI.Services
             return false;
         }
 
-        public async Task<SubjectDto> GetSubject(int subjectId)
+        public async Task<SubjectDto> GetSubject(long subjectId)
         {
             var subject = await Task.FromResult(dbContext.Subjects.FirstOrDefault(item => item.Id == subjectId && item.IsActive == true));
             if (subject != null)
             {
                 var dtoObject = mapper.Map<SubjectDto>(subject);
-                //dtoObject.Role = dbContext.Roles.First(item => item.Id == user.RoleId).Name;
+                return dtoObject;
+            }
+            else
+                throw new Exception("Not Found");
+        }
+
+        public async Task<List<SubjectDto>> GetSubjectsWithCourseId(long courseId)
+        {
+
+            var query = from subjectCourse in dbContext.SubjectCourses
+                        where subjectCourse.CourseId == courseId
+                        join subject in dbContext.Subjects on subjectCourse.SubjectId equals subject.Id
+                        select new Subject
+                        {
+                            Id = subject.Id,
+                            Name = subject.Name,
+                            Thumbnail = subject.Thumbnail
+                        };
+
+            var result = query.ToList();
+            if (result != null)
+            {
+                var dtoObject = mapper.Map<List<SubjectDto>>(result);
                 return dtoObject;
             }
             else

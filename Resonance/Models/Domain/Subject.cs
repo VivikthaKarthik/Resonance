@@ -24,4 +24,6 @@ public partial class Subject
     public virtual ICollection<Chapter> Chapters { get; } = new List<Chapter>();
 
     public virtual ICollection<ExamResult> ExamResults { get; } = new List<ExamResult>();
+
+    public virtual ICollection<SubjectCourse> SubjectCourses { get; } = new List<SubjectCourse>();
 }

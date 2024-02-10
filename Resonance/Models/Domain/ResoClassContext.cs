@@ -39,6 +39,8 @@ public partial class ResoClassContext : DbContext
 
     public virtual DbSet<Subject> Subjects { get; set; }
 
+    public virtual DbSet<SubjectCourse> SubjectCourses { get; set; }
+
     public virtual DbSet<Topic> Topics { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
@@ -68,11 +70,6 @@ public partial class ResoClassContext : DbContext
             entity.Property(e => e.CreatedOn).HasColumnType("datetime");
             entity.Property(e => e.ModifiedBy).HasMaxLength(128);
             entity.Property(e => e.ModifiedOn).HasColumnType("datetime");
-
-            entity.HasOne(d => d.Course).WithMany(p => p.Chapters)
-                .HasForeignKey(d => d.CourseId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Chapter_Course");
 
             entity.HasOne(d => d.Subject).WithMany(p => p.Chapters)
                 .HasForeignKey(d => d.SubjectId)
@@ -288,6 +285,26 @@ public partial class ResoClassContext : DbContext
             entity.Property(e => e.ModifiedOn).HasColumnType("datetime");
         });
 
+        modelBuilder.Entity<SubjectCourse>(entity =>
+        {
+            entity.ToTable("Subject_Course");
+
+            entity.Property(e => e.CreatedBy).HasMaxLength(128);
+            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.ModifiedBy).HasMaxLength(128);
+            entity.Property(e => e.ModifiedOn).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Course).WithMany(p => p.SubjectCourses)
+                .HasForeignKey(d => d.CourseId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Subject_Course_Course");
+
+            entity.HasOne(d => d.Subject).WithMany(p => p.SubjectCourses)
+                .HasForeignKey(d => d.SubjectId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Subject_Course_Subject");
+        });
+
         modelBuilder.Entity<Topic>(entity =>
         {
             entity.ToTable("Topic");
@@ -326,7 +343,7 @@ public partial class ResoClassContext : DbContext
             entity.HasOne(d => d.Role).WithMany(p => p.Users)
                 .HasForeignKey(d => d.RoleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_ResoUser_Role");
+                .HasConstraintName("FK_User_Role");
         });
 
         modelBuilder.Entity<Video>(entity =>

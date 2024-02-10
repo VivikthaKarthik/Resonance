@@ -27,9 +27,10 @@ namespace ResoClassAPI.Controllers
             excelReader = _excelReader;
         }
 
+        #region Admin
 
         [HttpGet]
-        public async Task<ResponseDto> Get(int chapterId)
+        public async Task<ResponseDto> Get(long chapterId)
         {
             ResponseDto responseDto = new ResponseDto();
             try
@@ -85,10 +86,8 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
-        
-
         [HttpPost]
-        public async Task<ResponseDto> Post(ChapterDto requestDto)
+        public async Task<ResponseDto> Post(ChapterRequestDto requestDto)
         {
             ResponseDto responseDto = new ResponseDto();
             try
@@ -161,7 +160,7 @@ namespace ResoClassAPI.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ResponseDto> Put(int id, ChapterDto requestDto)
+        public async Task<ResponseDto> Put(int id, ChapterRequestDto requestDto)
         {
             ResponseDto responseDto = new ResponseDto();
             try
@@ -191,9 +190,7 @@ namespace ResoClassAPI.Controllers
             }
             return responseDto;
         }
-
-       
-
+        
         [HttpDelete("{id}")]
         public async Task<ResponseDto> Delete(int id)
         {
@@ -220,6 +217,41 @@ namespace ResoClassAPI.Controllers
             }
             return responseDto;
         }
+
+        #endregion
+
+        #region Student
+
+        [HttpGet]
+        [Route("GetRecommendedChaptersWithCourseId")]
+        public async Task<ResponseDto> GetRecommendedChaptersWithCourseId(long courseId)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                logger.LogInformation("Requested GetChaptersWithCourseId");
+                var users = await chapterService.GetRecommendedChaptersWithCourseId(courseId);
+
+                if (users != null)
+                {
+                    responseDto.Result = users;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
+        #endregion
 
     }
 }
