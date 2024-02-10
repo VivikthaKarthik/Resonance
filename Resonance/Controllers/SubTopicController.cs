@@ -12,7 +12,7 @@ using ResoClassAPI.Utilities.Interfaces;
 
 namespace ResoClassAPI.Controllers
 {
-    //[Authorize]
+    [Authorize]
     [ApiController]
     public class SubTopicController : Controller
     {

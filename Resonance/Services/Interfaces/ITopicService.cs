@@ -9,5 +9,6 @@ namespace ResoClassAPI.Services.Interfaces
         Task<long> CreateTopic(TopicDto newItem);
         Task<bool> UpdateTopic(TopicDto updatedItem);
         Task<bool> DeleteTopic(long topicId);
+        Task<List<TopicDto>> GetTopicsWithChapterId(long chapterId);
     }
 }

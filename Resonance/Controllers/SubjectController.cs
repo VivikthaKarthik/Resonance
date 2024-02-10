@@ -12,7 +12,6 @@ using ResoClassAPI.Utilities.Interfaces;
 namespace ResoClassAPI.Controllers
 {
     [Authorize]
-    [Route("api/[controller]")]
     [ApiController]
     public class SubjectController : Controller
     {
@@ -213,6 +212,40 @@ namespace ResoClassAPI.Controllers
                 {
                     responseDto.Result = "Subject Deleted Successfully";
                     responseDto.IsSuccess = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
+        #endregion
+
+        #region Student
+
+
+        [HttpGet]
+        [Route("api/Student/Subject/GetByCourseId")]
+        public async Task<ResponseDto> GetByCourseId(long courseId)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                logger.LogInformation("Requested GetByCourseId");
+                var subjects = await subjectService.GetSubjectsWithCourseId(courseId);
+
+                if (subjects != null && subjects.Count > 0)
+                {
+                    responseDto.Result = subjects;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
                 }
             }
             catch (Exception ex)

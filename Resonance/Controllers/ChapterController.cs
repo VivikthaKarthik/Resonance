@@ -12,7 +12,6 @@ using ResoClassAPI.Utilities.Interfaces;
 namespace ResoClassAPI.Controllers
 {
     [Authorize]
-    [Route("api/[controller]")]
     [ApiController]
     public class ChapterController : Controller
     {
@@ -213,6 +212,70 @@ namespace ResoClassAPI.Controllers
                 {
                     responseDto.Result = "Chapter Deleted Successfully";
                     responseDto.IsSuccess = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
+        #endregion
+
+        #region Student
+
+
+        [HttpGet]
+        [Route("api/Student/Chapter/GetRecommendedByCourseId")]
+        public async Task<ResponseDto> GetRecommendedByCourseId(long courseId)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                logger.LogInformation("Requested GetRecommendedByCourseId");
+                var users = await chapterService.GetRecommendedChaptersWithCourseId(courseId);
+
+                if (users != null)
+                {
+                    responseDto.Result = users;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
+
+        [HttpGet]
+        [Route("api/Student/Chapter/GetBySubjectId")]
+        public async Task<ResponseDto> GetBySubjectId(long subjectId)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                logger.LogInformation("Requested GetBySubjectId");
+                var users = await chapterService.GetChaptersWithSubjectId(subjectId);
+
+                if (users != null)
+                {
+                    responseDto.Result = users;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
                 }
             }
             catch (Exception ex)

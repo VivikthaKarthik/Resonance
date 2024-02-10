@@ -150,5 +150,28 @@ namespace ResoClassAPI.Services
             else
                 throw new Exception("Not Found");
         }
+
+        public async Task<List<SubjectDto>> GetSubjectsWithCourseId(long courseId)
+        {
+
+            var query = from subjectCourse in dbContext.SubjectCourses
+                        where subjectCourse.CourseId == courseId
+                        join subject in dbContext.Subjects on subjectCourse.SubjectId equals subject.Id
+                        select new Subject
+                        {
+                            Id = subject.Id,
+                            Name = subject.Name,
+                            Thumbnail = subject.Thumbnail
+                        };
+
+            var result = query.ToList();
+            if (result != null)
+            {
+                var dtoObject = mapper.Map<List<SubjectDto>>(result);
+                return dtoObject;
+            }
+            else
+                throw new Exception("Not Found");
+        }
     }
 }

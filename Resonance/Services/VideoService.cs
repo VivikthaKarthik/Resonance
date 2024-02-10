@@ -170,5 +170,32 @@ namespace ResoClassAPI.Services
             
             return false;
         }
+
+        public async Task<List<VideoResponseDto>> GetVideosWithChapterId(long chapterId)
+        {
+            var videos = await Task.FromResult(dbContext.Videos.Where(item => item.ChapterId == chapterId && item.IsActive == true).ToList());
+            if (videos != null && videos.Count > 0)
+                return mapper.Map<List<VideoResponseDto>>(videos);
+            else
+                throw new Exception("Not Found");
+        }
+
+        public async Task<List<VideoResponseDto>> GetVideosWithTopicId(long topicId)
+        {
+            var videos = await Task.FromResult(dbContext.Videos.Where(item => item.TopicId == topicId && item.IsActive == true).ToList());
+            if (videos != null && videos.Count > 0)
+                return mapper.Map<List<VideoResponseDto>>(videos);
+            else
+                throw new Exception("Not Found");
+        }
+
+        public async Task<List<VideoResponseDto>> GetVideosWithSubTopicId(long subTopicId)
+        {
+            var videos = await Task.FromResult(dbContext.Videos.Where(item => item.SubTopicId == subTopicId && item.IsActive == true).ToList());
+            if (videos != null && videos.Count > 0)
+                return mapper.Map<List<VideoResponseDto>>(videos);
+            else
+                throw new Exception("Not Found");
+        }
     }
 }

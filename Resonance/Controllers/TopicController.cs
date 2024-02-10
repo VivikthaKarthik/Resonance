@@ -12,7 +12,6 @@ using ResoClassAPI.Utilities.Interfaces;
 namespace ResoClassAPI.Controllers
 {
     [Authorize]
-    [Route("api/[controller]")]
     [ApiController]
     public class TopicController : Controller
     {
@@ -26,6 +25,8 @@ namespace ResoClassAPI.Controllers
             logger = _logger;
             excelReader = _excelReader;
         }
+
+        #region Admin
 
         [HttpGet]
         [Route("api/Admin/Topic/Get")]
@@ -84,8 +85,6 @@ namespace ResoClassAPI.Controllers
             }
             return responseDto;
         }
-
-
 
         [HttpPost]
         [Route("api/Admin/Topic/Create")]
@@ -222,5 +221,42 @@ namespace ResoClassAPI.Controllers
             }
             return responseDto;
         }
+
+        #endregion
+
+        #region Student
+
+
+        [HttpGet]
+        [Route("api/Student/Topic/GetTopicsByChapterId")]
+        public async Task<ResponseDto> GetTopicsByChapterId(long chapterId)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                logger.LogInformation("Requested GetTopicsByChapterId");
+                var videos = await topicService.GetTopicsWithChapterId(chapterId);
+
+                if (videos != null)
+                {
+                    responseDto.Result = videos;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
+
+        #endregion
     }
 }

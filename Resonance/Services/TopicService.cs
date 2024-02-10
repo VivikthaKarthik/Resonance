@@ -36,10 +36,7 @@ namespace ResoClassAPI.Services
             }
             else
                 throw new Exception("Not Found");
-        }
-       
-      
-
+        }      
         public async Task<long> CreateTopic(TopicDto topic)
         {
             var currentUser = authService.GetCurrentUser();
@@ -116,7 +113,6 @@ namespace ResoClassAPI.Services
             }
             return false;
         }
-
         public async Task<TopicDto> GetTopic(long topicId)
         {
             var topic = await Task.FromResult(dbContext.Topics.FirstOrDefault(item => item.Id == topicId && item.IsActive == true));
@@ -128,10 +124,13 @@ namespace ResoClassAPI.Services
             else
                 throw new Exception("Not Found");
         }
-
-
-
-
-
+        public async Task<List<TopicDto>> GetTopicsWithChapterId(long chapterId)
+        {
+            var topics = await Task.FromResult(dbContext.Topics.Where(item => item.ChapterId == chapterId && item.IsActive == true).ToList());
+            if (topics != null && topics.Count > 0)
+                return mapper.Map<List<TopicDto>>(topics);
+            else
+                throw new Exception("Not Found");
+        }
     }
 }

@@ -13,7 +13,6 @@ using ResoClassAPI.Utilities.Interfaces;
 namespace ResoClassAPI.Controllers
 {
     [Authorize]
-    [Route("api/[controller]")]
     [ApiController]
     public class VideoController : Controller
     {
@@ -27,6 +26,8 @@ namespace ResoClassAPI.Controllers
             logger = _logger;
             excelReader = _excelReader;
         }
+
+        #region Admin
 
         [HttpGet]
         [Route("api/Admin/Video/Get")]
@@ -194,7 +195,6 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
-
         [HttpDelete]
         [Route("api/Admin/Video/Delete/{id}")]
         public async Task<ResponseDto> Delete(int id)
@@ -222,5 +222,101 @@ namespace ResoClassAPI.Controllers
             }
             return responseDto;
         }
+
+        #endregion
+
+        #region Student
+
+
+        [HttpGet]
+        [Route("api/Student/Video/GetVideosByChapterId")]
+        public async Task<ResponseDto> GetVideosByChapterId(long chapterId)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                logger.LogInformation("Requested GetVideosByChapterId");
+                var videos = await videoService.GetVideosWithChapterId(chapterId);
+
+                if (videos != null)
+                {
+                    responseDto.Result = videos;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
+
+        [HttpGet]
+        [Route("api/Student/Video/GetVideosByTopicId")]
+        public async Task<ResponseDto> GetVideosByTopicId(long topicId)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                logger.LogInformation("Requested GetVideosByTopicId");
+                var videos = await videoService.GetVideosWithTopicId(topicId);
+
+                if (videos != null)
+                {
+                    responseDto.Result = videos;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
+
+        [HttpGet]
+        [Route("api/Student/Video/GetVideosBySubTopicId")]
+        public async Task<ResponseDto> GetVideosBySubTopicId(long subTopicId)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                logger.LogInformation("Requested GetVideosBySubTopicId");
+                var videos = await videoService.GetVideosWithSubTopicId(subTopicId);
+
+                if (videos != null)
+                {
+                    responseDto.Result = videos;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
+        #endregion
     }
 }

@@ -12,7 +12,6 @@ using ResoClassAPI.Utilities.Interfaces;
 namespace ResoClassAPI.Controllers
 {
     [Authorize]
-    [Route("api/[controller]")]
     [ApiController]
     public class CourseController : Controller
     {

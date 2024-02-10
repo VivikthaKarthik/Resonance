@@ -9,5 +9,8 @@ namespace ResoClassAPI.Services.Interfaces
         Task<long> CreateVideo(VideoDto newItem);
         Task<bool> UpdateVideo(VideoDto updatedItem);
         Task<bool> DeleteVideo(long topicId);
+        Task<List<VideoResponseDto>> GetVideosWithChapterId(long chapterId);
+        Task<List<VideoResponseDto>> GetVideosWithTopicId(long topicId);
+        Task<List<VideoResponseDto>> GetVideosWithSubTopicId(long subTopicId);
     }
 }
