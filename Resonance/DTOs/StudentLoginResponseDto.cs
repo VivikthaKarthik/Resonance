@@ -2,10 +2,7 @@
 {
     public class StudentLoginResponseDto
     {
-        public long StudentId { get; set; }
-        public string Name { get; set; }
-        public long CourseId { get; set; }
-        public string CourseName { get; set; }
+        public bool IsPasswordChangeRequired { get; set; }
         public string Token { get;set; }
     }
 }

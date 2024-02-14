@@ -247,6 +247,7 @@ public partial class ResoClassContext : DbContext
             entity.Property(e => e.EmailAddress).HasMaxLength(80);
             entity.Property(e => e.FatherName).HasMaxLength(128);
             entity.Property(e => e.Gender).HasMaxLength(10);
+            entity.Property(e => e.IsPasswordChangeRequired).HasDefaultValueSql("((1))");
             entity.Property(e => e.LastLoginDate).HasColumnType("datetime");
             entity.Property(e => e.Latitude).HasMaxLength(50);
             entity.Property(e => e.Longitude).HasMaxLength(50);

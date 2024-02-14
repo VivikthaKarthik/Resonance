@@ -18,6 +18,23 @@ namespace ResoClassAPI.Services
             mapper = _mapper;
         }
 
+
+        public async Task<StudentProfileDto> GetProfile()
+        {
+            var currentUser = authService.GetCurrentUser();
+            var subject = await Task.FromResult(dbContext.Students.FirstOrDefault(item => item.Id == currentUser.UserId && item.IsActive == true));
+            if (subject != null)
+            {
+                var dtoObject = mapper.Map<StudentProfileDto>(subject);
+
+                if (dtoObject.CourseId > 0)
+                    dtoObject.CourseName = dbContext.Courses.Where(x => x.Id == dtoObject.CourseId).First().Name;
+                return dtoObject;
+            }
+            else
+                throw new Exception("Not Found");
+        }
+
         public async Task<bool> ChangePassword(string password)
         {
             var currentUser = authService.GetCurrentUser();

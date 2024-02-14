@@ -71,16 +71,7 @@ namespace ResoClassAPI.Services
                 studentDetails.LastLoginDate = DateTime.Now;
                 await dbContext.SaveChangesAsync();
 
-                response.StudentId = studentDetails.Id;
-                response.Name = studentDetails.Name;
-
-                if (dbContext.Courses.Any(x => x.Id == studentDetails.CourseId))
-                {
-                    var courseDetails = dbContext.Courses.Where(x => x.Id == studentDetails.CourseId).First();
-                    response.CourseId = courseDetails.Id;
-                    response.CourseName = courseDetails.Name;
-                }
-
+                response.IsPasswordChangeRequired = studentDetails.IsPasswordChangeRequired.Value;
                 response.Token = await GenerateToken(studentDetails.Name, studentDetails.EmailAddress, "", studentDetails?.Id.ToString(), string.Empty);
             }
             return await Task.FromResult(response);
@@ -103,16 +94,7 @@ namespace ResoClassAPI.Services
                 studentDetails.LastLoginDate = DateTime.Now;
 
                 await dbContext.SaveChangesAsync();
-
-                response.StudentId = studentDetails.Id;
-                response.Name = studentDetails.Name;
-
-                if (dbContext.Courses.Any(x => x.Id == studentDetails.CourseId))
-                {
-                    var courseDetails = dbContext.Courses.Where(x => x.Id == studentDetails.CourseId).First();
-                    response.CourseId = courseDetails.Id;
-                    response.CourseName = courseDetails.Name;
-                }
+                response.IsPasswordChangeRequired = studentDetails.IsPasswordChangeRequired.Value;
                 response.Token = await GenerateToken(studentDetails.Name, studentDetails.EmailAddress, "", studentDetails?.Id.ToString(), userDto.DeviceId);
             }
             return await Task.FromResult(response);

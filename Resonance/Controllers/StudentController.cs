@@ -9,7 +9,6 @@ using ResoClassAPI.Utilities.Interfaces;
 namespace ResoClassAPI.Controllers
 {
     [Authorize]
-    [Route("api/[controller]")]
     [ApiController]
     public class StudentController : ControllerBase
     {
@@ -25,9 +24,38 @@ namespace ResoClassAPI.Controllers
         }
 
 
+        [HttpGet]
+        [Route("api/Student/GetProfile")]
+        public async Task<ResponseDto> Get()
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                logger.LogInformation("Requested GetUser");
+                var chapter = await studentService.GetProfile();
+
+                if (chapter != null)
+                {
+                    responseDto.Result = chapter;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
         #region Student
         [HttpPut]
-        [Route("ChangePassword")]
+        [Route("api/StudentChangePassword")]
         public async Task<ResponseDto> ChangePassword(string password)
         {
             ResponseDto responseDto = new ResponseDto();

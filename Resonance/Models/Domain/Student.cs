@@ -65,5 +65,9 @@ public partial class Student
 
     public DateTime ModifiedOn { get; set; }
 
+    public bool? IsPasswordChangeRequired { get; set; }
+
+    public string? ProfilePicture { get; set; }
+
     public virtual ICollection<ExamResult> ExamResults { get; } = new List<ExamResult>();
 }
