@@ -30,7 +30,7 @@ namespace ResoClassAPI.Controllers
         #region Admin
         
         [HttpGet]
-        [Route("api/Admin/SubTopic/Get")]
+        [Route("api/SubTopic/Get")]
         public async Task<ResponseDto> Get(int Id)
         {
             ResponseDto responseDto = new ResponseDto();
@@ -59,7 +59,8 @@ namespace ResoClassAPI.Controllers
         }
 
         [HttpGet]
-        [Route("api/Admin/SubTopic/GetAll")]
+        [Authorize(Policy = "Admin")]
+        [Route("api/SubTopic/GetAll")]
         public async Task<ResponseDto> GetAll()
         {
             ResponseDto responseDto = new ResponseDto();
@@ -88,7 +89,8 @@ namespace ResoClassAPI.Controllers
         }
 
         [HttpPost]
-        [Route("api/Admin/SubTopic/Create")]
+        [Authorize(Policy = "Admin")]
+        [Route("api/SubTopic/Create")]
         public async Task<ResponseDto> Post(SubTopicDto requestDto)
         {
             ResponseDto responseDto = new ResponseDto();
@@ -122,7 +124,8 @@ namespace ResoClassAPI.Controllers
         }
 
         [HttpPost]
-        [Route("api/Admin/SubTopic/Upload")]
+        [Authorize(Policy = "Admin")]
+        [Route("api/SubTopic/Upload")]
         public async Task<ResponseDto> UploadExcel(IFormFile file)
         {
             ResponseDto responseDto = new ResponseDto();
@@ -163,7 +166,8 @@ namespace ResoClassAPI.Controllers
         }
 
         [HttpPut]
-        [Route("api/Admin/SubTopic/Update/{id}")]
+        [Authorize(Policy = "Admin")]
+        [Route("api/SubTopic/Update/{id}")]
         public async Task<ResponseDto> Put(long id, SubTopicDto requestDto)
         {
             ResponseDto responseDto = new ResponseDto();
@@ -196,7 +200,8 @@ namespace ResoClassAPI.Controllers
         }
 
         [HttpDelete]
-        [Route("api/Admin/SubTopic/Delete/{id}")]
+        [Authorize(Policy = "Admin")]
+        [Route("api/SubTopic/Delete/{id}")]
         public async Task<ResponseDto> Delete(long id)
         {
             ResponseDto responseDto = new ResponseDto();
@@ -228,7 +233,7 @@ namespace ResoClassAPI.Controllers
         #region Student
 
         [HttpGet]
-        [Route("api/Student/SubTopic/GetSubTopicsByTopicId")]
+        [Route("api/SubTopic/GetSubTopicsByTopicId")]
         public async Task<ResponseDto> GetSubTopicsByTopicId(long topicId)
         {
             ResponseDto responseDto = new ResponseDto();
@@ -258,7 +263,7 @@ namespace ResoClassAPI.Controllers
 
 
         [HttpGet]
-        [Route("api/Student/SubTopic/GetSubTopicById")]
+        [Route("api/SubTopic/GetSubTopicById")]
         public async Task<ResponseDto> GetSubTopicById(long Id)
         {
             ResponseDto responseDto = new ResponseDto();

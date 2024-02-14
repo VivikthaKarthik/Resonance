@@ -13,6 +13,7 @@ using ResoClassAPI.Models.Domain;
 using ResoClassAPI.Utilities.Interfaces;
 using ResoClassAPI.Utilities;
 using ResoClassAPI.Interceptors;
+using Microsoft.AspNetCore.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -59,6 +60,7 @@ builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<IStudentService, StudentService>();
 builder.Services.AddScoped<IExcelReader, ExcelReader>();
 builder.Services.AddSingleton<AuditInterceptor>();
+builder.Services.AddSingleton<IAuthorizationHandler, HasPermissionHandler>();
 IMapper mapper = MapperConfig.RegisterMaps().CreateMapper();
 builder.Services.AddSingleton(mapper);
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
@@ -81,6 +83,12 @@ builder.Services.AddCors(o => o.AddPolicy("MyPolicy", builder =>
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddScheme<AuthenticationSchemeOptions, AuthTokenHandler>(JwtBearerDefaults.AuthenticationScheme, null);
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("Admin", policy =>
+        policy.Requirements.Add(new HasPermissionRequirement("Admin")));
+});
 
 builder.Services.AddDbContext<ResoClassContext>((sp, options) =>
 {

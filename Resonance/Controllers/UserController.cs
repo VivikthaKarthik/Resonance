@@ -12,6 +12,7 @@ namespace ResoClassAPI.Controllers
 {
     [Authorize]
     [Route("api/[controller]")]
+    [Authorize(Policy = "Admin")]
     [ApiController]
     public class UserController : ControllerBase
     {
@@ -256,7 +257,7 @@ namespace ResoClassAPI.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<ResponseDto> DeleteCallVolume(int id)
+        public async Task<ResponseDto> Delete(int id)
         {
             ResponseDto responseDto = new ResponseDto();
             try

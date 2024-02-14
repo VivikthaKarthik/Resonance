@@ -26,6 +26,38 @@ namespace ResoClassAPI.Controllers
 
 
         #region Student
+        [HttpPut]
+        [Route("ChangePassword")]
+        public async Task<ResponseDto> ChangePassword(string password)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                if (string.IsNullOrEmpty(password))
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Invalid Request";
+                    return responseDto;
+                }
+
+                if (await studentService.ChangePassword(password))
+                {
+                    responseDto.Result = "Password Updated Successfully";
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Internal Server Error";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
 
 
         #endregion

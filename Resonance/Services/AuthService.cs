@@ -7,6 +7,7 @@ using ResoClassAPI.Services.Interfaces;
 using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace ResoClassAPI.Services
@@ -29,7 +30,7 @@ namespace ResoClassAPI.Services
 
             if (_contextAccessor.HttpContext != null)
             {
-                currentUser.UserId = _contextAccessor.HttpContext?.User?.Claims?.FirstOrDefault(x => x.Type == ClaimTypes.Sid)?.Value;
+                currentUser.UserId = Convert.ToInt64(_contextAccessor.HttpContext?.User?.Claims?.FirstOrDefault(x => x.Type == ClaimTypes.Sid)?.Value);
                 currentUser.Name = _contextAccessor.HttpContext?.User?.Claims?.FirstOrDefault(x => x.Type == ClaimTypes.Name)?.Value;
                 currentUser.Email = _contextAccessor.HttpContext?.User?.Claims?.FirstOrDefault(x => x.Type == ClaimTypes.Email)?.Value;
                 currentUser.Role = _contextAccessor.HttpContext?.User?.Claims?.FirstOrDefault(x => x.Type == ClaimTypes.Role)?.Value;
@@ -41,9 +42,10 @@ namespace ResoClassAPI.Services
         public async Task<string> AuthenticateWebUser(WebLoginDto userDto)
         {
             string token = string.Empty;
+            string decryptedPassword = DecryptPassword(userDto.Password);
 
             var userDetails = dbContext.Users.FirstOrDefault(item =>
-            (item.Email == userDto.UserName || item.PhoneNumber == userDto.UserName) && item.Password == userDto.Password && item.IsActive == true);
+            (item.Email == userDto.UserName || item.PhoneNumber == userDto.UserName) && item.Password == decryptedPassword && item.IsActive == true);
 
             if (userDetails != null)
             {
@@ -59,9 +61,10 @@ namespace ResoClassAPI.Services
         public async Task<StudentLoginResponseDto> AuthenticateWebStudent(WebLoginDto userDto)
         {
             StudentLoginResponseDto response = new StudentLoginResponseDto();
+            string decryptedPassword = DecryptPassword(userDto.Password);
 
             var studentDetails = dbContext.Students.FirstOrDefault(item =>
-            (item.MobileNumber == userDto.UserName || item.EmailAddress.ToLower() == userDto.UserName.ToLower() || item.AdmissionId.ToLower() == userDto.UserName.ToLower()) && item.Password == userDto.Password && item.IsActive == true);
+            (item.MobileNumber == userDto.UserName || item.EmailAddress.ToLower() == userDto.UserName.ToLower() || item.AdmissionId.ToLower() == userDto.UserName.ToLower()) && item.Password == decryptedPassword && item.IsActive == true);
 
             if (studentDetails != null)
             {
@@ -86,9 +89,10 @@ namespace ResoClassAPI.Services
         public async Task<StudentLoginResponseDto> AuthenticateMobileStudent(MobileLoginDto userDto)
         {
             StudentLoginResponseDto response = new StudentLoginResponseDto();
+            string decryptedPassword = DecryptPassword(userDto.Password);
 
             var studentDetails = dbContext.Students.FirstOrDefault(item =>
-            (item.MobileNumber == userDto.UserName || item.EmailAddress.ToLower() == userDto.UserName.ToLower() || item.AdmissionId.ToLower() == userDto.UserName.ToLower()) && item.Password == userDto.Password && item.IsActive == true);
+            (item.MobileNumber == userDto.UserName || item.EmailAddress.ToLower() == userDto.UserName.ToLower() || item.AdmissionId.ToLower() == userDto.UserName.ToLower()) && item.Password == decryptedPassword && item.IsActive == true);
 
             if (studentDetails != null)
             {
@@ -139,6 +143,66 @@ namespace ResoClassAPI.Services
             return await Task.FromResult("bearer " + new JwtSecurityTokenHandler().WriteToken(token));
         }
 
-        
+        public string DecryptPassword(string encryptedPassword)
+        {
+            string key = _config["SecretKey"];
+
+            if (string.IsNullOrEmpty(key))
+                return encryptedPassword;
+
+            using (Aes aesAlg = Aes.Create())
+            {
+                aesAlg.Key = Convert.FromBase64String(key);
+                aesAlg.IV = new byte[16]; // Make sure IV is properly provided from the client side for better security
+
+                ICryptoTransform decryptor = aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV);
+
+                byte[] encryptedBytes = Convert.FromBase64String(encryptedPassword);
+                byte[] decryptedBytes;
+
+                using (var msDecrypt = new MemoryStream(encryptedBytes))
+                {
+                    using (var csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read))
+                    {
+                        using (var srDecrypt = new StreamReader(csDecrypt))
+                        {
+                            decryptedBytes = Encoding.UTF8.GetBytes(srDecrypt.ReadToEnd());
+                        }
+                    }
+                }
+
+                return Encoding.UTF8.GetString(decryptedBytes);
+            }
+        }
+
+        public string EncryptPassword(string password)
+        {
+            string key = _config["SecretKey"];
+
+            if (string.IsNullOrEmpty(key))
+                return password;
+
+            using (Aes aesAlg = Aes.Create())
+            {
+                aesAlg.Key = Convert.FromBase64String(key);
+                aesAlg.IV = new byte[16]; // Make sure IV is properly provided for better security
+
+                ICryptoTransform encryptor = aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV);
+
+                byte[] encryptedBytes;
+
+                using (var msEncrypt = new MemoryStream())
+                {
+                    using (var csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
+                    {
+                        byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
+                        csEncrypt.Write(passwordBytes, 0, passwordBytes.Length);
+                    }
+                    encryptedBytes = msEncrypt.ToArray();
+                }
+
+                return Convert.ToBase64String(encryptedBytes);
+            }
+        }
     }
 }

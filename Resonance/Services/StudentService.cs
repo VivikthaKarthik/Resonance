@@ -17,6 +17,23 @@ namespace ResoClassAPI.Services
             authService = _authService;
             mapper = _mapper;
         }
-           
+
+        public async Task<bool> ChangePassword(string password)
+        {
+            var currentUser = authService.GetCurrentUser();
+            var existingItem = dbContext.Students.FirstOrDefault(item => item.Id == currentUser.UserId && item.IsActive == true);
+
+            if (existingItem != null)
+            {
+                existingItem.Password = authService.DecryptPassword(password);
+                existingItem.ModifiedBy = currentUser.Name;
+                existingItem.ModifiedOn = DateTime.Now;
+
+                await dbContext.SaveChangesAsync();
+                return true;
+            }
+            return false;
+        }
+
     }
 }

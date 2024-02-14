@@ -28,7 +28,8 @@ namespace ResoClassAPI.Controllers
 
 
         [HttpGet]
-        [Route("api/Admin/Course/Get")]
+        [Authorize(Policy = "Admin")]
+        [Route("api/Course/Get")]
         public async Task<ResponseDto> Get(int Id)
         {
             ResponseDto responseDto = new ResponseDto();
@@ -57,7 +58,8 @@ namespace ResoClassAPI.Controllers
         }
 
         [HttpGet]
-        [Route("api/Admin/Course/GetAll")]
+        [Authorize(Policy = "Admin")]
+        [Route("api/Course/GetAll")]
         public async Task<ResponseDto> GetAll()
         {
             ResponseDto responseDto = new ResponseDto();
@@ -85,10 +87,9 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
-
-
         [HttpPost]
-        [Route("api/Admin/Course/Create")]
+        [Authorize(Policy = "Admin")]
+        [Route("api/Course/Create")]
         public async Task<ResponseDto> Post(CourseDto requestDto)
         {
             ResponseDto responseDto = new ResponseDto();
@@ -122,7 +123,8 @@ namespace ResoClassAPI.Controllers
         }
 
         [HttpPost]
-        [Route("api/Admin/Course/Upload")]
+        [Authorize(Policy = "Admin")]
+        [Route("api/Course/Upload")]
         public async Task<ResponseDto> UploadExcel(IFormFile file)
         {
             ResponseDto responseDto = new ResponseDto();
@@ -163,7 +165,8 @@ namespace ResoClassAPI.Controllers
         }
 
         [HttpPut]
-        [Route("api/Admin/Course/Update/{id}")]
+        [Authorize(Policy = "Admin")]
+        [Route("api/Course/Update/{id}")]
         public async Task<ResponseDto> Put(int id, CourseDto requestDto)
         {
             ResponseDto responseDto = new ResponseDto();
@@ -195,10 +198,9 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
-
-
         [HttpDelete]
-        [Route("api/Admin/Course/Delete/{id}")]
+        [Authorize(Policy = "Admin")]
+        [Route("api/Course/Delete/{id}")]
         public async Task<ResponseDto> Delete(int id)
         {
             ResponseDto responseDto = new ResponseDto();
