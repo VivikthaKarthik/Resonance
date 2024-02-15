@@ -86,16 +86,32 @@ namespace ResoClassAPI.Services
                         .Select(c => c.Id)
                         .FirstOrDefault();
 
-                    if (cityId == 0)
-                        throw new Exception($"Course '{studentProfile.City}' not found in the database.");
-
                     if (stateId == 0)
                         throw new Exception($"State '{studentProfile.State}' not found in the database.");
 
                     if (courseId == 0)
                         throw new Exception($"City '{studentProfile.CourseName}' not found in the database.");
 
-                    if(string.IsNullOrEmpty(studentProfile.EmailAddress) || !ValidateEmail(studentProfile.EmailAddress))
+
+                    if (cityId == 0)
+                    {
+                        City newCity = new City();
+                        newCity.Name = studentProfile.City;
+                        newCity.StateId = stateId;
+                        newCity.IsActive = true;
+                        newCity.CreatedBy = currentUser.Name;
+                        newCity.CreatedOn = DateTime.Now;
+                        newCity.ModifiedBy = currentUser.Name;
+                        newCity.ModifiedOn = DateTime.Now;
+
+                        dbContext.Cities.Add(newCity);
+                        await dbContext.SaveChangesAsync();
+
+                        cityId = newCity.Id;
+
+                    }
+
+                    if (string.IsNullOrEmpty(studentProfile.EmailAddress) || !ValidateEmail(studentProfile.EmailAddress))
                         throw new Exception($"'{studentProfile.EmailAddress}' is not a valid Email.");
 
                     if (string.IsNullOrEmpty(studentProfile.MobileNumber) || !ValidatePhoneNumber(studentProfile.MobileNumber))
@@ -103,7 +119,7 @@ namespace ResoClassAPI.Services
 
                     if (!string.IsNullOrEmpty(studentProfile.AlternateMobileNumber))
                     {
-                        if(!ValidatePhoneNumber(studentProfile.AlternateMobileNumber))
+                        if (!ValidatePhoneNumber(studentProfile.AlternateMobileNumber))
                             throw new Exception($"'{studentProfile.AlternateMobileNumber}' is not a valid Phone Number.");
                     }
 
@@ -135,40 +151,45 @@ namespace ResoClassAPI.Services
                         throw new Exception("Gender Field is mandatory.");
 
                     // Insert the subject if it doesn't exist
-                    Student existingStudent = dbContext.Students.FirstOrDefault(s => s.Name == studentProfile.Name && s.EmailAddress == studentProfile.EmailAddress && s.IsActive);
-
-                    if (existingStudent == null)
+                    Student existingStudent = dbContext.Students.FirstOrDefault(s => s.AdmissionId.ToLower() == studentProfile.AdmissionId.ToLower() && s.IsActive);
+                    bool isStudentExist = dbContext.Students.Any(s => s.AdmissionId.ToLower() == studentProfile.AdmissionId.ToLower() && s.IsActive);
+                    if (!isStudentExist)
                     {
-                        existingStudent = new Student
-                        {
-                            Name = studentProfile.Name,
-                            AdmissionId = studentProfile.AdmissionId,
-                            AdmissionDate = studentProfile.AdmissionDate,
-                            FatherName = studentProfile.FatherName,
-                            MotherName = studentProfile.MotherName,
-                            DateOfBirth = studentProfile.DateOfBirth,
-                            AddressLine1 = studentProfile.AddressLine1,
-                            AddressLine2 = studentProfile.AddressLine2,
-                            Landmark = studentProfile.Landmark,
-                            CityId = cityId,
-                            StateId = stateId,
-                            PinCode = studentProfile.PinCode,
-                            Gender = studentProfile.Gender,
-                            CourseId = courseId,
-                            MobileNumber = studentProfile.MobileNumber,
-                            AlternateMobileNumber = studentProfile.AlternateMobileNumber,
-                            EmailAddress = studentProfile.EmailAddress,
-                            IsPasswordChangeRequired = true,
-                            Password = "Reso@123",
-                            ProfilePicture = studentProfile.ProfilePicture,
-                            IsActive = true,
-                            CreatedBy = currentUser.Name,
-                            CreatedOn = DateTime.Now,
-                            ModifiedBy = currentUser.Name,
-                            ModifiedOn = DateTime.Now
-                        };
-                        dbContext.Students.Add(existingStudent);
+                        existingStudent = new Student();
+                        existingStudent.IsPasswordChangeRequired = true;
+                        existingStudent.Password = "Reso@123";
+                        existingStudent.IsActive = true;
+                        existingStudent.CreatedBy = currentUser.Name;
+                        existingStudent.CreatedOn = DateTime.Now;
                     }
+                    else
+                    {
+                        existingStudent = dbContext.Students.FirstOrDefault(s => s.AdmissionId.ToLower() == studentProfile.AdmissionId.ToLower() && s.IsActive);
+                    }
+
+                    existingStudent.Name = studentProfile.Name;
+                    existingStudent.AdmissionId = studentProfile.AdmissionId;
+                    existingStudent.AdmissionDate = studentProfile.AdmissionDate;
+                    existingStudent.FatherName = studentProfile.FatherName;
+                    existingStudent.MotherName = studentProfile.MotherName;
+                    existingStudent.DateOfBirth = studentProfile.DateOfBirth;
+                    existingStudent.AddressLine1 = studentProfile.AddressLine1;
+                    existingStudent.AddressLine2 = studentProfile.AddressLine2;
+                    existingStudent.Landmark = studentProfile.Landmark;
+                    existingStudent.CityId = cityId;
+                    existingStudent.StateId = stateId;
+                    existingStudent.PinCode = studentProfile.PinCode;
+                    existingStudent.Gender = studentProfile.Gender;
+                    existingStudent.CourseId = courseId;
+                    existingStudent.MobileNumber = studentProfile.MobileNumber;
+                    existingStudent.AlternateMobileNumber = studentProfile.AlternateMobileNumber;
+                    existingStudent.EmailAddress = studentProfile.EmailAddress;
+                    existingStudent.ProfilePicture = studentProfile.ProfilePicture;
+                    existingStudent.ModifiedBy = currentUser.Name;
+                    existingStudent.ModifiedOn = DateTime.Now;
+
+                    if (!isStudentExist)
+                        dbContext.Students.Add(existingStudent);
                 }
 
                 await dbContext.SaveChangesAsync();
