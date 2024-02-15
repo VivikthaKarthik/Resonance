@@ -131,6 +131,7 @@ namespace ResoClassAPI.Controllers
             ResponseDto responseDto = new ResponseDto();
             try
             {
+                bool isDataUploaded = false;
                 if (file == null || file.Length == 0)
                 {
                     responseDto.IsSuccess = false;
@@ -146,7 +147,16 @@ namespace ResoClassAPI.Controllers
                     return responseDto;
                 }
 
-                if (await excelReader.BulkUpload(file, SqlTableName.Subject))
+                using (var stream = new MemoryStream())
+                {
+                    await file.CopyToAsync(stream);
+                    stream.Position = 0;
+
+                    List<SubjectDto> subjects = await excelReader.ReadSubjectsFromExcel(stream);
+                    isDataUploaded = await subjectService.InsertSubjectsAndLinkToCourses(subjects);
+                }
+
+                if (isDataUploaded)
                 {
                     responseDto.Result = "Data uploaded successfully";
                     responseDto.IsSuccess = true;

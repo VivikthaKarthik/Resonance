@@ -6,25 +6,14 @@
         public DateTime AdmissionDate { get; set; }
         public string Name { get; set; }
         public string FatherName { get; set; }
-
         public string MotherName { get; set; }
-
         public DateTime DateOfBirth { get; set; }
-
         public string AddressLine1 { get; set; }
-
         public string AddressLine2 { get; set; }
-
         public string Landmark { get; set; }
-
         public string City { get; set; }
-
         public string State { get; set; }
-
         public string PinCode { get; set; }
-
-        //public string BranchId { get; set; }
-
         public string Gender { get; set; }
         public long CourseId { get; set; }
         public string CourseName { get; set; }

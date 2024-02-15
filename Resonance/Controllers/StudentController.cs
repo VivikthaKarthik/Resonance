@@ -55,7 +55,7 @@ namespace ResoClassAPI.Controllers
 
         #region Student
         [HttpPut]
-        [Route("api/StudentChangePassword")]
+        [Route("api/Student/ChangePassword")]
         public async Task<ResponseDto> ChangePassword(string password)
         {
             ResponseDto responseDto = new ResponseDto();
@@ -77,6 +77,58 @@ namespace ResoClassAPI.Controllers
                 {
                     responseDto.IsSuccess = false;
                     responseDto.Message = "Internal Server Error";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
+        [HttpPost]
+        [Authorize(Policy = "Admin")]
+        [Route("api/Student/Upload")]
+        public async Task<ResponseDto> UploadExcel(IFormFile file)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                bool isDataUploaded = false;
+                if (file == null || file.Length == 0)
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Invalid file.";
+                    return responseDto;
+                }
+
+                var extension = "." + file.FileName.Split('.')[file.FileName.Split('.').Length - 1];
+                if (extension != ".xlsx")
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Invalid file type.";
+                    return responseDto;
+                }
+
+                using (var stream = new MemoryStream())
+                {
+                    await file.CopyToAsync(stream);
+                    stream.Position = 0;
+
+                    List<StudentProfileDto> subjects = await excelReader.ReadStudentsFromExcel(stream);
+                    isDataUploaded = await studentService.InsertStudents(subjects);
+                }
+
+                if (isDataUploaded)
+                {
+                    responseDto.Result = "Data uploaded successfully";
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Some Error occured!. Please check the format and try again";
                 }
             }
             catch (Exception ex)

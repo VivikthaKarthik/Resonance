@@ -35,10 +35,21 @@ namespace ResoClassAPI.Services
                                     if (row[item] != null)
                                     {
                                         long foreignKeyId = GetForeignKeyId(connection, item.Substring(0, item.Length - 2), row[item].ToString());
-                                        if (foreignKeyId > 0)
-                                            row[item] = foreignKeyId;
+
+                                        if (tableName == "Video")
+                                        {
+                                            if(foreignKeyId > 0)
+                                                row[item] = foreignKeyId;
+                                            else
+                                                row[item] = null;
+                                        }
                                         else
-                                            throw new Exception($"Foreign key value '{row[item]}' not found in the parent table.");
+                                        {
+                                            if (foreignKeyId > 0)
+                                                row[item] = foreignKeyId;
+                                            else
+                                                throw new Exception($"Foreign key value '{row[item]}' not found in the parent table.");
+                                        }
                                     }
                                 }
                             }

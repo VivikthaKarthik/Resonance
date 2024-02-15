@@ -6,5 +6,6 @@ namespace ResoClassAPI.Services.Interfaces
     {
         Task<StudentProfileDto> GetProfile();
         Task<bool> ChangePassword(string password);
+        Task<bool> InsertStudents(List<StudentProfileDto> subjects);
     }
 }
