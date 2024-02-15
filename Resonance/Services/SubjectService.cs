@@ -120,8 +120,6 @@ namespace ResoClassAPI.Services
             return false;
         }
 
-
-
         public async Task<bool> DeleteSubject(long subjectId)
         {
             var currentUser = authService.GetCurrentUser();
@@ -172,6 +170,65 @@ namespace ResoClassAPI.Services
             }
             else
                 throw new Exception("Not Found");
+        }
+
+        public async Task<bool> InsertSubjectsAndLinkToCourses(List<SubjectDto> subjects)
+        {
+            try
+            {
+                var currentUser = authService.GetCurrentUser();
+                foreach (var subjectDto in subjects)
+                {
+                    // Get the course ID based on the course name
+                    long courseId = dbContext.Courses
+                        .Where(c => c.Name == subjectDto.CourseName)
+                        .Select(c => c.Id)
+                        .FirstOrDefault();
+
+                    if (courseId == 0)
+                    {
+                        throw new Exception($"Course '{subjectDto.CourseName}' not found in the database.");
+                    }
+
+                    // Insert the subject if it doesn't exist
+                    Subject existingSubject = dbContext.Subjects.FirstOrDefault(s => s.Name == subjectDto.Name && s.IsActive);
+
+                    if (existingSubject == null)
+                    {
+                        existingSubject = new Subject 
+                        { 
+                            Name = subjectDto.Name, 
+                            Thumbnail = subjectDto.Thumbnail,
+                            IsActive = true,
+                            CreatedBy = currentUser.Name,
+                            CreatedOn = DateTime.Now,
+                            ModifiedBy = currentUser.Name,
+                            ModifiedOn = DateTime.Now
+                        };
+                        dbContext.Subjects.Add(existingSubject);
+                    }
+
+                    // Link the subject to the course
+                    existingSubject.SubjectCourses.Add(
+                        new SubjectCourse
+                        {
+                            CourseId = courseId,
+                            IsActive = true,
+                            CreatedBy = currentUser.Name,
+                            CreatedOn = DateTime.Now,
+                            ModifiedBy = currentUser.Name,
+                            ModifiedOn = DateTime.Now
+                        });
+                }
+
+                await dbContext.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+           
         }
     }
 }

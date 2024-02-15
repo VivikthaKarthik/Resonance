@@ -30,7 +30,8 @@ namespace ResoClassAPI.Controllers
         #region Admin
 
         [HttpGet]
-        [Route("api/Admin/Video/Get")]
+        [Authorize(Policy = "Admin")]
+        [Route("api/Video/Get")]
         public async Task<ResponseDto> Get(int Id)
         {
             ResponseDto responseDto = new ResponseDto();
@@ -59,7 +60,8 @@ namespace ResoClassAPI.Controllers
         }
 
         [HttpGet]
-        [Route("api/Admin/Video/GetAll")]
+        [Authorize(Policy = "Admin")]
+        [Route("api/Video/GetAll")]
         public async Task<ResponseDto> GetAll()
         {
             ResponseDto responseDto = new ResponseDto();
@@ -88,7 +90,8 @@ namespace ResoClassAPI.Controllers
         }
 
         [HttpPost]
-        [Route("api/Admin/Video/Create")]
+        [Authorize(Policy = "Admin")]
+        [Route("api/Video/Create")]
         public async Task<ResponseDto> Post(VideoDto requestDto)
         {
             ResponseDto responseDto = new ResponseDto();
@@ -122,7 +125,8 @@ namespace ResoClassAPI.Controllers
         }
 
         [HttpPost]
-        [Route("api/Admin/Video/Upload")]
+        [Authorize(Policy = "Admin")]
+        [Route("api/Video/Upload")]
         public async Task<ResponseDto> UploadExcel(IFormFile file)
         {
             ResponseDto responseDto = new ResponseDto();
@@ -163,7 +167,8 @@ namespace ResoClassAPI.Controllers
         }
 
         [HttpPut]
-        [Route("api/Admin/Video/Update/{id}")]
+        [Authorize(Policy = "Admin")]
+        [Route("api/Video/Update/{id}")]
         public async Task<ResponseDto> Put(int id, VideoDto requestDto)
         {
             ResponseDto responseDto = new ResponseDto();
@@ -196,7 +201,8 @@ namespace ResoClassAPI.Controllers
         }
 
         [HttpDelete]
-        [Route("api/Admin/Video/Delete/{id}")]
+        [Authorize(Policy = "Admin")]
+        [Route("api/Video/Delete/{id}")]
         public async Task<ResponseDto> Delete(int id)
         {
             ResponseDto responseDto = new ResponseDto();
@@ -227,9 +233,8 @@ namespace ResoClassAPI.Controllers
 
         #region Student
 
-
         [HttpGet]
-        [Route("api/Student/Video/GetVideosByChapterId")]
+        [Route("api/Video/GetVideosByChapterId")]
         public async Task<ResponseDto> GetVideosByChapterId(long chapterId)
         {
             ResponseDto responseDto = new ResponseDto();
@@ -259,7 +264,7 @@ namespace ResoClassAPI.Controllers
 
 
         [HttpGet]
-        [Route("api/Student/Video/GetVideosByTopicId")]
+        [Route("api/Video/GetVideosByTopicId")]
         public async Task<ResponseDto> GetVideosByTopicId(long topicId)
         {
             ResponseDto responseDto = new ResponseDto();
@@ -289,7 +294,7 @@ namespace ResoClassAPI.Controllers
 
 
         [HttpGet]
-        [Route("api/Student/Video/GetVideosBySubTopicId")]
+        [Route("api/Video/GetVideosBySubTopicId")]
         public async Task<ResponseDto> GetVideosBySubTopicId(long subTopicId)
         {
             ResponseDto responseDto = new ResponseDto();

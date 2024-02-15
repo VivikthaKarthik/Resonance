@@ -9,5 +9,7 @@ namespace ResoClassAPI.Services.Interfaces
         Task<string> AuthenticateWebUser(WebLoginDto user);
         Task<StudentLoginResponseDto> AuthenticateWebStudent(WebLoginDto user);
         Task<StudentLoginResponseDto> AuthenticateMobileStudent(MobileLoginDto user);
+        string DecryptPassword(string encryptedPassword);
+        string EncryptPassword(string password);
     }
 }

@@ -21,6 +21,8 @@ public partial class ResoClassContext : DbContext
 
     public virtual DbSet<Choice> Choices { get; set; }
 
+    public virtual DbSet<City> Cities { get; set; }
+
     public virtual DbSet<Course> Courses { get; set; }
 
     public virtual DbSet<Exam> Exams { get; set; }
@@ -32,6 +34,8 @@ public partial class ResoClassContext : DbContext
     public virtual DbSet<Question> Questions { get; set; }
 
     public virtual DbSet<Role> Roles { get; set; }
+
+    public virtual DbSet<State> States { get; set; }
 
     public virtual DbSet<Student> Students { get; set; }
 
@@ -85,6 +89,22 @@ public partial class ResoClassContext : DbContext
             entity.Property(e => e.CreatedOn).HasColumnType("datetime");
             entity.Property(e => e.ModifiedBy).HasMaxLength(128);
             entity.Property(e => e.ModifiedOn).HasColumnType("datetime");
+        });
+
+        modelBuilder.Entity<City>(entity =>
+        {
+            entity.ToTable("City");
+
+            entity.Property(e => e.CreatedBy).HasMaxLength(250);
+            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.ModifiedBy).HasMaxLength(250);
+            entity.Property(e => e.ModifiedOn).HasColumnType("datetime");
+            entity.Property(e => e.Name).HasMaxLength(100);
+
+            entity.HasOne(d => d.State).WithMany(p => p.Cities)
+                .HasForeignKey(d => d.StateId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_City_State");
         });
 
         modelBuilder.Entity<Course>(entity =>
@@ -231,6 +251,17 @@ public partial class ResoClassContext : DbContext
             entity.Property(e => e.Name).HasMaxLength(50);
         });
 
+        modelBuilder.Entity<State>(entity =>
+        {
+            entity.ToTable("State");
+
+            entity.Property(e => e.CreatedBy).HasMaxLength(250);
+            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.ModifiedBy).HasMaxLength(250);
+            entity.Property(e => e.ModifiedOn).HasColumnType("datetime");
+            entity.Property(e => e.Name).HasMaxLength(100);
+        });
+
         modelBuilder.Entity<Student>(entity =>
         {
             entity.ToTable("Student");
@@ -247,6 +278,7 @@ public partial class ResoClassContext : DbContext
             entity.Property(e => e.EmailAddress).HasMaxLength(80);
             entity.Property(e => e.FatherName).HasMaxLength(128);
             entity.Property(e => e.Gender).HasMaxLength(10);
+            entity.Property(e => e.IsPasswordChangeRequired).HasDefaultValueSql("((1))");
             entity.Property(e => e.LastLoginDate).HasColumnType("datetime");
             entity.Property(e => e.Latitude).HasMaxLength(50);
             entity.Property(e => e.Longitude).HasMaxLength(50);
@@ -256,6 +288,16 @@ public partial class ResoClassContext : DbContext
             entity.Property(e => e.MotherName).HasMaxLength(128);
             entity.Property(e => e.Name).HasMaxLength(128);
             entity.Property(e => e.PinCode).HasMaxLength(10);
+
+            entity.HasOne(d => d.City).WithMany(p => p.Students)
+                .HasForeignKey(d => d.CityId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Student_City");
+
+            entity.HasOne(d => d.State).WithMany(p => p.Students)
+                .HasForeignKey(d => d.StateId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Student_State");
         });
 
         modelBuilder.Entity<SubTopic>(entity =>

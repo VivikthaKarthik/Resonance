@@ -131,31 +131,48 @@ namespace ResoClassAPI.Services
                 throw new Exception("Not Found");
         }
 
-        public async Task<List<ChapterResponseDto>> GetRecommendedChaptersWithCourseId(long courseId)
+        public async Task<List<RecommendedChapterResponseDto>> GetRecommendedChaptersWithCourseId(long courseId)
         {
-            var query = from subjectCourse in dbContext.SubjectCourses
+            List<RecommendedChapterResponseDto> returnList = new List<RecommendedChapterResponseDto>();
+            
+            var subjects = from subjectCourse in dbContext.SubjectCourses
                         where subjectCourse.CourseId == courseId
                         join subject in dbContext.Subjects on subjectCourse.SubjectId equals subject.Id
-                        join chapter in dbContext.Chapters on subject.Id equals chapter.SubjectId
-                        where chapter.IsRecommended == true
                         select new ChapterResponseDto()
                         {
-                            Id = chapter.Id,
-                            Name = chapter.Name,
                             SubjectId = subject.Id,
                             SubjectName = subject.Name,
-                            Thumbnail = chapter.Thumbnail,
-                            IsRecommended = chapter.IsRecommended
                         };
 
-            var result = query.ToList();
-            if (result != null)
+            if (subjects != null && subjects.ToList().Count > 0)
             {
-                var dtoObject = result;
-                return dtoObject;
+                foreach(var subject in subjects.ToList())
+                {
+                    RecommendedChapterResponseDto returnObj = new RecommendedChapterResponseDto();
+                    returnObj.SubjectId = subject.SubjectId;
+                    returnObj.SubjectName = subject.SubjectName;
+
+                    if (dbContext.Chapters.Any(x => x.SubjectId == subject.SubjectId && x.IsRecommended == true && x.IsActive == true))
+                    {
+                        var chapters = dbContext.Chapters.Where(x => x.SubjectId == subject.SubjectId).ToList();
+
+                        foreach(var chapter in chapters)
+                        {
+                            RecommendedChapterDto recommendedChapterDto = new RecommendedChapterDto()
+                            {
+                                Id = chapter.Id,
+                                Name = chapter.Name,
+                                Thumbnail = chapter.Thumbnail,
+                            };
+                            returnObj.RecommendedChapters.Add(recommendedChapterDto);
+                        }
+                    }
+
+                    returnList.Add(returnObj);
+                }
+                return returnList;
             }
-            else
-                throw new Exception("Not Found");
+            throw new Exception("Not Found");
         }
 
         public async Task<List<ChapterResponseDto>> GetChaptersWithSubjectId(long subjectId)

@@ -4,13 +4,11 @@ using Microsoft.AspNetCore.Mvc;
 using ResoClassAPI.DTOs;
 using ResoClassAPI.Services;
 using ResoClassAPI.Services.Interfaces;
-using ResoClassAPI.Utilities;
 using ResoClassAPI.Utilities.Interfaces;
 
 namespace ResoClassAPI.Controllers
 {
     [Authorize]
-    [Route("api/[controller]")]
     [ApiController]
     public class StudentController : ControllerBase
     {
@@ -26,21 +24,19 @@ namespace ResoClassAPI.Controllers
         }
 
 
-        #region Admin
-
         [HttpGet]
-        [Route("api/Admin/Student/Get")]
-        public async Task<ResponseDto> Get(int Id)
+        [Route("api/Student/GetProfile")]
+        public async Task<ResponseDto> Get()
         {
             ResponseDto responseDto = new ResponseDto();
             try
             {
-                logger.LogInformation("Requested GetStudent");
-                var student = await studentService.GetStudent(Id);
+                logger.LogInformation("Requested GetUser");
+                var chapter = await studentService.GetProfile();
 
-                if (student != null)
+                if (chapter != null)
                 {
-                    responseDto.Result = student;
+                    responseDto.Result = chapter;
                     responseDto.IsSuccess = true;
                 }
                 else
@@ -57,53 +53,24 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
-        [HttpGet]
-        [Route("api/Admin/Student/GetAll")]
-        public async Task<ResponseDto> GetAll()
+        #region Student
+        [HttpPut]
+        [Route("api/Student/ChangePassword")]
+        public async Task<ResponseDto> ChangePassword(string password)
         {
             ResponseDto responseDto = new ResponseDto();
             try
             {
-                logger.LogInformation("Requested GetAllStudents");
-                var users = await studentService.GetAllStudents();
-
-                if (users != null)
-                {
-                    responseDto.Result = users;
-                    responseDto.IsSuccess = true;
-                }
-                else
-                {
-                    responseDto.IsSuccess = false;
-                    responseDto.Message = "Not Found";
-                }
-            }
-            catch (Exception ex)
-            {
-                responseDto.IsSuccess = false;
-                responseDto.Message = ex.Message;
-            }
-            return responseDto;
-        }
-
-        [HttpPost]
-        [Route("api/Admin/Student/Create")]
-        public async Task<ResponseDto> Post(StudentDto requestDto)
-        {
-            ResponseDto responseDto = new ResponseDto();
-            try
-            {
-                if (requestDto == null)
+                if (string.IsNullOrEmpty(password))
                 {
                     responseDto.IsSuccess = false;
                     responseDto.Message = "Invalid Request";
                     return responseDto;
                 }
-                long newId = await studentService.CreateStudent(requestDto);
-                if (newId > 0)
+
+                if (await studentService.ChangePassword(password))
                 {
-                    requestDto.Id = newId;
-                    responseDto.Result = requestDto;
+                    responseDto.Result = "Password Updated Successfully";
                     responseDto.IsSuccess = true;
                 }
                 else
@@ -121,12 +88,14 @@ namespace ResoClassAPI.Controllers
         }
 
         [HttpPost]
-        [Route("api/Admin/Student/Upload")]
+        [Authorize(Policy = "Admin")]
+        [Route("api/Student/Upload")]
         public async Task<ResponseDto> UploadExcel(IFormFile file)
         {
             ResponseDto responseDto = new ResponseDto();
             try
             {
+                bool isDataUploaded = false;
                 if (file == null || file.Length == 0)
                 {
                     responseDto.IsSuccess = false;
@@ -142,7 +111,16 @@ namespace ResoClassAPI.Controllers
                     return responseDto;
                 }
 
-                if (await excelReader.BulkUpload(file, SqlTableName.Student))
+                using (var stream = new MemoryStream())
+                {
+                    await file.CopyToAsync(stream);
+                    stream.Position = 0;
+
+                    List<StudentProfileDto> subjects = await excelReader.ReadStudentsFromExcel(stream);
+                    isDataUploaded = await studentService.InsertStudents(subjects);
+                }
+
+                if (isDataUploaded)
                 {
                     responseDto.Result = "Data uploaded successfully";
                     responseDto.IsSuccess = true;
@@ -161,66 +139,6 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
-        [HttpPut]
-        [Route("api/Admin/Student/Update/{id}")]
-        public async Task<ResponseDto> Put(long id, StudentDto requestDto)
-        {
-            ResponseDto responseDto = new ResponseDto();
-            try
-            {
-                if (requestDto == null)
-                {
-                    responseDto.IsSuccess = false;
-                    responseDto.Message = "Invalid Request";
-                    return responseDto;
-                }
-
-                if (await studentService.UpdateStudent(requestDto))
-                {
-                    responseDto.Result = requestDto;
-                    responseDto.IsSuccess = true;
-                }
-                else
-                {
-                    responseDto.IsSuccess = false;
-                    responseDto.Message = "Internal Server Error";
-                }
-            }
-            catch (Exception ex)
-            {
-                responseDto.IsSuccess = false;
-                responseDto.Message = ex.Message;
-            }
-            return responseDto;
-        }
-
-        [HttpDelete]
-        [Route("api/Admin/Student/Delete/{id}")]
-        public async Task<ResponseDto> Delete(long id)
-        {
-            ResponseDto responseDto = new ResponseDto();
-            try
-            {
-                bool result = await studentService.DeleteStudent(id);
-
-                if (!result)
-                {
-                    responseDto.IsSuccess = false;
-                    responseDto.Message = "Not Found";
-                }
-                else
-                {
-                    responseDto.Result = "Student Deleted Successfully";
-                    responseDto.IsSuccess = true;
-                }
-            }
-            catch (Exception ex)
-            {
-                responseDto.IsSuccess = false;
-                responseDto.Message = ex.Message;
-            }
-            return responseDto;
-        }
 
         #endregion
 

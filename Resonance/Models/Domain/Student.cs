@@ -21,9 +21,9 @@ public partial class Student
 
     public string AddressLine1 { get; set; } = null!;
 
-    public string AddressLine2 { get; set; } = null!;
+    public string? AddressLine2 { get; set; }
 
-    public string Landmark { get; set; } = null!;
+    public string? Landmark { get; set; }
 
     public long CityId { get; set; }
 
@@ -31,7 +31,7 @@ public partial class Student
 
     public string PinCode { get; set; } = null!;
 
-    public string BranchId { get; set; } = null!;
+    public string? BranchId { get; set; }
 
     public string Gender { get; set; } = null!;
 
@@ -39,7 +39,7 @@ public partial class Student
 
     public string MobileNumber { get; set; } = null!;
 
-    public string AlternateMobileNumber { get; set; } = null!;
+    public string? AlternateMobileNumber { get; set; }
 
     public string EmailAddress { get; set; } = null!;
 
@@ -65,5 +65,13 @@ public partial class Student
 
     public DateTime ModifiedOn { get; set; }
 
+    public bool? IsPasswordChangeRequired { get; set; }
+
+    public string? ProfilePicture { get; set; }
+
+    public virtual City City { get; set; } = null!;
+
     public virtual ICollection<ExamResult> ExamResults { get; } = new List<ExamResult>();
+
+    public virtual State State { get; set; } = null!;
 }
