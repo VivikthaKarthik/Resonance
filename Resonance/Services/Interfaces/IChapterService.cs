@@ -9,7 +9,8 @@ namespace ResoClassAPI.Services.Interfaces
         Task<long> CreateChapter(ChapterRequestDto newItem);
         Task<bool> UpdateChapter(ChapterRequestDto updatedItem);
         Task<bool> DeleteChapter(long chapterId);
-        Task<List<RecommendedChapterResponseDto>> GetRecommendedChaptersWithCourseId(long courseId);
+        Task<List<RecommendedChapterResponseDto>> GetRecommendedChapters();
         Task<List<ChapterResponseDto>> GetChaptersWithSubjectId(long subjectId);
+        Task<bool> InsertChaptersAndLinkToSubjects(List<ChapterRequestDto> chapters);
     }
 }

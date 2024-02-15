@@ -185,5 +185,30 @@ namespace ResoClassAPI.Utilities
             return students;
         }
 
+        public async Task<List<ChapterRequestDto>> ReadChaptersFromExcel(Stream stream)
+        {
+            List<ChapterRequestDto> chapters = new List<ChapterRequestDto>();
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            using (ExcelPackage package = new ExcelPackage(stream))
+            {
+                ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
+
+                for (int rowNumber = 2; rowNumber <= worksheet.Dimension.End.Row; rowNumber++)
+                {
+                    string chapterName = worksheet.Cells[rowNumber, 1].Text.Trim();
+                    string thumbnail = worksheet.Cells[rowNumber, 2].Text.Trim();
+                    string subject = worksheet.Cells[rowNumber, 3].Text.Trim();
+                    string course = worksheet.Cells[rowNumber, 4].Text.Trim();
+                    string isRecommended = worksheet.Cells[rowNumber, 5].Text.Trim();
+
+                    chapters.Add(new ChapterRequestDto { Name = chapterName, Thumbnail = thumbnail, Course = course, Subject = subject, IsRecommended = isRecommended.ToLower() == "true" });
+                }
+            }
+
+            return chapters;
+        }
+
+
     }
 }

@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using ResoClassAPI.DTOs;
+using ResoClassAPI.Models;
 using ResoClassAPI.Models.Domain;
 using ResoClassAPI.Services.Interfaces;
 using System.Collections.Generic;
@@ -43,12 +44,13 @@ namespace ResoClassAPI.Services
 
             if (currentUser != null)
             {
+                long subjectId = 0;
                 Chapter newChapter = mapper.Map<Chapter>(chapter);
 
-                if (chapter.SubjectId > 0)
+                if (!string.IsNullOrEmpty(chapter.Subject))
                 {
-                    if (dbContext.Subjects.Any(x => x.Id == chapter.SubjectId))
-                        newChapter.SubjectId = chapter.SubjectId;
+                    if (dbContext.Subjects.Any(x => x.Name == chapter.Subject))
+                        subjectId = dbContext.Subjects.Where(x => x.Name == chapter.Subject).First().Id;
                     else
                         throw new Exception("Invalid SubjectId");
                 }
@@ -60,6 +62,15 @@ namespace ResoClassAPI.Services
                 newChapter.CreatedOn = newChapter.ModifiedOn = DateTime.Now;
                
                 dbContext.Chapters.Add(newChapter);
+                await dbContext.SaveChangesAsync();
+
+                SubjectChapter item = new SubjectChapter();
+                item.ChapterId = chapter.Id;
+                item.SubjectId = subjectId;
+                item.IsActive = true;
+                item.CreatedBy = item.ModifiedBy = currentUser.Name;
+                item.CreatedOn = item.ModifiedOn = DateTime.Now;
+                dbContext.SubjectChapters.Add(item);
                 await dbContext.SaveChangesAsync();
                 return newChapter.Id;
             }
@@ -79,12 +90,25 @@ namespace ResoClassAPI.Services
                 if (!string.IsNullOrEmpty(updatedChapter.Thumbnail))
                     existingItem.Thumbnail = updatedChapter.Thumbnail;
 
-                if (updatedChapter.SubjectId > 0)
+                if (!string.IsNullOrEmpty(updatedChapter.Subject))
                 {
-                    if (dbContext.Subjects.Any(x => x.Id == updatedChapter.SubjectId))
-                        existingItem.SubjectId = updatedChapter.SubjectId;
+                    if (dbContext.Subjects.Any(x => x.Name == updatedChapter.Subject))
+                    {
+                        long subjectId = dbContext.Subjects.Where(x=>x.Name.ToLower() ==  updatedChapter.Subject.ToLower()).First().Id;
+                        if(!dbContext.SubjectChapters.Any(x => x.SubjectId == subjectId && x.ChapterId == existingItem.Id && x.IsActive))
+                        {
+                            SubjectChapter subjectChapter = new SubjectChapter();
+                            subjectChapter.SubjectId = subjectId;
+                            subjectChapter.ChapterId = existingItem.Id;
+                            subjectChapter.IsActive = true;
+                            subjectChapter.CreatedOn = subjectChapter.ModifiedOn = DateTime.Now;
+                            subjectChapter.CreatedBy = subjectChapter.ModifiedBy = currentUser.Name;
+
+                            dbContext.SubjectChapters.Add(subjectChapter);
+                        }
+                    }
                     else
-                        throw new Exception("Invalid SubjectId");
+                        throw new Exception("Invalid Subject");
                 }
 
                 if (updatedChapter.IsRecommended != null)
@@ -123,79 +147,158 @@ namespace ResoClassAPI.Services
             {
                 var dtoObject = mapper.Map<ChapterResponseDto>(chapter);
 
-                if (chapter.SubjectId > 0 && dbContext.Subjects.Any(x => x.Id == chapter.SubjectId))
-                    dtoObject.SubjectName = dbContext.Subjects.FirstOrDefault(x => x.Id == chapter.SubjectId).Name;
+                if (dbContext.SubjectChapters.Any(x => x.ChapterId == chapter.Id))
+                {
+                    long subjectId = dbContext.SubjectChapters.FirstOrDefault(x => x.ChapterId == chapter.Id && x.IsActive).SubjectId;
+                    dtoObject.SubjectName = dbContext.Subjects.FirstOrDefault(x => x.Id == subjectId).Name;
+                }
                 return dtoObject;
             }
             else
                 throw new Exception("Not Found");
         }
 
-        public async Task<List<RecommendedChapterResponseDto>> GetRecommendedChaptersWithCourseId(long courseId)
+        public async Task<List<RecommendedChapterResponseDto>> GetRecommendedChapters()
         {
+            var currentUser = authService.GetCurrentUser();
             List<RecommendedChapterResponseDto> returnList = new List<RecommendedChapterResponseDto>();
-            
-            var subjects = from subjectCourse in dbContext.SubjectCourses
-                        where subjectCourse.CourseId == courseId
-                        join subject in dbContext.Subjects on subjectCourse.SubjectId equals subject.Id
-                        select new ChapterResponseDto()
-                        {
-                            SubjectId = subject.Id,
-                            SubjectName = subject.Name,
-                        };
 
-            if (subjects != null && subjects.ToList().Count > 0)
+            long courseId = dbContext.Students.Where(x => x.Id == currentUser.UserId).FirstOrDefault().CourseId;
+            if (courseId > 0)
             {
-                foreach(var subject in subjects.ToList())
+                var subjects = dbContext.Subjects.Where(x => x.CourseId == courseId).ToList();
+
+                if (subjects != null && subjects.ToList().Count > 0)
                 {
-                    RecommendedChapterResponseDto returnObj = new RecommendedChapterResponseDto();
-                    returnObj.SubjectId = subject.SubjectId;
-                    returnObj.SubjectName = subject.SubjectName;
-
-                    if (dbContext.Chapters.Any(x => x.SubjectId == subject.SubjectId && x.IsRecommended == true && x.IsActive == true))
+                    foreach (var subject in subjects.ToList())
                     {
-                        var chapters = dbContext.Chapters.Where(x => x.SubjectId == subject.SubjectId).ToList();
+                        RecommendedChapterResponseDto returnObj = new RecommendedChapterResponseDto();
+                        returnObj.SubjectId = subject.Id;
+                        returnObj.SubjectName = subject.Name;
 
-                        foreach(var chapter in chapters)
+                        var linkedChapters = dbContext.SubjectChapters.Where(x => x.SubjectId == subject.Id).ToList();
+
+                        if (linkedChapters != null && linkedChapters.Count > 0)
                         {
-                            RecommendedChapterDto recommendedChapterDto = new RecommendedChapterDto()
-                            {
-                                Id = chapter.Id,
-                                Name = chapter.Name,
-                                Thumbnail = chapter.Thumbnail,
-                            };
-                            returnObj.RecommendedChapters.Add(recommendedChapterDto);
-                        }
-                    }
 
-                    returnList.Add(returnObj);
+                            foreach (var item in linkedChapters)
+                            {
+                                var chapter = dbContext.Chapters.Where(x => x.Id == item.ChapterId && x.IsRecommended && x.IsActive).FirstOrDefault();
+
+                                if (chapter != null)
+                                {
+                                    RecommendedChapterDto recommendedChapterDto = new RecommendedChapterDto()
+                                    {
+                                        Id = chapter.Id,
+                                        Name = chapter.Name,
+                                        Thumbnail = chapter.Thumbnail,
+                                    };
+                                    returnObj.RecommendedChapters.Add(recommendedChapterDto);
+                                }
+                            }
+
+                            if (returnObj.RecommendedChapters != null && returnObj.RecommendedChapters.Count > 0)
+                                returnList.Add(returnObj);
+                        }
+
+                    }
+                    return returnList;
                 }
-                return returnList;
             }
             throw new Exception("Not Found");
         }
 
         public async Task<List<ChapterResponseDto>> GetChaptersWithSubjectId(long subjectId)
         {
-            var query = from chapter in dbContext.Chapters
-                        where chapter.SubjectId == subjectId
-                        join subject in dbContext.Subjects on chapter.SubjectId equals subject.Id
-                        select new ChapterResponseDto
-                        {
-                            Id = chapter.Id,
-                            Name = chapter.Name,
-                            Thumbnail = chapter.Thumbnail,
-                            SubjectId = subject.Id,
-                            SubjectName = subject.Name,
-                            IsRecommended = chapter.IsRecommended,
-                        };
+            var linkedChapters = dbContext.SubjectChapters.Where(x => x.SubjectId == subjectId).ToList();
 
-            var result = query.ToList();
+            if (linkedChapters != null && linkedChapters.Count > 0)
+            {
+                List<ChapterResponseDto> chapters = new List<ChapterResponseDto>();
+                foreach(var item in linkedChapters)
+                {
+                   var chapter = dbContext.Chapters.Where(x => x.Id == item.ChapterId).First();
+                    chapters.Add(new ChapterResponseDto
+                    {
+                        Id = chapter.Id,
+                        Name = chapter.Name,
+                        Thumbnail = chapter.Thumbnail,
+                        SubjectId = item.Id,
+                        SubjectName = dbContext.Subjects.Where(x => x.Id == item.SubjectId).First().Name,
+                        IsRecommended = chapter.IsRecommended,
+                    });
 
-            if (result != null && result.Count > 0)
-                return result;
+                }
+
+                return chapters;
+            }
             else
                 throw new Exception("Not Found");
+        }
+
+
+        public async Task<bool> InsertChaptersAndLinkToSubjects(List<ChapterRequestDto> chapters)
+        {
+            try
+            {
+                var currentUser = authService.GetCurrentUser();
+                foreach (var chapterDto in chapters)
+                {
+                    // Get the course ID based on the course name
+                    long courseId = dbContext.Courses.Where(c => c.Name == chapterDto.Course && c.IsActive).Select(c => c.Id).FirstOrDefault();
+
+                    if (courseId == 0)
+                    {
+                        throw new Exception($"Course '{chapterDto.Course}' not found in the database.");
+                    }
+
+                    long subjectId = dbContext.Subjects.Where(c => c.Name == chapterDto.Subject && c.CourseId == courseId && c.IsActive).Select(c => c.Id).FirstOrDefault();
+
+                    if (subjectId == 0)
+                    {
+                        throw new Exception($"Course '{chapterDto.Subject}' not found in the database.");
+                    }
+
+                    // Insert the subject if it doesn't exist
+                    Chapter existingChapter = dbContext.Chapters.FirstOrDefault(s => s.Name == chapterDto.Name && s.IsActive);
+
+                    if (existingChapter == null)
+                    {
+                        existingChapter = new Chapter
+                        {
+                            Name = chapterDto.Name,
+                            Thumbnail = chapterDto.Thumbnail,
+                            IsActive = true,
+                            CreatedBy = currentUser.Name,
+                            CreatedOn = DateTime.Now,
+                            ModifiedBy = currentUser.Name,
+                            ModifiedOn = DateTime.Now
+                        };
+                        dbContext.Chapters.Add(existingChapter);
+
+                        await dbContext.SaveChangesAsync();
+                    }
+
+                    var linkedItem = new SubjectChapter
+                    {
+                        ChapterId = existingChapter.Id,
+                        SubjectId = subjectId,
+                        IsActive = true,
+                        CreatedBy = currentUser.Name,
+                        CreatedOn = DateTime.Now,
+                        ModifiedBy = currentUser.Name,
+                        ModifiedOn = DateTime.Now
+                    };
+                    dbContext.SubjectChapters.Add(linkedItem);
+                    await dbContext.SaveChangesAsync();
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
         }
     }
 }

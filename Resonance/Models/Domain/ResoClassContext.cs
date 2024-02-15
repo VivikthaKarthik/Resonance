@@ -43,7 +43,7 @@ public partial class ResoClassContext : DbContext
 
     public virtual DbSet<Subject> Subjects { get; set; }
 
-    public virtual DbSet<SubjectCourse> SubjectCourses { get; set; }
+    public virtual DbSet<SubjectChapter> SubjectChapters { get; set; }
 
     public virtual DbSet<Topic> Topics { get; set; }
 
@@ -74,11 +74,6 @@ public partial class ResoClassContext : DbContext
             entity.Property(e => e.CreatedOn).HasColumnType("datetime");
             entity.Property(e => e.ModifiedBy).HasMaxLength(128);
             entity.Property(e => e.ModifiedOn).HasColumnType("datetime");
-
-            entity.HasOne(d => d.Subject).WithMany(p => p.Chapters)
-                .HasForeignKey(d => d.SubjectId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Chapter_Subject");
         });
 
         modelBuilder.Entity<Choice>(entity =>
@@ -325,26 +320,21 @@ public partial class ResoClassContext : DbContext
             entity.Property(e => e.CreatedOn).HasColumnType("datetime");
             entity.Property(e => e.ModifiedBy).HasMaxLength(128);
             entity.Property(e => e.ModifiedOn).HasColumnType("datetime");
-        });
 
-        modelBuilder.Entity<SubjectCourse>(entity =>
-        {
-            entity.ToTable("Subject_Course");
-
-            entity.Property(e => e.CreatedBy).HasMaxLength(128);
-            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
-            entity.Property(e => e.ModifiedBy).HasMaxLength(128);
-            entity.Property(e => e.ModifiedOn).HasColumnType("datetime");
-
-            entity.HasOne(d => d.Course).WithMany(p => p.SubjectCourses)
+            entity.HasOne(d => d.Course).WithMany(p => p.Subjects)
                 .HasForeignKey(d => d.CourseId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Subject_Course_Course");
+                .HasConstraintName("FK_Subject_Course");
+        });
 
-            entity.HasOne(d => d.Subject).WithMany(p => p.SubjectCourses)
-                .HasForeignKey(d => d.SubjectId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Subject_Course_Subject");
+        modelBuilder.Entity<SubjectChapter>(entity =>
+        {
+            entity.ToTable("Subject_Chapter");
+
+            entity.Property(e => e.CreatedBy).HasMaxLength(250);
+            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.ModifiedBy).HasMaxLength(250);
+            entity.Property(e => e.ModifiedOn).HasColumnType("datetime");
         });
 
         modelBuilder.Entity<Topic>(entity =>

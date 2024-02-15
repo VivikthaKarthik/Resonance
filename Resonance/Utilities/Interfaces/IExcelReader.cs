@@ -6,6 +6,7 @@ namespace ResoClassAPI.Utilities.Interfaces
     {
         Task<List<StudentProfileDto>> ReadStudentsFromExcel(Stream stream);
         Task<List<SubjectDto>> ReadSubjectsFromExcel(Stream stream);
+        Task<List<ChapterRequestDto>> ReadChaptersFromExcel(Stream stream);
         Task<bool> BulkUpload(IFormFile file, string tableName);
     }
 }

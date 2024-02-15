@@ -56,6 +56,7 @@ namespace ResoClassAPI.Services
                 else
                     throw new Exception("CourseId is missing");
 
+                newSubject.CourseId = subject.CourseId;
                 newSubject.IsActive = true;
                 newSubject.CreatedBy = newSubject.ModifiedBy = currentUser.Name;
                 newSubject.CreatedOn = newSubject.ModifiedOn = DateTime.Now;
@@ -63,14 +64,14 @@ namespace ResoClassAPI.Services
                 dbContext.Subjects.Add(newSubject);
                 await dbContext.SaveChangesAsync();
 
-                SubjectCourse course = new SubjectCourse();
-                course.CourseId = subject.CourseId;
-                course.SubjectId = newSubject.Id;
-                course.IsActive = true;
-                course.CreatedBy = course.ModifiedBy = currentUser.Name;
-                course.CreatedOn = course.ModifiedOn = DateTime.Now;
-                dbContext.SubjectCourses.Add(course);
-                await dbContext.SaveChangesAsync();
+                //SubjectCourse course = new SubjectCourse();
+                //course.CourseId = subject.CourseId;
+                //course.SubjectId = newSubject.Id;
+                //course.IsActive = true;
+                //course.CreatedBy = course.ModifiedBy = currentUser.Name;
+                //course.CreatedOn = course.ModifiedOn = DateTime.Now;
+                //dbContext.SubjectCourses.Add(course);
+                //await dbContext.SaveChangesAsync();
 
                 return newSubject.Id;
             }
@@ -84,37 +85,20 @@ namespace ResoClassAPI.Services
 
             if (existingItem != null)
             {
-                if (!string.IsNullOrEmpty(updatedSubject.Name))
-                    existingItem.Name = updatedSubject.Name;
-
-                if (!string.IsNullOrEmpty(updatedSubject.Thumbnail))
-                    existingItem.Thumbnail = updatedSubject.Thumbnail;
-
-                existingItem.ModifiedBy = currentUser.Name;
-                existingItem.ModifiedOn = DateTime.Now;
-
                 if (updatedSubject.CourseId > 0)
                 {
                     if (dbContext.Courses.Any(x => x.Id == updatedSubject.CourseId))
-                    {
-                        var linkedItem = dbContext.SubjectCourses.FirstOrDefault(item => item.CourseId == updatedSubject.CourseId && item.SubjectId == updatedSubject.Id && item.IsActive == true);
-                        if (linkedItem == null)
-                        {
-                            SubjectCourse course = new SubjectCourse();
-                            course.CourseId = updatedSubject.CourseId;
-                            course.SubjectId = updatedSubject.Id;
-                            course.IsActive = true;
-                            course.CreatedBy = course.ModifiedBy = currentUser.Name;
-                            course.CreatedOn = course.ModifiedOn = DateTime.Now;
-                            dbContext.SubjectCourses.Add(course);
-                        }
-                    }
+                        existingItem.CourseId = updatedSubject.CourseId;
                     else
                         throw new Exception("Invalid CourseId");
                 }
 
-                await dbContext.SaveChangesAsync();
+                if (!string.IsNullOrEmpty(updatedSubject.Name))
+                    existingItem.Name = updatedSubject.Name;
 
+                existingItem.ModifiedBy = currentUser.Name;
+                existingItem.ModifiedOn = DateTime.Now;
+                await dbContext.SaveChangesAsync();
                 return true;
             }
             return false;
@@ -151,21 +135,11 @@ namespace ResoClassAPI.Services
 
         public async Task<List<SubjectDto>> GetSubjectsWithCourseId(long courseId)
         {
-
-            var query = from subjectCourse in dbContext.SubjectCourses
-                        where subjectCourse.CourseId == courseId
-                        join subject in dbContext.Subjects on subjectCourse.SubjectId equals subject.Id
-                        select new Subject
-                        {
-                            Id = subject.Id,
-                            Name = subject.Name,
-                            Thumbnail = subject.Thumbnail
-                        };
-
-            var result = query.ToList();
-            if (result != null)
+            
+            if (dbContext.Subjects.Any(item => item.CourseId == courseId && item.IsActive))
             {
-                var dtoObject = mapper.Map<List<SubjectDto>>(result);
+                var subjects = await Task.FromResult(dbContext.Subjects.Where(item => item.CourseId == courseId && item.IsActive).ToList());
+                var dtoObject = mapper.Map<List<SubjectDto>>(subjects);
                 return dtoObject;
             }
             else
@@ -198,8 +172,8 @@ namespace ResoClassAPI.Services
                         existingSubject = new Subject 
                         { 
                             Name = subjectDto.Name, 
-                            Thumbnail = subjectDto.Thumbnail,
                             IsActive = true,
+                            CourseId = courseId,
                             CreatedBy = currentUser.Name,
                             CreatedOn = DateTime.Now,
                             ModifiedBy = currentUser.Name,
@@ -209,16 +183,16 @@ namespace ResoClassAPI.Services
                     }
 
                     // Link the subject to the course
-                    existingSubject.SubjectCourses.Add(
-                        new SubjectCourse
-                        {
-                            CourseId = courseId,
-                            IsActive = true,
-                            CreatedBy = currentUser.Name,
-                            CreatedOn = DateTime.Now,
-                            ModifiedBy = currentUser.Name,
-                            ModifiedOn = DateTime.Now
-                        });
+                    //existingSubject.SubjectCourses.Add(
+                    //    new SubjectCourse
+                    //    {
+                    //        CourseId = courseId,
+                    //        IsActive = true,
+                    //        CreatedBy = currentUser.Name,
+                    //        CreatedOn = DateTime.Now,
+                    //        ModifiedBy = currentUser.Name,
+                    //        ModifiedOn = DateTime.Now
+                    //    });
                 }
 
                 await dbContext.SaveChangesAsync();

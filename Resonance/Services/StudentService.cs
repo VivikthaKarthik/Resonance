@@ -36,7 +36,7 @@ namespace ResoClassAPI.Services
                     dtoObject.City = dbContext.Cities.Where(x => x.Id == student.CityId).First().Name;
 
                 if (student.StateId > 0)
-                    dtoObject.State = dbContext.Cities.Where(x => x.Id == student.StateId).First().Name;
+                    dtoObject.State = dbContext.States.Where(x => x.Id == student.StateId).First().Name;
 
                 if (student.CourseId > 0)
                     dtoObject.CourseName = dbContext.Courses.Where(x => x.Id == student.CourseId).First().Name;
