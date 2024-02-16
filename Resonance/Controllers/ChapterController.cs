@@ -123,6 +123,7 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
+
         [HttpPost]
         [Authorize(Policy = "Admin")]
         [Route("api/Chapter/Upload")]
@@ -131,6 +132,7 @@ namespace ResoClassAPI.Controllers
             ResponseDto responseDto = new ResponseDto();
             try
             {
+                bool isDataUploaded = false;
                 if (file == null || file.Length == 0)
                 {
                     responseDto.IsSuccess = false;
@@ -146,7 +148,16 @@ namespace ResoClassAPI.Controllers
                     return responseDto;
                 }
 
-                if (await excelReader.BulkUpload(file, SqlTableName.Chapter))
+                using (var stream = new MemoryStream())
+                {
+                    await file.CopyToAsync(stream);
+                    stream.Position = 0;
+
+                    List<ChapterRequestDto> subjects = await excelReader.ReadChaptersFromExcel(stream);
+                    isDataUploaded = await chapterService.InsertChaptersAndLinkToSubjects(subjects);
+                }
+
+                if (isDataUploaded)
                 {
                     responseDto.Result = "Data uploaded successfully";
                     responseDto.IsSuccess = true;
@@ -234,14 +245,14 @@ namespace ResoClassAPI.Controllers
 
 
         [HttpGet]
-        [Route("api/Chapter/GetRecommendedChaptersByCourseId")]
-        public async Task<ResponseDto> GetRecommendedChaptersByCourseId(long courseId)
+        [Route("api/Chapter/GetRecommendedChapters")]
+        public async Task<ResponseDto> GetRecommendedChapters()
         {
             ResponseDto responseDto = new ResponseDto();
             try
             {
-                logger.LogInformation("Requested GetRecommendedChaptersByCourseId");
-                var users = await chapterService.GetRecommendedChaptersWithCourseId(courseId);
+                logger.LogInformation("Requested GetRecommendedChapters");
+                var users = await chapterService.GetRecommendedChapters();
 
                 if (users != null)
                 {

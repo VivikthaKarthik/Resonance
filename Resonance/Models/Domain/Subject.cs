@@ -9,7 +9,7 @@ public partial class Subject
 
     public string Name { get; set; } = null!;
 
-    public string Thumbnail { get; set; } = null!;
+    public long CourseId { get; set; }
 
     public bool IsActive { get; set; }
 
@@ -21,9 +21,8 @@ public partial class Subject
 
     public DateTime ModifiedOn { get; set; }
 
-    public virtual ICollection<Chapter> Chapters { get; } = new List<Chapter>();
+    public virtual Course Course { get; set; } = null!;
 
     public virtual ICollection<ExamResult> ExamResults { get; } = new List<ExamResult>();
 
-    public virtual ICollection<SubjectCourse> SubjectCourses { get; } = new List<SubjectCourse>();
 }

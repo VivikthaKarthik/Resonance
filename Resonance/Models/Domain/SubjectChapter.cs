@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 namespace ResoClassAPI.Models.Domain;
 
-public partial class SubjectCourse
+public partial class SubjectChapter
 {
     public long Id { get; set; }
 
-    public long CourseId { get; set; }
+    public long ChapterId { get; set; }
 
     public long SubjectId { get; set; }
 
@@ -20,8 +20,4 @@ public partial class SubjectCourse
     public string ModifiedBy { get; set; } = null!;
 
     public DateTime ModifiedOn { get; set; }
-
-    public virtual Course Course { get; set; } = null!;
-
-    public virtual Subject Subject { get; set; } = null!;
 }

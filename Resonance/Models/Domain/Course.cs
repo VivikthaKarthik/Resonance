@@ -21,5 +21,5 @@ public partial class Course
 
     public DateTime ModifiedOn { get; set; }
 
-    public virtual ICollection<SubjectCourse> SubjectCourses { get; } = new List<SubjectCourse>();
+    public virtual ICollection<Subject> Subjects { get; } = new List<Subject>();
 }

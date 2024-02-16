@@ -4,7 +4,8 @@
     {
         public long Id { get; set; }
         public string Name { get; set; } = null!;
-        public long SubjectId { get; set; }
+        public string Subject { get; set; }
+        public string Course { get; set; }
         public string Thumbnail { get; set; } = null!;
         public bool? IsRecommended { get; set; }
        

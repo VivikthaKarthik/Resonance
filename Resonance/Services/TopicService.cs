@@ -130,7 +130,8 @@ namespace ResoClassAPI.Services
             var query = from topic in dbContext.Topics
                         where topic.Id == topicId
                         join chapter in dbContext.Chapters on topic.ChapterId equals chapter.Id
-                        join subject in dbContext.Subjects on chapter.SubjectId equals subject.Id
+                        join subjectChapter in dbContext.SubjectChapters on chapter.Id equals subjectChapter.ChapterId
+                        join subject in dbContext.Subjects on subjectChapter.SubjectId equals subject.Id
                         select new TopicResponseDto()
                         {
                             Id = topic.Id,
