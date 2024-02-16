@@ -9,5 +9,6 @@
         public const string SubTopic = "SubTopic";
         public const string Video = "Video";
         public const string Course = "Course";
+        public const string Student = "Student";
     }
 }
