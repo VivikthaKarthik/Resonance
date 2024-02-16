@@ -43,8 +43,7 @@ namespace ResoClassAPI.Services
                         where subtopic.Id == subTopicId
                         join topic in dbContext.Topics on subtopic.TopicId equals topic.Id
                         join chapter in dbContext.Chapters on topic.ChapterId equals chapter.Id
-                        join subjectChapter in dbContext.SubjectChapters on chapter.Id equals subjectChapter.ChapterId
-                        join subject in dbContext.Subjects on subjectChapter.SubjectId equals subject.Id
+                        join subject in dbContext.Subjects on chapter.SubjectId equals subject.Id
                         select new SubTopicResponseDto
                         {
                             Id = subtopic.Id,

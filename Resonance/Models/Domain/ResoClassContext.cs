@@ -43,8 +43,6 @@ public partial class ResoClassContext : DbContext
 
     public virtual DbSet<Subject> Subjects { get; set; }
 
-    public virtual DbSet<SubjectChapter> SubjectChapters { get; set; }
-
     public virtual DbSet<Topic> Topics { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
@@ -325,16 +323,6 @@ public partial class ResoClassContext : DbContext
                 .HasForeignKey(d => d.CourseId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Subject_Course");
-        });
-
-        modelBuilder.Entity<SubjectChapter>(entity =>
-        {
-            entity.ToTable("Subject_Chapter");
-
-            entity.Property(e => e.CreatedBy).HasMaxLength(250);
-            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
-            entity.Property(e => e.ModifiedBy).HasMaxLength(250);
-            entity.Property(e => e.ModifiedOn).HasColumnType("datetime");
         });
 
         modelBuilder.Entity<Topic>(entity =>

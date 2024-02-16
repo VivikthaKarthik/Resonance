@@ -24,5 +24,4 @@ public partial class Subject
     public virtual Course Course { get; set; } = null!;
 
     public virtual ICollection<ExamResult> ExamResults { get; } = new List<ExamResult>();
-
 }

@@ -9,6 +9,8 @@ public partial class Chapter
 
     public string Name { get; set; } = null!;
 
+    public long SubjectId { get; set; }
+
     public string Thumbnail { get; set; } = null!;
 
     public bool IsRecommended { get; set; }
