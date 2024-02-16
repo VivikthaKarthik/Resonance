@@ -185,9 +185,9 @@ namespace ResoClassAPI.Utilities
             return students;
         }
 
-        public async Task<List<ChapterRequestDto>> ReadChaptersFromExcel(Stream stream)
+        public async Task<List<ChapterExcelRequestDto>> ReadChaptersFromExcel(Stream stream)
         {
-            List<ChapterRequestDto> chapters = new List<ChapterRequestDto>();
+            List<ChapterExcelRequestDto> chapters = new List<ChapterExcelRequestDto>();
 
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using (ExcelPackage package = new ExcelPackage(stream))
@@ -202,7 +202,7 @@ namespace ResoClassAPI.Utilities
                     string course = worksheet.Cells[rowNumber, 4].Text.Trim();
                     string isRecommended = worksheet.Cells[rowNumber, 5].Text.Trim();
 
-                    chapters.Add(new ChapterRequestDto { Name = chapterName, Thumbnail = thumbnail, Course = course, Subject = subject, IsRecommended = isRecommended.ToLower() == "true" });
+                    chapters.Add(new ChapterExcelRequestDto { Name = chapterName, Thumbnail = thumbnail, Course = course, Subject = subject, IsRecommended = isRecommended.ToLower() == "true" });
                 }
             }
 

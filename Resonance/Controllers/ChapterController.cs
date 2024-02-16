@@ -153,7 +153,7 @@ namespace ResoClassAPI.Controllers
                     await file.CopyToAsync(stream);
                     stream.Position = 0;
 
-                    List<ChapterRequestDto> subjects = await excelReader.ReadChaptersFromExcel(stream);
+                    List<ChapterExcelRequestDto> subjects = await excelReader.ReadChaptersFromExcel(stream);
                     isDataUploaded = await chapterService.InsertChaptersAndLinkToSubjects(subjects);
                 }
 
