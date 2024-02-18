@@ -118,7 +118,7 @@ namespace ResoClassAPI.Services
                 _config["Jwt:Issuer"],
                 _config["Jwt:Audience"],
                 claims: claims,
-                expires: !string.IsNullOrEmpty(deviceId) ? DateTime.Now.AddYears(1) : DateTime.Now.AddDays(20),
+                expires: !string.IsNullOrEmpty(deviceId) ? DateTime.Now.AddYears(1) : DateTime.Now.AddMinutes(20),
                 signingCredentials: credentials
                 );
 
