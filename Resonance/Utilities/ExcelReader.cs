@@ -201,8 +201,9 @@ namespace ResoClassAPI.Utilities
                     string subject = worksheet.Cells[rowNumber, 3].Text.Trim();
                     string course = worksheet.Cells[rowNumber, 4].Text.Trim();
                     string isRecommended = worksheet.Cells[rowNumber, 5].Text.Trim();
+                    string description = worksheet.Cells[rowNumber, 6].Text.Trim();
 
-                    chapters.Add(new ChapterExcelRequestDto { Name = chapterName, Thumbnail = thumbnail, Course = course, Subject = subject, IsRecommended = isRecommended.ToLower() == "true" });
+                    chapters.Add(new ChapterExcelRequestDto { Name = chapterName, Description = description, Thumbnail = thumbnail, Course = course, Subject = subject, IsRecommended = isRecommended.ToLower() == "true" });
                 }
             }
 

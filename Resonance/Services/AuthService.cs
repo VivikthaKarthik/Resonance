@@ -53,7 +53,7 @@ namespace ResoClassAPI.Services
                 await dbContext.SaveChangesAsync();
 
                 var role = dbContext.Roles.FirstOrDefault(item => item.Id == userDetails.RoleId).Name;
-                token = await GenerateToken(userDetails.FirstName + " " + userDetails.LastName, userDetails.Email, role, userDetails?.Id.ToString(), string.Empty);
+                token = await GenerateToken( userDetails.Email, userDetails.FirstName + " " + userDetails.LastName, role, userDetails?.Id.ToString(), string.Empty);
             }
             return await Task.FromResult(token);
         }
@@ -72,7 +72,7 @@ namespace ResoClassAPI.Services
                 await dbContext.SaveChangesAsync();
 
                 response.IsPasswordChangeRequired = studentDetails.IsPasswordChangeRequired.Value;
-                response.Token = await GenerateToken(studentDetails.Name, studentDetails.EmailAddress, "", studentDetails?.Id.ToString(), string.Empty);
+                response.Token = await GenerateToken(studentDetails.EmailAddress, studentDetails.Name, "", studentDetails?.Id.ToString(), string.Empty);
             }
             return await Task.FromResult(response);
         }
@@ -95,7 +95,7 @@ namespace ResoClassAPI.Services
 
                 await dbContext.SaveChangesAsync();
                 response.IsPasswordChangeRequired = studentDetails.IsPasswordChangeRequired.Value;
-                response.Token = await GenerateToken(studentDetails.Name, studentDetails.EmailAddress, "", studentDetails?.Id.ToString(), userDto.DeviceId);
+                response.Token = await GenerateToken(studentDetails.EmailAddress, studentDetails.Name, "", studentDetails?.Id.ToString(), userDto.DeviceId);
             }
             return await Task.FromResult(response);
         }

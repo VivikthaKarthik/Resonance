@@ -23,7 +23,7 @@ public partial class Topic
 
     public DateTime ModifiedOn { get; set; }
 
-    public virtual Chapter Chapter { get; set; } = null!;
+    public string? Description { get; set; }
 
     public virtual ICollection<ExamResult> ExamResults { get; } = new List<ExamResult>();
 

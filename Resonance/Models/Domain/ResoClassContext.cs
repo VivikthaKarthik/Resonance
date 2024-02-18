@@ -334,11 +334,6 @@ public partial class ResoClassContext : DbContext
             entity.Property(e => e.ModifiedBy).HasMaxLength(128);
             entity.Property(e => e.ModifiedOn).HasColumnType("datetime");
             entity.Property(e => e.Name).HasMaxLength(250);
-
-            entity.HasOne(d => d.Chapter).WithMany(p => p.Topics)
-                .HasForeignKey(d => d.ChapterId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Topic_Chapter");
         });
 
         modelBuilder.Entity<User>(entity =>

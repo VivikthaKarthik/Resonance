@@ -89,6 +89,9 @@ namespace ResoClassAPI.Services
                     if (!string.IsNullOrEmpty(updatedTopic.Name))
                         existingItem.Name = updatedTopic.Name;
 
+                    if (!string.IsNullOrEmpty(updatedTopic.Description))
+                        existingItem.Description = updatedTopic.Description;
+
                     if (!string.IsNullOrEmpty(updatedTopic.Thumbnail))
                         existingItem.Thumbnail = updatedTopic.Thumbnail;
 
@@ -135,6 +138,7 @@ namespace ResoClassAPI.Services
                         {
                             Id = topic.Id,
                             Name = topic.Name,
+                            Description = !string.IsNullOrEmpty(topic.Description) ? topic.Description : string.Empty,
                             Thumbnail = topic.Thumbnail,
                             SubjectId = subject.Id,
                             SubjectName = subject.Name,
