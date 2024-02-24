@@ -58,8 +58,10 @@ builder.Services.AddScoped<ISubTopicService, SubTopicService>();
 builder.Services.AddScoped<IVideoService, VideoService>();
 builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<IStudentService, StudentService>();
+builder.Services.AddScoped<IAssessmentService, AssessmentService>();
 
 builder.Services.AddScoped<IExcelReader, ExcelReader>();
+builder.Services.AddScoped<IWordReader, WordReader>();
 builder.Services.AddSingleton<AuditInterceptor>();
 builder.Services.AddSingleton<IAuthorizationHandler, HasPermissionHandler>();
 IMapper mapper = MapperConfig.RegisterMaps().CreateMapper();
