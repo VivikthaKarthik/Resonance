@@ -31,6 +31,8 @@ public partial class Chapter
 
     public virtual ICollection<MultipleChoiceQuestion> MultipleChoiceQuestions { get; } = new List<MultipleChoiceQuestion>();
 
+    public virtual ICollection<QuestionBank> QuestionBanks { get; } = new List<QuestionBank>();
+
     public virtual ICollection<Question> Questions { get; } = new List<Question>();
 
     public virtual ICollection<Video> Videos { get; } = new List<Video>();

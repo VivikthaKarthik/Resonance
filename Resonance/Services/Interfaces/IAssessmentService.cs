@@ -4,6 +4,6 @@ namespace ResoClassAPI.Services.Interfaces
 {
     public interface IAssessmentService
     {
-        Task<bool> InsertQuestions(List<QuestionsDto> questions);
+        Task<string> InsertQuestions(List<QuestionsDto> questions, string? chapter, string? topic, string? subTopic);
     }
 }

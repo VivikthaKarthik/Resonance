@@ -33,8 +33,8 @@ namespace ResoClassAPI.Controllers
 
         [HttpPost]
         //[Authorize(Policy = "Admin")]
-        [Route("api/Assessment/UploadQuestions")]
-        public async Task<ResponseDto> UploadQuestions(IFormFile document)
+        [Route("api/QuestionBank/UploadQuestions")]
+        public async Task<ResponseDto> UploadQuestions(IFormFile document, string? chapter, string? topic, string? subTopic)
         {
             ResponseDto responseDto = new ResponseDto();
             try
@@ -45,12 +45,25 @@ namespace ResoClassAPI.Controllers
                     responseDto.Message = "File is Empty";
                     return responseDto;
                 }
-                List<QuestionsDto> questions = await wordReader.ProcessDocument(document);
+                
+                if(string.IsNullOrEmpty(chapter) && string.IsNullOrEmpty(topic) && string.IsNullOrEmpty(subTopic))
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Questions should be linked to atleast one master data(Chapter / Topic / SubTopic)";
+                    return responseDto;
+                }
 
+
+                List <QuestionsDto> questions = await wordReader.ProcessDocument(document);
+                string response = string.Empty;
                 if (questions != null && questions.Count > 0)
                 {
-                    await assessmentService.InsertQuestions(questions);
-                    responseDto.Result = questions;
+                    response = await assessmentService.InsertQuestions(questions, chapter, topic, subTopic);
+                }
+
+                if (response == "Success")
+                {
+                    responseDto.Result = "Questions Successfully uploaded";
                     responseDto.IsSuccess = true;
                 }
                 else

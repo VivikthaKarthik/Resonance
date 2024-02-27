@@ -35,6 +35,8 @@ public partial class ResoClassContext : DbContext
 
     public virtual DbSet<Question> Questions { get; set; }
 
+    public virtual DbSet<QuestionBank> QuestionBanks { get; set; }
+
     public virtual DbSet<QuestionImage> QuestionImages { get; set; }
 
     public virtual DbSet<Role> Roles { get; set; }
@@ -284,6 +286,28 @@ public partial class ResoClassContext : DbContext
             entity.HasOne(d => d.Topic).WithMany(p => p.Questions)
                 .HasForeignKey(d => d.TopicId)
                 .HasConstraintName("FK_Question_Topic");
+        });
+
+        modelBuilder.Entity<QuestionBank>(entity =>
+        {
+            entity.ToTable("QuestionBank");
+
+            entity.Property(e => e.CreatedBy).HasMaxLength(128);
+            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.ModifiedBy).HasMaxLength(128);
+            entity.Property(e => e.ModifiedOn).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Chapter).WithMany(p => p.QuestionBanks)
+                .HasForeignKey(d => d.ChapterId)
+                .HasConstraintName("FK_QuestionBank_Chapter");
+
+            entity.HasOne(d => d.SubTopic).WithMany(p => p.QuestionBanks)
+                .HasForeignKey(d => d.SubTopicId)
+                .HasConstraintName("FK_QuestionBank_SubTopic");
+
+            entity.HasOne(d => d.Topic).WithMany(p => p.QuestionBanks)
+                .HasForeignKey(d => d.TopicId)
+                .HasConstraintName("FK_QuestionBank_Topic");
         });
 
         modelBuilder.Entity<QuestionImage>(entity =>

@@ -29,5 +29,7 @@ public partial class SubTopic
 
     public virtual ICollection<MultipleChoiceQuestion> MultipleChoiceQuestions { get; } = new List<MultipleChoiceQuestion>();
 
+    public virtual ICollection<QuestionBank> QuestionBanks { get; } = new List<QuestionBank>();
+
     public virtual ICollection<Video> Videos { get; } = new List<Video>();
 }
