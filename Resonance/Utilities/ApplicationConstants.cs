@@ -11,4 +11,13 @@
         public const string Course = "Course";
         public const string Student = "Student";
     }
+    public enum CurrentElement
+    {
+        Question,
+        FirstAnswer,
+        SecondAnswer,
+        ThirdAnswer,
+        FourthAnswer,
+        CorrectAnswer
+    }
 }

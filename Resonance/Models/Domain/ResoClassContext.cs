@@ -21,6 +21,8 @@ public partial class ResoClassContext : DbContext
 
     public virtual DbSet<Choice> Choices { get; set; }
 
+    public virtual DbSet<ChoiceImage> ChoiceImages { get; set; }
+
     public virtual DbSet<City> Cities { get; set; }
 
     public virtual DbSet<Course> Courses { get; set; }
@@ -32,6 +34,8 @@ public partial class ResoClassContext : DbContext
     public virtual DbSet<MultipleChoiceQuestion> MultipleChoiceQuestions { get; set; }
 
     public virtual DbSet<Question> Questions { get; set; }
+
+    public virtual DbSet<QuestionImage> QuestionImages { get; set; }
 
     public virtual DbSet<Role> Roles { get; set; }
 
@@ -82,6 +86,22 @@ public partial class ResoClassContext : DbContext
             entity.Property(e => e.CreatedOn).HasColumnType("datetime");
             entity.Property(e => e.ModifiedBy).HasMaxLength(128);
             entity.Property(e => e.ModifiedOn).HasColumnType("datetime");
+        });
+
+        modelBuilder.Entity<ChoiceImage>(entity =>
+        {
+            entity.ToTable("Choice_Image");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.CreatedBy).HasMaxLength(128);
+            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.ModifiedBy).HasMaxLength(128);
+            entity.Property(e => e.ModifiedOn).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Choice).WithMany(p => p.ChoiceImages)
+                .HasForeignKey(d => d.ChoiceId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Choice_Image_Choice");
         });
 
         modelBuilder.Entity<City>(entity =>
@@ -184,39 +204,39 @@ public partial class ResoClassContext : DbContext
                 .HasForeignKey(d => d.ChapterId)
                 .HasConstraintName("FK_MultipleChoiceQuestion_Chapter");
 
-            entity.HasOne(d => d.Choice1).WithMany(p => p.MultipleChoiceQuestionChoice1s)
-                .HasForeignKey(d => d.Choice1Id)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_MultipleChoiceQuestion_Choice");
-
-            entity.HasOne(d => d.Choice2).WithMany(p => p.MultipleChoiceQuestionChoice2s)
-                .HasForeignKey(d => d.Choice2Id)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_MultipleChoiceQuestion_Choice1");
-
-            entity.HasOne(d => d.Choice3).WithMany(p => p.MultipleChoiceQuestionChoice3s)
-                .HasForeignKey(d => d.Choice3Id)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_MultipleChoiceQuestion_Choice2");
-
-            entity.HasOne(d => d.Choice4).WithMany(p => p.MultipleChoiceQuestionChoice4s)
-                .HasForeignKey(d => d.Choice4Id)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_MultipleChoiceQuestion_Choice3");
-
             entity.HasOne(d => d.CorrectChoice).WithMany(p => p.MultipleChoiceQuestionCorrectChoices)
                 .HasForeignKey(d => d.CorrectChoiceId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_MultipleChoiceQuestion_Choice4");
+
+            entity.HasOne(d => d.FirstChoice).WithMany(p => p.MultipleChoiceQuestionFirstChoices)
+                .HasForeignKey(d => d.FirstChoiceId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_MultipleChoiceQuestion_Choice");
+
+            entity.HasOne(d => d.FourthChoice).WithMany(p => p.MultipleChoiceQuestionFourthChoices)
+                .HasForeignKey(d => d.FourthChoiceId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_MultipleChoiceQuestion_Choice3");
 
             entity.HasOne(d => d.Question).WithMany(p => p.MultipleChoiceQuestions)
                 .HasForeignKey(d => d.QuestionId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_MultipleChoiceQuestion_Question");
 
+            entity.HasOne(d => d.SecondChoice).WithMany(p => p.MultipleChoiceQuestionSecondChoices)
+                .HasForeignKey(d => d.SecondChoiceId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_MultipleChoiceQuestion_Choice1");
+
             entity.HasOne(d => d.SubTopic).WithMany(p => p.MultipleChoiceQuestions)
                 .HasForeignKey(d => d.SubTopicId)
                 .HasConstraintName("FK_MultipleChoiceQuestion_SubTopic");
+
+            entity.HasOne(d => d.ThirdChoice).WithMany(p => p.MultipleChoiceQuestionThirdChoices)
+                .HasForeignKey(d => d.ThirdChoiceId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_MultipleChoiceQuestion_Choice2");
 
             entity.HasOne(d => d.Topic).WithMany(p => p.MultipleChoiceQuestions)
                 .HasForeignKey(d => d.TopicId)
@@ -231,6 +251,54 @@ public partial class ResoClassContext : DbContext
             entity.Property(e => e.CreatedOn).HasColumnType("datetime");
             entity.Property(e => e.ModifiedBy).HasMaxLength(128);
             entity.Property(e => e.ModifiedOn).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Chapter).WithMany(p => p.Questions)
+                .HasForeignKey(d => d.ChapterId)
+                .HasConstraintName("FK_Question_Chapter");
+
+            entity.HasOne(d => d.CorrectChoice).WithMany(p => p.QuestionCorrectChoices)
+                .HasForeignKey(d => d.CorrectChoiceId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Question_Choice4");
+
+            entity.HasOne(d => d.FirstChoice).WithMany(p => p.QuestionFirstChoices)
+                .HasForeignKey(d => d.FirstChoiceId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Question_Choice");
+
+            entity.HasOne(d => d.FourthChoice).WithMany(p => p.QuestionFourthChoices)
+                .HasForeignKey(d => d.FourthChoiceId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Question_Choice3");
+
+            entity.HasOne(d => d.SecondChoice).WithMany(p => p.QuestionSecondChoices)
+                .HasForeignKey(d => d.SecondChoiceId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Question_Choice1");
+
+            entity.HasOne(d => d.ThirdChoice).WithMany(p => p.QuestionThirdChoices)
+                .HasForeignKey(d => d.ThirdChoiceId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Question_Choice2");
+
+            entity.HasOne(d => d.Topic).WithMany(p => p.Questions)
+                .HasForeignKey(d => d.TopicId)
+                .HasConstraintName("FK_Question_Topic");
+        });
+
+        modelBuilder.Entity<QuestionImage>(entity =>
+        {
+            entity.ToTable("Question_Image");
+
+            entity.Property(e => e.CreatedBy).HasMaxLength(128);
+            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.ModifiedBy).HasMaxLength(128);
+            entity.Property(e => e.ModifiedOn).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Question).WithMany(p => p.QuestionImages)
+                .HasForeignKey(d => d.QuestionId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Question_Image_Question");
         });
 
         modelBuilder.Entity<Role>(entity =>

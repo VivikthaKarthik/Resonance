@@ -14,6 +14,10 @@ using ResoClassAPI.Utilities.Interfaces;
 using ResoClassAPI.Utilities;
 using ResoClassAPI.Interceptors;
 using Microsoft.AspNetCore.Authorization;
+using Amazon.S3;
+using Microsoft.Extensions.Configuration;
+using Amazon.Extensions.NETCore.Setup;
+using Amazon.Runtime;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -62,6 +66,7 @@ builder.Services.AddScoped<IAssessmentService, AssessmentService>();
 
 builder.Services.AddScoped<IExcelReader, ExcelReader>();
 builder.Services.AddScoped<IWordReader, WordReader>();
+builder.Services.AddScoped<IAwsHandler, AwsHandler>();
 builder.Services.AddSingleton<AuditInterceptor>();
 builder.Services.AddSingleton<IAuthorizationHandler, HasPermissionHandler>();
 IMapper mapper = MapperConfig.RegisterMaps().CreateMapper();
@@ -81,8 +86,15 @@ builder.Services.AddCors(o => o.AddPolicy("MyPolicy", builder =>
 {
     builder.AllowAnyOrigin()
            .AllowAnyMethod()
-           .AllowAnyHeader();
+    .AllowAnyHeader();
 }));
+
+//AWSOptions options = new AWSOptions
+//{
+//    Credentials = new BasicAWSCredentials("", "")
+//};
+builder.Services.AddDefaultAWSOptions(builder.Configuration.GetAWSOptions());
+builder.Services.AddAWSService<IAmazonS3>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddScheme<AuthenticationSchemeOptions, AuthTokenHandler>(JwtBearerDefaults.AuthenticationScheme, null);

@@ -9,13 +9,13 @@ public partial class MultipleChoiceQuestion
 
     public long QuestionId { get; set; }
 
-    public long Choice1Id { get; set; }
+    public long FirstChoiceId { get; set; }
 
-    public long Choice2Id { get; set; }
+    public long SecondChoiceId { get; set; }
 
-    public long Choice3Id { get; set; }
+    public long ThirdChoiceId { get; set; }
 
-    public long Choice4Id { get; set; }
+    public long FourthChoiceId { get; set; }
 
     public long CorrectChoiceId { get; set; }
 
@@ -41,19 +41,19 @@ public partial class MultipleChoiceQuestion
 
     public virtual Chapter? Chapter { get; set; }
 
-    public virtual Choice Choice1 { get; set; } = null!;
-
-    public virtual Choice Choice2 { get; set; } = null!;
-
-    public virtual Choice Choice3 { get; set; } = null!;
-
-    public virtual Choice Choice4 { get; set; } = null!;
-
     public virtual Choice CorrectChoice { get; set; } = null!;
+
+    public virtual Choice FirstChoice { get; set; } = null!;
+
+    public virtual Choice FourthChoice { get; set; } = null!;
 
     public virtual Question Question { get; set; } = null!;
 
+    public virtual Choice SecondChoice { get; set; } = null!;
+
     public virtual SubTopic? SubTopic { get; set; }
+
+    public virtual Choice ThirdChoice { get; set; } = null!;
 
     public virtual Topic? Topic { get; set; }
 }
