@@ -1,9 +1,12 @@
 ﻿using AutoMapper;
+using Azure.Core;
+using DocumentFormat.OpenXml.Office2010.Excel;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.EntityFrameworkCore;
 using ResoClassAPI.DTOs;
 using ResoClassAPI.Models.Domain;
 using ResoClassAPI.Services.Interfaces;
+using System.Linq;
 
 namespace ResoClassAPI.Services
 {
@@ -23,6 +26,7 @@ namespace ResoClassAPI.Services
         public async Task<string> InsertQuestions(List<QuestionsDto> questions, string? chapter, string? topic, string? subTopic)
         {
             string response = string.Empty;
+            var currentUser = authService.GetCurrentUser();
             try
             {
                 if (questions != null && questions.Count > 0)
@@ -87,9 +91,9 @@ namespace ResoClassAPI.Services
                                     questionBank.SubTopicId = subtopicId;
 
                                 questionBank.IsActive = true;
-                                questionBank.CreatedBy = "SYSTEM";
+                                questionBank.CreatedBy = currentUser.Name;
                                 questionBank.CreatedOn = DateTime.Now;
-                                questionBank.ModifiedBy = "SYSTEM";
+                                questionBank.ModifiedBy = currentUser.Name;
                                 questionBank.ModifiedOn = DateTime.Now;
                                 questionsList.Add(questionBank);
                             }
@@ -111,5 +115,134 @@ namespace ResoClassAPI.Services
             }
             return response;
         }
+
+        public async Task<QuestionResponseDto> GetQuestions(QuestionRequestDto requestDto)
+        {
+            int requiredQuestions = 20;
+            QuestionResponseDto response = new QuestionResponseDto();
+            try
+            {
+                response.TotalQuestions = requiredQuestions;
+                response.PointsPerQuestion = 2;
+                response.HasNegativeMarking = false;
+
+                List<QuestionBank> questions = new List<QuestionBank>();
+                int totalIdCount = 0;
+
+                if (requestDto.ChapterIds != null && requestDto.ChapterIds.Count > 0)
+                {
+                    totalIdCount += requestDto.ChapterIds.Where(x => x != 0).Count();
+                    questions.AddRange(await GetQuestionsByChapters(requestDto.ChapterIds));
+                }
+
+                if (requestDto.TopicIds != null && requestDto.TopicIds.Count > 0)
+                {
+                    totalIdCount += requestDto.TopicIds.Where(x => x != 0).Count();
+                    questions.AddRange(await GetQuestionsByTopics(requestDto.TopicIds));
+                }
+
+                if (requestDto.SubTopicIds != null && requestDto.SubTopicIds.Count > 0)
+                {
+                    totalIdCount += requestDto.SubTopicIds.Where(x => x != 0).Count();
+                    questions.AddRange(await GetQuestionsBySubTopics(requestDto.SubTopicIds));
+                }
+
+                var numQuestionsPerId = requiredQuestions / totalIdCount;
+
+                var random = new Random();
+
+                var selectedQuestions = questions
+                    .Where(q => requestDto.ChapterIds.Contains(q.ChapterId.Value) ||
+                                requestDto.TopicIds.Contains(q.TopicId.Value) ||
+                                requestDto.SubTopicIds.Contains(q.SubTopicId.Value))
+                    .OrderBy(q => random.Next())
+                    .GroupBy(q => new { q.ChapterId, q.TopicId, q.SubTopicId })
+                    .SelectMany(group => group.Take(numQuestionsPerId))
+                    .ToList();
+
+                if (selectedQuestions != null && selectedQuestions.ToList().Count > 0)
+                {
+                    if (selectedQuestions.Count < requiredQuestions)
+                    {
+                        var additionalQuestions = questions
+                            .Where(q => !selectedQuestions.Contains(q))
+                            .OrderBy(q => random.Next())
+                            .Take(requiredQuestions - selectedQuestions.Count)
+                            .ToList();
+
+                        selectedQuestions.AddRange(additionalQuestions);
+                    }
+                    var finalQuestions = mapper.Map<List<QuestionData>>(selectedQuestions);
+                    response.Questions = finalQuestions; 
+                }
+            }
+            catch(Exception ex)
+            {
+
+            }
+
+            return response;
+        }
+
+        private async Task<List<QuestionBank>> GetQuestionsByChapters(List<long> ids)
+        {
+            List<QuestionBank> response = new List<QuestionBank>();
+            try
+            {
+                var questions = dbContext.QuestionBanks.Where(x => x.ChapterId != null && ids.Contains(x.ChapterId.Value) && x.IsActive);
+
+                if (questions != null && questions.ToList().Count > 0)
+                {
+                    response = questions.ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+            return response;
+        }
+        private async Task<List<QuestionBank>> GetQuestionsByTopics(List<long> ids)
+        {
+            List<QuestionBank> response = new List<QuestionBank>();
+
+            try
+            {
+                var questions = dbContext.QuestionBanks.Where(x => x.ChapterId != null && ids.Contains(x.TopicId.Value) && x.IsActive);
+
+                if (questions != null && questions.ToList().Count > 0)
+                {
+                    response = questions.ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+            return response;
+        }
+        private async Task<List<QuestionBank>> GetQuestionsBySubTopics(List<long> ids)
+        {
+            List<QuestionBank> response = new List<QuestionBank>();
+
+            try
+            {
+                var questions = dbContext.QuestionBanks.Where(x => x.ChapterId != null && ids.Contains(x.SubTopicId.Value) && x.IsActive);
+
+                if (questions != null && questions.ToList().Count > 0)
+                {
+                    response = questions.ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+            return response;
+        }
+
     }
 }
