@@ -209,7 +209,7 @@ namespace ResoClassAPI.Controllers
 
         [HttpDelete]
         [Authorize(Policy = "Admin")]
-        [Route("api/Chapter/Delete/{id}")]
+        [Route("api/Student/Delete/{id}")]
         public async Task<ResponseDto> Delete(long id)
         {
             ResponseDto responseDto = new ResponseDto();
@@ -242,7 +242,7 @@ namespace ResoClassAPI.Controllers
 
         [HttpGet]
         [Route("api/Student/GetProfile")]
-        public async Task<ResponseDto> Get()
+        public async Task<ResponseDto> GetProfile()
         {
             ResponseDto responseDto = new ResponseDto();
             try

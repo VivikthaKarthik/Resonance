@@ -157,14 +157,17 @@ namespace ResoClassAPI.Services
                 if (questions == null || questions.Count == 0)
                 { return newAssessmentId; }
 
-                foreach (var question in questions)
+                if (dbContext.AssessmentSessions.Any(x => x.Id == assessmentId))
                 {
-                    AssessmentSessionQuestion assessmentSessionQuestion = new AssessmentSessionQuestion();
-                    assessmentSessionQuestion.AssessmentSessionId = assessmentId;
-                    assessmentSessionQuestion.QuestionId = question.Id;
-                    dbContext.AssessmentSessionQuestions.Add(assessmentSessionQuestion);
+                    foreach (var question in questions)
+                    {
+                        AssessmentSessionQuestion assessmentSessionQuestion = new AssessmentSessionQuestion();
+                        assessmentSessionQuestion.AssessmentSessionId = assessmentId;
+                        assessmentSessionQuestion.QuestionId = question.Id;
+                        dbContext.AssessmentSessionQuestions.Add(assessmentSessionQuestion);
+                    }
+                    await dbContext.SaveChangesAsync();
                 }
-                await dbContext.SaveChangesAsync();
 
             }
             catch (Exception ex)
