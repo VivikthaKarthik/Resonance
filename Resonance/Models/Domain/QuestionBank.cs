@@ -39,7 +39,7 @@ public partial class QuestionBank
 
     public DateTime ModifiedOn { get; set; }
 
-    public virtual AssessmentSessionQuestion? AssessmentSessionQuestion { get; set; }
+    public virtual ICollection<AssessmentSessionQuestion> AssessmentSessionQuestions { get; } = new List<AssessmentSessionQuestion>();
 
     public virtual Chapter? Chapter { get; set; }
 

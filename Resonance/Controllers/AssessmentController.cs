@@ -118,22 +118,18 @@ namespace ResoClassAPI.Controllers
             try
             {
                 logger.LogInformation("Requested GetChapter");
+                var isStarted = await assessmentService.StartAssessment(assessmentId);
 
-                responseDto.Result = "Assessent started";
-                responseDto.IsSuccess = true;
-
-                //var questions = await assessmentService.GetQuestions(request);
-
-                //if (questions != null)
-                //{
-                //    responseDto.Result = questions;
-                //    responseDto.IsSuccess = true;
-                //}
-                //else
-                //{
-                //    responseDto.IsSuccess = false;
-                //    responseDto.Message = "Not Found";
-                //}
+                if (isStarted)
+                {
+                    responseDto.Result = "Assessment Started Successfully";
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
             }
             catch (Exception ex)
             {
@@ -151,22 +147,18 @@ namespace ResoClassAPI.Controllers
             try
             {
                 logger.LogInformation("Requested GetChapter");
+                var isCompleted = await assessmentService.EndAssessment(assessmentId);
 
-                responseDto.Result = "Assessent Completed";
-                responseDto.IsSuccess = true;
-
-                //var questions = await assessmentService.GetQuestions(request);
-
-                //if (questions != null)
-                //{
-                //    responseDto.Result = questions;
-                //    responseDto.IsSuccess = true;
-                //}
-                //else
-                //{
-                //    responseDto.IsSuccess = false;
-                //    responseDto.Message = "Not Found";
-                //}
+                if (isCompleted)
+                {
+                    responseDto.Result = "Assessment Completed Successfully";
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
             }
             catch (Exception ex)
             {
@@ -177,29 +169,25 @@ namespace ResoClassAPI.Controllers
         }
 
         [HttpPost]
-        [Route("api/Assessment/UpdateStatus")]
-        public async Task<ResponseDto> UpdateStatus(UpdateAssessmentStatusDto request)
+        [Route("api/Assessment/UpdateQuestionStatus")]
+        public async Task<ResponseDto> UpdateQuestionStatus(UpdateAssessmentStatusDto request)
         {
             ResponseDto responseDto = new ResponseDto();
             try
             {
                 logger.LogInformation("Requested GetChapter");
+                var isUpdated = await assessmentService.UpdateQuestionStatus(request);
 
-                responseDto.Result = "Updated Successfully";
-                responseDto.IsSuccess = true;
-
-                //var questions = await assessmentService.GetQuestions(request);
-
-                //if (questions != null)
-                //{
-                //    responseDto.Result = questions;
-                //    responseDto.IsSuccess = true;
-                //}
-                //else
-                //{
-                //    responseDto.IsSuccess = false;
-                //    responseDto.Message = "Not Found";
-                //}
+                if (isUpdated)
+                {
+                    responseDto.Result = "Assessment Started Successfully";
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
             }
             catch (Exception ex)
             {

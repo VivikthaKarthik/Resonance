@@ -13,7 +13,7 @@ public partial class AssessmentSessionQuestion
 
     public bool? Result { get; set; }
 
-    public virtual QuestionBank Id1 { get; set; } = null!;
+    public virtual AssessmentSession AssessmentSession { get; set; } = null!;
 
-    public virtual AssessmentSession IdNavigation { get; set; } = null!;
+    public virtual QuestionBank Question { get; set; } = null!;
 }

@@ -99,15 +99,13 @@ public partial class ResoClassContext : DbContext
         {
             entity.ToTable("AssessmentSession_Questions");
 
-            entity.Property(e => e.Id).ValueGeneratedOnAdd();
-
-            entity.HasOne(d => d.IdNavigation).WithOne(p => p.AssessmentSessionQuestion)
-                .HasForeignKey<AssessmentSessionQuestion>(d => d.Id)
+            entity.HasOne(d => d.AssessmentSession).WithMany(p => p.AssessmentSessionQuestions)
+                .HasForeignKey(d => d.AssessmentSessionId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_AssessmentSession_Questions_AssessmentSession");
+                .HasConstraintName("FK_AssessmentSession_Questions_AssessmentSession1");
 
-            entity.HasOne(d => d.Id1).WithOne(p => p.AssessmentSessionQuestion)
-                .HasForeignKey<AssessmentSessionQuestion>(d => d.Id)
+            entity.HasOne(d => d.Question).WithMany(p => p.AssessmentSessionQuestions)
+                .HasForeignKey(d => d.QuestionId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_AssessmentSession_Questions_QuestionBank");
         });

@@ -117,7 +117,6 @@ namespace ResoClassAPI.Services
         }
         public async Task<QuestionResponseDto> GetQuestions(QuestionRequestDto requestDto)
         {
-            var currentUser = authService.GetCurrentUser();
             QuestionResponseDto response = new QuestionResponseDto();
             try
             {
@@ -132,13 +131,7 @@ namespace ResoClassAPI.Services
 
                     if(questions != null && questions.Count > 0)
                     {
-                        AssessmentSession newSession = new AssessmentSession();
-                        newSession.AssessmentType = "Practice";
-                        newSession.StudentId = currentUser.UserId;
-
-                        dbContext.AssessmentSessions.Add(newSession);
-                        long newAssessmentId = await dbContext.SaveChangesAsync();
-                        response.AssessmentId = await CreateNewSession(questions, newAssessmentId);
+                        response.AssessmentId = await CreateNewSession(questions);
                         response.Questions = questions;
                     }
                 }
@@ -149,26 +142,33 @@ namespace ResoClassAPI.Services
             }
             return response;
         }
-        private async Task<long> CreateNewSession(List<QuestionData> questions, long assessmentId)
+        private async Task<long> CreateNewSession(List<QuestionData> questions)
         {
+            var currentUser = authService.GetCurrentUser();
             long newAssessmentId = 0;
             try
             {
                 if (questions == null || questions.Count == 0)
                 { return newAssessmentId; }
 
-                if (dbContext.AssessmentSessions.Any(x => x.Id == assessmentId))
-                {
-                    foreach (var question in questions)
-                    {
-                        AssessmentSessionQuestion assessmentSessionQuestion = new AssessmentSessionQuestion();
-                        assessmentSessionQuestion.AssessmentSessionId = assessmentId;
-                        assessmentSessionQuestion.QuestionId = question.Id;
-                        dbContext.AssessmentSessionQuestions.Add(assessmentSessionQuestion);
-                    }
-                    await dbContext.SaveChangesAsync();
-                }
+                AssessmentSession newSession = new AssessmentSession();
+                newSession.AssessmentType = "Practice";
+                newSession.StudentId = currentUser.UserId;
 
+                dbContext.AssessmentSessions.Add(newSession);
+                await dbContext.SaveChangesAsync();
+                newAssessmentId = newSession.Id;
+
+                List<AssessmentSessionQuestion> assessmentSessionQuestions = new List<AssessmentSessionQuestion>();
+                foreach (var question in questions)
+                {
+                    AssessmentSessionQuestion assessmentSessionQuestion = new AssessmentSessionQuestion();
+                    assessmentSessionQuestion.AssessmentSessionId = newAssessmentId;
+                    assessmentSessionQuestion.QuestionId = question.Id;
+                    assessmentSessionQuestions.Add(assessmentSessionQuestion);
+                }
+                await dbContext.AssessmentSessionQuestions.AddRangeAsync(assessmentSessionQuestions);
+                await dbContext.SaveChangesAsync();
             }
             catch (Exception ex)
             {
@@ -327,5 +327,73 @@ namespace ResoClassAPI.Services
             return response;
         }
 
+        public async Task<bool> StartAssessment(long assessmentId)
+        {
+            try
+            {
+                var assessment = dbContext.AssessmentSessions.Where(x => x.Id == assessmentId).FirstOrDefault();
+                if (assessment != null)
+                {
+                    assessment.StartTime = DateTime.Now;
+                    await dbContext.SaveChangesAsync();
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return false;
+        }
+
+        public async Task<bool> EndAssessment(long assessmentId)
+        {
+            try
+            {
+                var assessment = dbContext.AssessmentSessions.Where(x => x.Id == assessmentId).FirstOrDefault();
+                if (assessment != null)
+                {
+                    assessment.EndTime = DateTime.Now;
+                    await dbContext.SaveChangesAsync();
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return false;
+        }
+
+        public async Task<bool> UpdateQuestionStatus(UpdateAssessmentStatusDto request)
+        {
+            try
+            {
+                var assessment = dbContext.AssessmentSessionQuestions.Where(x => x.AssessmentSessionId == request.AssessmentId && x.QuestionId == request.QuestionId).FirstOrDefault();
+                if (assessment != null)
+                {
+                    assessment.Result = request.Result;
+                    await dbContext.SaveChangesAsync();
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return false;
+        }
     }
 }

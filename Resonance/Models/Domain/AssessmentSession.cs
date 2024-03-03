@@ -17,7 +17,7 @@ public partial class AssessmentSession
 
     public bool? Result { get; set; }
 
-    public virtual AssessmentSessionQuestion? AssessmentSessionQuestion { get; set; }
+    public virtual ICollection<AssessmentSessionQuestion> AssessmentSessionQuestions { get; } = new List<AssessmentSessionQuestion>();
 
     public virtual Student Student { get; set; } = null!;
 }
