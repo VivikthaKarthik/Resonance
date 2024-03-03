@@ -69,7 +69,7 @@ public partial class Student
 
     public string? ProfilePicture { get; set; }
 
-    public virtual AssessmentSession? AssessmentSession { get; set; }
+    public virtual ICollection<AssessmentSession> AssessmentSessions { get; } = new List<AssessmentSession>();
 
     public virtual City City { get; set; } = null!;
 

@@ -85,15 +85,14 @@ public partial class ResoClassContext : DbContext
         {
             entity.ToTable("AssessmentSession");
 
-            entity.Property(e => e.Id).ValueGeneratedOnAdd();
             entity.Property(e => e.AssessmentType).HasMaxLength(50);
             entity.Property(e => e.EndTime).HasColumnType("datetime");
             entity.Property(e => e.StartTime).HasColumnType("datetime");
 
-            entity.HasOne(d => d.IdNavigation).WithOne(p => p.AssessmentSession)
-                .HasForeignKey<AssessmentSession>(d => d.Id)
+            entity.HasOne(d => d.Student).WithMany(p => p.AssessmentSessions)
+                .HasForeignKey(d => d.StudentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_AssessmentSession_Student");
+                .HasConstraintName("FK_AssessmentSession_AssessmentSession");
         });
 
         modelBuilder.Entity<AssessmentSessionQuestion>(entity =>

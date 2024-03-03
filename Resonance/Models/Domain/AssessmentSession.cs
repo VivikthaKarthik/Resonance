@@ -19,5 +19,5 @@ public partial class AssessmentSession
 
     public virtual AssessmentSessionQuestion? AssessmentSessionQuestion { get; set; }
 
-    public virtual Student IdNavigation { get; set; } = null!;
+    public virtual Student Student { get; set; } = null!;
 }
