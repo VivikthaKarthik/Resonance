@@ -39,6 +39,8 @@ public partial class QuestionBank
 
     public DateTime ModifiedOn { get; set; }
 
+    public virtual AssessmentSessionQuestion? AssessmentSessionQuestion { get; set; }
+
     public virtual Chapter? Chapter { get; set; }
 
     public virtual SubTopic? SubTopic { get; set; }

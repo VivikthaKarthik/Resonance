@@ -52,6 +52,6 @@
 
         public DateTime? LastLoginDate { get; set; }
 
-       
+        public string? ProfilePicture { get; set; }
     }
 }

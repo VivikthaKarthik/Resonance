@@ -69,6 +69,8 @@ public partial class Student
 
     public string? ProfilePicture { get; set; }
 
+    public virtual AssessmentSession? AssessmentSession { get; set; }
+
     public virtual City City { get; set; } = null!;
 
     public virtual ICollection<ExamResult> ExamResults { get; } = new List<ExamResult>();

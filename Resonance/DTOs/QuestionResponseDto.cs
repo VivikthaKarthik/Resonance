@@ -2,10 +2,12 @@
 {
     public class QuestionResponseDto
     {
-        public int PointsPerQuestion { get; set; }
+        public long AssessmentId { get; set; }
+        public int MarksPerQuestion { get; set; }
         public int TotalQuestions { get; set; }
         public bool HasNegativeMarking { get; set; }
-       public List<QuestionData> Questions { get; set; }
+        public int NegativeMarksPerQuestion { get; set; }
+        public List<QuestionData> Questions { get; set; }
 
     }
 

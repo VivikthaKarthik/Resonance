@@ -4,6 +4,7 @@ using DocumentFormat.OpenXml.Office2010.Excel;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.EntityFrameworkCore;
 using ResoClassAPI.DTOs;
+using ResoClassAPI.Models;
 using ResoClassAPI.Models.Domain;
 using ResoClassAPI.Services.Interfaces;
 using System.Linq;
@@ -21,7 +22,6 @@ namespace ResoClassAPI.Services
             authService = _authService;
             mapper = _mapper;
         }
-
 
         public async Task<string> InsertQuestions(List<QuestionsDto> questions, string? chapter, string? topic, string? subTopic)
         {
@@ -115,17 +115,69 @@ namespace ResoClassAPI.Services
             }
             return response;
         }
-
         public async Task<QuestionResponseDto> GetQuestions(QuestionRequestDto requestDto)
         {
-            int requiredQuestions = 20;
+            var currentUser = authService.GetCurrentUser();
             QuestionResponseDto response = new QuestionResponseDto();
             try
             {
-                response.TotalQuestions = requiredQuestions;
-                response.PointsPerQuestion = 2;
-                response.HasNegativeMarking = false;
+                var config = await GetAssessmentConfig();
+                if (config != null)
+                {
+                    response.TotalQuestions = config.MaximumQuestions;
+                    response.MarksPerQuestion = config.MarksPerQuestion;
+                    response.HasNegativeMarking = config.HasNegativeMarking;
+                    response.NegativeMarksPerQuestion = config.NegativeMarksPerQuestion != null ? config.NegativeMarksPerQuestion.Value : 0;
+                    var questions = await GetRandomQuestions(requestDto, config.MaximumQuestions);
 
+                    if(questions != null && questions.Count > 0)
+                    {
+                        AssessmentSession newSession = new AssessmentSession();
+                        newSession.AssessmentType = "Practice";
+                        newSession.StudentId = currentUser.UserId;
+
+                        dbContext.AssessmentSessions.Add(newSession);
+                        long newAssessmentId = await dbContext.SaveChangesAsync();
+                        response.AssessmentId = await CreateNewSession(questions, newAssessmentId);
+                        response.Questions = questions;
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+
+            }
+            return response;
+        }
+        private async Task<long> CreateNewSession(List<QuestionData> questions, long assessmentId)
+        {
+            long newAssessmentId = 0;
+            try
+            {
+                if (questions == null || questions.Count == 0)
+                { return newAssessmentId; }
+
+                foreach (var question in questions)
+                {
+                    AssessmentSessionQuestion assessmentSessionQuestion = new AssessmentSessionQuestion();
+                    assessmentSessionQuestion.AssessmentSessionId = assessmentId;
+                    assessmentSessionQuestion.QuestionId = question.Id;
+                    dbContext.AssessmentSessionQuestions.Add(assessmentSessionQuestion);
+                }
+                await dbContext.SaveChangesAsync();
+
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return newAssessmentId;
+        }
+        private async Task<List<QuestionData>> GetRandomQuestions(QuestionRequestDto requestDto, int totalQuestions)
+        {
+            List<QuestionData> finalQuestions = new List<QuestionData>();
+            try
+            {
                 List<QuestionBank> questions = new List<QuestionBank>();
                 int totalIdCount = 0;
 
@@ -147,7 +199,7 @@ namespace ResoClassAPI.Services
                     questions.AddRange(await GetQuestionsBySubTopics(requestDto.SubTopicIds));
                 }
 
-                var numQuestionsPerId = requiredQuestions / totalIdCount;
+                var numQuestionsPerId = totalQuestions / totalIdCount;
 
                 var random = new Random();
 
@@ -162,28 +214,56 @@ namespace ResoClassAPI.Services
 
                 if (selectedQuestions != null && selectedQuestions.ToList().Count > 0)
                 {
-                    if (selectedQuestions.Count < requiredQuestions)
+                    if (selectedQuestions.Count < totalQuestions)
                     {
                         var additionalQuestions = questions
                             .Where(q => !selectedQuestions.Contains(q))
                             .OrderBy(q => random.Next())
-                            .Take(requiredQuestions - selectedQuestions.Count)
+                            .Take(totalQuestions - selectedQuestions.Count)
                             .ToList();
 
                         selectedQuestions.AddRange(additionalQuestions);
                     }
-                    var finalQuestions = mapper.Map<List<QuestionData>>(selectedQuestions);
-                    response.Questions = finalQuestions; 
+                    finalQuestions = mapper.Map<List<QuestionData>>(selectedQuestions);
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
 
             }
 
-            return response;
+            return finalQuestions;
         }
+        private async Task<AssessmentConfiguration> GetAssessmentConfig()
+        {
+            var currentUser = authService.GetCurrentUser();
+            AssessmentConfiguration config = new AssessmentConfiguration();
+            try
+            {
+                var query = from student in dbContext.Students
+                            where student.Id == currentUser.UserId
+                            join course in dbContext.Courses on student.CourseId equals course.Id
+                            select new Course
+                            {
+                                Id = course.Id,
+                                Name = course.Name
+                            };
 
+                var result = query.FirstOrDefault();
+
+                var courseId = result?.Id;
+
+                if (courseId > 0)
+                {
+                    config = dbContext.AssessmentConfigurations.Where(c => c.CourseId == courseId && c.IsActive).FirstOrDefault();
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return config;
+        }
         private async Task<List<QuestionBank>> GetQuestionsByChapters(List<long> ids)
         {
             List<QuestionBank> response = new List<QuestionBank>();

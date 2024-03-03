@@ -21,5 +21,7 @@ public partial class Course
 
     public DateTime ModifiedOn { get; set; }
 
+    public virtual ICollection<AssessmentConfiguration> AssessmentConfigurations { get; } = new List<AssessmentConfiguration>();
+
     public virtual ICollection<Subject> Subjects { get; } = new List<Subject>();
 }

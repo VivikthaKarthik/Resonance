@@ -85,7 +85,7 @@ namespace ResoClassAPI.Services
         public async Task<List<VideoDto>> GetAllVideos()
         {
             List<VideoDto> dtoObjects = new List<VideoDto>();
-            var vid = await Task.FromResult(dbContext.Videos.Where(item => item.IsActive == true).ToList());
+            var vid = await Task.FromResult(dbContext.Videos.Where(item => item.IsActive == true).OrderByDescending(x => x.CreatedOn).ToList());
             if (vid != null && vid.Count > 0)
             {
 

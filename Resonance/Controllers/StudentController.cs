@@ -24,19 +24,22 @@ namespace ResoClassAPI.Controllers
         }
 
 
+        #region Admin
+
         [HttpGet]
-        [Route("api/Student/GetProfile")]
-        public async Task<ResponseDto> Get()
+        [Authorize(Policy = "Admin")]
+        [Route("api/Student/Get")]
+        public async Task<ResponseDto> Get(long studentId)
         {
             ResponseDto responseDto = new ResponseDto();
             try
             {
                 logger.LogInformation("Requested GetUser");
-                var chapter = await studentService.GetProfile();
+                var student = await studentService.GetStudent(studentId);
 
-                if (chapter != null)
+                if (student != null)
                 {
-                    responseDto.Result = chapter;
+                    responseDto.Result = student;
                     responseDto.IsSuccess = true;
                 }
                 else
@@ -53,24 +56,55 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
-        #region Student
-        [HttpPut]
-        [Route("api/Student/ChangePassword")]
-        public async Task<ResponseDto> ChangePassword(string password)
+        [HttpGet]
+        [Authorize(Policy = "Admin")]
+        [Route("api/Student/GetAll")]
+        public async Task<ResponseDto> GetAll()
         {
             ResponseDto responseDto = new ResponseDto();
             try
             {
-                if (string.IsNullOrEmpty(password))
+                logger.LogInformation("Requested GetAllStudents");
+                var users = await studentService.GetAllStudents();
+
+                if (users != null)
+                {
+                    responseDto.Result = users;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
+        [HttpPost]
+        [Authorize(Policy = "Admin")]
+        [Route("api/Student/Create")]
+        public async Task<ResponseDto> Post(StudentDto requestDto)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                if (requestDto == null)
                 {
                     responseDto.IsSuccess = false;
                     responseDto.Message = "Invalid Request";
                     return responseDto;
                 }
-
-                if (await studentService.ChangePassword(password))
+                long newId = await studentService.CreateStudent(requestDto);
+                if (newId > 0)
                 {
-                    responseDto.Result = "Password Updated Successfully";
+                    requestDto.Id = newId;
+                    responseDto.Result = requestDto;
                     responseDto.IsSuccess = true;
                 }
                 else
@@ -139,6 +173,134 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
+        [HttpPut]
+        [Authorize(Policy = "Admin")]
+        [Route("api/Student/Update/{id}")]
+        public async Task<ResponseDto> Put(long id, StudentDto requestDto)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                if (requestDto == null)
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Invalid Request";
+                    return responseDto;
+                }
+
+                if (await studentService.UpdateStudent(requestDto))
+                {
+                    responseDto.Result = requestDto;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Internal Server Error";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
+        [HttpDelete]
+        [Authorize(Policy = "Admin")]
+        [Route("api/Chapter/Delete/{id}")]
+        public async Task<ResponseDto> Delete(long id)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                bool result = await studentService.DeleteStudent(id);
+
+                if (!result)
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+                else
+                {
+                    responseDto.Result = "Chapter Deleted Successfully";
+                    responseDto.IsSuccess = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
+        #endregion
+
+        #region Student
+
+        [HttpGet]
+        [Route("api/Student/GetProfile")]
+        public async Task<ResponseDto> Get()
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                logger.LogInformation("Requested GetUser");
+                var chapter = await studentService.GetProfile();
+
+                if (chapter != null)
+                {
+                    responseDto.Result = chapter;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
+        [HttpPut]
+        [Route("api/Student/ChangePassword")]
+        public async Task<ResponseDto> ChangePassword(string password)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                if (string.IsNullOrEmpty(password))
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Invalid Request";
+                    return responseDto;
+                }
+
+                if (await studentService.ChangePassword(password))
+                {
+                    responseDto.Result = "Password Updated Successfully";
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Internal Server Error";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
 
         #endregion
 

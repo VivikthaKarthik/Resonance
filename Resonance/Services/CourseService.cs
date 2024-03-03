@@ -58,7 +58,7 @@ namespace ResoClassAPI.Services
         public async Task<List<CourseDto>> GetAllCourses()
         {
             List<CourseDto> dtoObjects = new List<CourseDto>();
-            var courses = await Task.FromResult(dbContext.Courses.Where(item => item.IsActive == true).ToList());
+            var courses = await Task.FromResult(dbContext.Courses.Where(item => item.IsActive == true).OrderByDescending(x => x.CreatedOn).ToList());
             if (courses != null && courses.Count > 0)
             {
 

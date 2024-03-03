@@ -41,6 +41,8 @@ namespace Resonance
 
                 //Student Mapper
                 config.CreateMap<Student, StudentProfileDto>();
+                config.CreateMap<Student, StudentDto>();
+                config.CreateMap<StudentDto, Student>();
 
                 //Student Mapper
                 config.CreateMap<QuestionBank, QuestionData>();

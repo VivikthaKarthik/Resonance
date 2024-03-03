@@ -15,6 +15,12 @@ public partial class ResoClassContext : DbContext
     {
     }
 
+    public virtual DbSet<AssessmentConfiguration> AssessmentConfigurations { get; set; }
+
+    public virtual DbSet<AssessmentSession> AssessmentSessions { get; set; }
+
+    public virtual DbSet<AssessmentSessionQuestion> AssessmentSessionQuestions { get; set; }
+
     public virtual DbSet<Audit> Audits { get; set; }
 
     public virtual DbSet<Chapter> Chapters { get; set; }
@@ -60,6 +66,53 @@ public partial class ResoClassContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<AssessmentConfiguration>(entity =>
+        {
+            entity.ToTable("AssessmentConfiguration");
+
+            entity.Property(e => e.CreatedBy).HasMaxLength(250);
+            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.ModifiedBy).HasMaxLength(250);
+            entity.Property(e => e.ModifiedOn).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Course).WithMany(p => p.AssessmentConfigurations)
+                .HasForeignKey(d => d.CourseId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_AssessmentConfiguration_Course");
+        });
+
+        modelBuilder.Entity<AssessmentSession>(entity =>
+        {
+            entity.ToTable("AssessmentSession");
+
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.Property(e => e.AssessmentType).HasMaxLength(50);
+            entity.Property(e => e.EndTime).HasColumnType("datetime");
+            entity.Property(e => e.StartTime).HasColumnType("datetime");
+
+            entity.HasOne(d => d.IdNavigation).WithOne(p => p.AssessmentSession)
+                .HasForeignKey<AssessmentSession>(d => d.Id)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_AssessmentSession_Student");
+        });
+
+        modelBuilder.Entity<AssessmentSessionQuestion>(entity =>
+        {
+            entity.ToTable("AssessmentSession_Questions");
+
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+
+            entity.HasOne(d => d.IdNavigation).WithOne(p => p.AssessmentSessionQuestion)
+                .HasForeignKey<AssessmentSessionQuestion>(d => d.Id)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_AssessmentSession_Questions_AssessmentSession");
+
+            entity.HasOne(d => d.Id1).WithOne(p => p.AssessmentSessionQuestion)
+                .HasForeignKey<AssessmentSessionQuestion>(d => d.Id)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_AssessmentSession_Questions_QuestionBank");
+        });
+
         modelBuilder.Entity<Audit>(entity =>
         {
             entity.ToTable("Audit");

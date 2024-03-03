@@ -109,6 +109,107 @@ namespace ResoClassAPI.Controllers
             }
             return responseDto;
         }
+
+        [HttpPost]
+        [Route("api/Assessment/StartAssessment")]
+        public async Task<ResponseDto> StartAssessment(long assessmentId)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                logger.LogInformation("Requested GetChapter");
+
+                responseDto.Result = "Assessent started";
+                responseDto.IsSuccess = true;
+
+                //var questions = await assessmentService.GetQuestions(request);
+
+                //if (questions != null)
+                //{
+                //    responseDto.Result = questions;
+                //    responseDto.IsSuccess = true;
+                //}
+                //else
+                //{
+                //    responseDto.IsSuccess = false;
+                //    responseDto.Message = "Not Found";
+                //}
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
+        [HttpPost]
+        [Route("api/Assessment/EndAssessment")]
+        public async Task<ResponseDto> EndAssessment(long assessmentId)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                logger.LogInformation("Requested GetChapter");
+
+                responseDto.Result = "Assessent Completed";
+                responseDto.IsSuccess = true;
+
+                //var questions = await assessmentService.GetQuestions(request);
+
+                //if (questions != null)
+                //{
+                //    responseDto.Result = questions;
+                //    responseDto.IsSuccess = true;
+                //}
+                //else
+                //{
+                //    responseDto.IsSuccess = false;
+                //    responseDto.Message = "Not Found";
+                //}
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
+        [HttpPost]
+        [Route("api/Assessment/UpdateStatus")]
+        public async Task<ResponseDto> UpdateStatus(UpdateAssessmentStatusDto request)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                logger.LogInformation("Requested GetChapter");
+
+                responseDto.Result = "Updated Successfully";
+                responseDto.IsSuccess = true;
+
+                //var questions = await assessmentService.GetQuestions(request);
+
+                //if (questions != null)
+                //{
+                //    responseDto.Result = questions;
+                //    responseDto.IsSuccess = true;
+                //}
+                //else
+                //{
+                //    responseDto.IsSuccess = false;
+                //    responseDto.Message = "Not Found";
+                //}
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
+
     }
 
 }
