@@ -76,14 +76,18 @@ namespace ResoClassAPI.Authentication
 
                     if (deviceId == null || string.IsNullOrEmpty(deviceId.Value))
                     {
+                        //Web User - No need to check DeviceId
                         result = AuthenticateResult.Success(GetAuthenticationTicket(token.Claims.ToList()));
                     }
                     else
                     {
+                        //Mobile User - need to check the deviceId with the student login
+                        Student student = null;
                         var studentId = token.Claims.Where(t => t.Type == ClaimTypes.Sid).FirstOrDefault();
-
-                        if(studentId != null && !string.IsNullOrEmpty(studentId.Value) && dbContext.Students.Any(x => 
-                        x.Id == Convert.ToInt64(studentId.Value) && x.DeviceId == deviceId.Value.ToString()))
+                        if (studentId != null && !string.IsNullOrEmpty(studentId.Value))
+                            student = dbContext.Students.FirstOrDefault(x => x.Id == Convert.ToInt64(studentId.Value) && x.DeviceId == deviceId.Value.ToString());
+                        
+                        if (student != null)
                         {
                             result = AuthenticateResult.Success(GetAuthenticationTicket(token.Claims.ToList()));
                         }

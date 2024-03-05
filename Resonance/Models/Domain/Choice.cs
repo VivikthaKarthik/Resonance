@@ -23,15 +23,27 @@ public partial class Choice
 
     public DateTime ModifiedOn { get; set; }
 
+    public virtual ICollection<ChoiceImage> ChoiceImages { get; } = new List<ChoiceImage>();
+
     public virtual ICollection<ExamResult> ExamResults { get; } = new List<ExamResult>();
 
-    public virtual ICollection<MultipleChoiceQuestion> MultipleChoiceQuestionChoice1s { get; } = new List<MultipleChoiceQuestion>();
-
-    public virtual ICollection<MultipleChoiceQuestion> MultipleChoiceQuestionChoice2s { get; } = new List<MultipleChoiceQuestion>();
-
-    public virtual ICollection<MultipleChoiceQuestion> MultipleChoiceQuestionChoice3s { get; } = new List<MultipleChoiceQuestion>();
-
-    public virtual ICollection<MultipleChoiceQuestion> MultipleChoiceQuestionChoice4s { get; } = new List<MultipleChoiceQuestion>();
-
     public virtual ICollection<MultipleChoiceQuestion> MultipleChoiceQuestionCorrectChoices { get; } = new List<MultipleChoiceQuestion>();
+
+    public virtual ICollection<MultipleChoiceQuestion> MultipleChoiceQuestionFirstChoices { get; } = new List<MultipleChoiceQuestion>();
+
+    public virtual ICollection<MultipleChoiceQuestion> MultipleChoiceQuestionFourthChoices { get; } = new List<MultipleChoiceQuestion>();
+
+    public virtual ICollection<MultipleChoiceQuestion> MultipleChoiceQuestionSecondChoices { get; } = new List<MultipleChoiceQuestion>();
+
+    public virtual ICollection<MultipleChoiceQuestion> MultipleChoiceQuestionThirdChoices { get; } = new List<MultipleChoiceQuestion>();
+
+    public virtual ICollection<Question> QuestionCorrectChoices { get; } = new List<Question>();
+
+    public virtual ICollection<Question> QuestionFirstChoices { get; } = new List<Question>();
+
+    public virtual ICollection<Question> QuestionFourthChoices { get; } = new List<Question>();
+
+    public virtual ICollection<Question> QuestionSecondChoices { get; } = new List<Question>();
+
+    public virtual ICollection<Question> QuestionThirdChoices { get; } = new List<Question>();
 }

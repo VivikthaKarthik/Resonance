@@ -21,7 +21,7 @@ namespace ResoClassAPI.Services
 
         public async Task<List<UserDto>> GetAllUsers()
         {
-            var users = await Task.FromResult(dbContext.Users.Where(item => item.IsActive == true).ToList());
+            var users = await Task.FromResult(dbContext.Users.Where(item => item.IsActive == true).OrderByDescending(x => x.CreatedOn).ToList());
             if (users != null && users.Count > 0)
             {
                 List<UserDto> dtoObjects = new List<UserDto>();     

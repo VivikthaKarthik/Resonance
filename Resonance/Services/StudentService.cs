@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -23,6 +24,197 @@ namespace ResoClassAPI.Services
             mapper = _mapper;
         }
 
+
+        public async Task<List<StudentDto>> GetAllStudents()
+        {
+            List<StudentDto> dtoObjects = new List<StudentDto>();
+            var students = await Task.FromResult(dbContext.Students.Where(item => item.IsActive == true).OrderByDescending(x => x.CreatedOn).ToList());
+            if (students != null && students.Count > 0)
+            {
+                foreach (var chapter in students)
+                {
+                    var dtoObject = mapper.Map<StudentDto>(chapter);
+                    dtoObjects.Add(dtoObject);
+                }
+                return dtoObjects;
+            }
+            else
+                throw new Exception("Not Found");
+        }
+
+        public async Task<long> CreateStudent(StudentDto student)
+        {
+            var currentUser = authService.GetCurrentUser();
+
+            if (currentUser != null)
+            {
+                long cityId = 0;
+                long stateId = 0;
+                long courseId = 0;
+                Student newStudent = mapper.Map<Student>(student);
+
+                if (student.CityId > 0)
+                {
+                    if (dbContext.Cities.Any(x => x.Id == student.CityId))
+                        cityId = dbContext.Cities.Where(x => x.Id == student.CityId).First().Id;
+                    else
+                        throw new Exception("Invalid CityId");
+                }
+                else
+                    throw new Exception("CityId is missing");
+
+
+                if (student.StateId > 0)
+                {
+                    if (dbContext.States.Any(x => x.Id == student.StateId))
+                        stateId = dbContext.States.Where(x => x.Id == student.StateId).First().Id;
+                    else
+                        throw new Exception("Invalid StateId");
+                }
+                else
+                    throw new Exception("StateId is missing");
+
+
+                if (student.CourseId > 0)
+                {
+                    if (dbContext.Courses.Any(x => x.Id == student.CourseId))
+                        courseId = dbContext.Courses.Where(x => x.Id == student.CourseId).First().Id;
+                    else
+                        throw new Exception("Invalid CourseId");
+                }
+                else
+                    throw new Exception("CourseId is missing");
+
+                newStudent.CityId = cityId;
+                newStudent.StateId = stateId;
+                newStudent.CourseId = courseId;
+                newStudent.IsActive = true;
+                newStudent.CreatedBy = newStudent.ModifiedBy = currentUser.Name;
+                newStudent.CreatedOn = newStudent.ModifiedOn = DateTime.Now;
+
+                dbContext.Students.Add(newStudent);
+                await dbContext.SaveChangesAsync();
+
+                return newStudent.Id;
+            }
+            return 0;
+        }
+
+        public async Task<bool> UpdateStudent(StudentDto updatedStudent)
+        {
+            var currentUser = authService.GetCurrentUser();
+            var existingItem = dbContext.Students.FirstOrDefault(item => item.Id == updatedStudent.Id && item.IsActive == true);
+
+            if (existingItem != null)
+            {
+
+                if (updatedStudent.AdmissionId != null)
+                    existingItem.AdmissionId = updatedStudent.AdmissionId;
+
+                if (updatedStudent.AdmissionDate != null && updatedStudent.AdmissionDate != DateTime.MinValue)
+                    existingItem.AdmissionDate = updatedStudent.AdmissionDate;
+
+                if (updatedStudent.Name != null)
+                    existingItem.Name = updatedStudent.Name;
+
+                if (updatedStudent.FatherName != null)
+                    existingItem.FatherName = updatedStudent.FatherName;
+
+                if (updatedStudent.MotherName != null)
+                    existingItem.MotherName = updatedStudent.MotherName;
+
+                if (updatedStudent.DateOfBirth != null && updatedStudent.DateOfBirth != DateTime.MinValue)
+                    existingItem.DateOfBirth = updatedStudent.DateOfBirth;
+
+                if (updatedStudent.AddressLine1 != null)
+                    existingItem.AddressLine1 = updatedStudent.AddressLine1;
+
+                if (updatedStudent.AddressLine2 != null)
+                    existingItem.AddressLine2 = updatedStudent.AddressLine2;
+
+                if (updatedStudent.Landmark != null)
+                    existingItem.Landmark = updatedStudent.Landmark;
+
+                if (updatedStudent.StateId > 0)
+                {
+                    if (dbContext.States.Any(x => x.Id == updatedStudent.StateId && x.IsActive))
+                        existingItem.StateId = updatedStudent.StateId;
+                    else
+                        throw new Exception("Invalid StateId");
+                }
+
+                if (updatedStudent.CityId > 0)
+                {
+                    if (dbContext.Cities.Any(x => x.Id == updatedStudent.CityId && x.IsActive))
+                        existingItem.CityId = updatedStudent.CityId;
+                    else
+                        throw new Exception("Invalid CityId");
+                }
+
+                if (updatedStudent.PinCode != null)
+                    existingItem.PinCode = updatedStudent.PinCode;
+
+                if (updatedStudent.Gender != null)
+                    existingItem.Gender = updatedStudent.Gender;
+
+                if (updatedStudent.CourseId > 0)
+                {
+                    if (dbContext.Courses.Any(x => x.Id == updatedStudent.CourseId))
+                        existingItem.CourseId = updatedStudent.CourseId;
+                    else
+                        throw new Exception("Invalid CourseId");
+                }
+
+                if (updatedStudent.MobileNumber != null)
+                    existingItem.MobileNumber = updatedStudent.MobileNumber;
+
+                if (updatedStudent.AlternateMobileNumber != null)
+                    existingItem.AlternateMobileNumber = updatedStudent.AlternateMobileNumber;
+
+                if (updatedStudent.EmailAddress != null)
+                    existingItem.EmailAddress = updatedStudent.EmailAddress;
+
+                if (updatedStudent.ProfilePicture != null)
+                    existingItem.ProfilePicture = updatedStudent.ProfilePicture;
+
+
+                existingItem.ModifiedBy = currentUser.Name;
+                existingItem.ModifiedOn = DateTime.Now;
+
+                await dbContext.SaveChangesAsync();
+                return true;
+            }
+            return false;
+        }
+
+        public async Task<bool> DeleteStudent(long studentId)
+        {
+            var currentUser = authService.GetCurrentUser();
+            var existingItem = dbContext.Students.FirstOrDefault(item => item.Id == studentId && item.IsActive == true);
+
+            if (existingItem != null)
+            {
+                existingItem.IsActive = false;
+                existingItem.ModifiedBy = currentUser.Name;
+                existingItem.ModifiedOn = DateTime.Now;
+
+                await dbContext.SaveChangesAsync();
+                return true;
+            }
+            return false;
+        }
+
+        public async Task<StudentDto> GetStudent(long studentId)
+        {
+            var student = await Task.FromResult(dbContext.Students.FirstOrDefault(item => item.Id == studentId && item.IsActive == true));
+            if (student != null)
+            {
+                var dtoObject = mapper.Map<StudentDto>(student);
+                return dtoObject;
+            }
+            else
+                throw new Exception("Not Found");
+        }
 
         public async Task<StudentProfileDto> GetProfile()
         {

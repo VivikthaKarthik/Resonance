@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -12,7 +12,7 @@ namespace ResoClassAPI.Controllers
         [HttpGet]
         public string Get()
         {
-            return "ResoClass API is Running successfully\nVersion: 10";
+            return "ResoClass API is Running successfully\nVersion: 11";
         }
     }
 }

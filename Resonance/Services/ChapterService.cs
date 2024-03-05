@@ -24,7 +24,7 @@ namespace ResoClassAPI.Services
         public async Task<List<ChapterResponseDto>> GetAllChapters()
         {
             List<ChapterResponseDto> dtoObjects = new List<ChapterResponseDto>();
-            var chapters =   await Task.FromResult(dbContext.Chapters.Where(item => item.IsActive == true).ToList());
+            var chapters =   await Task.FromResult(dbContext.Chapters.Where(item => item.IsActive == true).OrderByDescending(x => x.CreatedOn).ToList());
             if (chapters != null && chapters.Count > 0)
             {                
                 foreach (var chapter in chapters)
@@ -87,6 +87,9 @@ namespace ResoClassAPI.Services
             {
                 if (!string.IsNullOrEmpty(updatedChapter.Name))
                     existingItem.Name = updatedChapter.Name;
+
+                if (!string.IsNullOrEmpty(updatedChapter.Description))
+                    existingItem.Description = updatedChapter.Description;
 
                 if (!string.IsNullOrEmpty(updatedChapter.Thumbnail))
                     existingItem.Thumbnail = updatedChapter.Thumbnail;
@@ -167,6 +170,7 @@ namespace ResoClassAPI.Services
                                     {
                                         Id = chapter.Id,
                                         Name = chapter.Name,
+                                        Description = !string.IsNullOrEmpty(chapter.Description) ? chapter.Description : string.Empty,
                                         Thumbnail = chapter.Thumbnail,
                                     };
                                     returnObj.RecommendedChapters.Add(recommendedChapterDto);
@@ -198,6 +202,7 @@ namespace ResoClassAPI.Services
                         Id = chapter.Id,
                         Name = chapter.Name,
                         Thumbnail = chapter.Thumbnail,
+                        Description = !string.IsNullOrEmpty(chapter.Description) ? chapter.Description : string.Empty,
                         SubjectId = chapter.SubjectId,
                         SubjectName = dbContext.Subjects.Where(x => x.Id == chapter.SubjectId).First().Name,
                         IsRecommended = chapter.IsRecommended,
@@ -242,6 +247,7 @@ namespace ResoClassAPI.Services
                         existingChapter = new Chapter
                         {
                             Name = chapterDto.Name,
+                            Description = !string.IsNullOrEmpty(chapterDto.Description) ? chapterDto.Description : string.Empty,
                             Thumbnail = chapterDto.Thumbnail,
                             SubjectId = subjectId,
                             IsActive = true,

@@ -53,7 +53,7 @@ namespace ResoClassAPI.Services
                 await dbContext.SaveChangesAsync();
 
                 var role = dbContext.Roles.FirstOrDefault(item => item.Id == userDetails.RoleId).Name;
-                token = await GenerateToken(userDetails.FirstName + " " + userDetails.LastName, userDetails.Email, role, userDetails?.Id.ToString(), string.Empty);
+                token = await GenerateToken( userDetails.Email, userDetails.FirstName + " " + userDetails.LastName, role, userDetails?.Id.ToString(), string.Empty);
             }
             return await Task.FromResult(token);
         }
@@ -72,7 +72,7 @@ namespace ResoClassAPI.Services
                 await dbContext.SaveChangesAsync();
 
                 response.IsPasswordChangeRequired = studentDetails.IsPasswordChangeRequired.Value;
-                response.Token = await GenerateToken(studentDetails.Name, studentDetails.EmailAddress, "", studentDetails?.Id.ToString(), string.Empty);
+                response.Token = await GenerateToken(studentDetails.EmailAddress, studentDetails.Name, "", studentDetails?.Id.ToString(), string.Empty);
             }
             return await Task.FromResult(response);
         }
@@ -95,7 +95,7 @@ namespace ResoClassAPI.Services
 
                 await dbContext.SaveChangesAsync();
                 response.IsPasswordChangeRequired = studentDetails.IsPasswordChangeRequired.Value;
-                response.Token = await GenerateToken(studentDetails.Name, studentDetails.EmailAddress, "", studentDetails?.Id.ToString(), userDto.DeviceId);
+                response.Token = await GenerateToken(studentDetails.EmailAddress, studentDetails.Name, "", studentDetails?.Id.ToString(), userDto.DeviceId);
             }
             return await Task.FromResult(response);
         }
@@ -118,7 +118,7 @@ namespace ResoClassAPI.Services
                 _config["Jwt:Issuer"],
                 _config["Jwt:Audience"],
                 claims: claims,
-                expires: !string.IsNullOrEmpty(deviceId) ? DateTime.Now.AddYears(1) : DateTime.Now.AddDays(20),
+                expires: !string.IsNullOrEmpty(deviceId) ? DateTime.Now.AddYears(1) : DateTime.Now.AddMinutes(20),
                 signingCredentials: credentials
                 );
 

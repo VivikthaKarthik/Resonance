@@ -35,7 +35,7 @@ namespace ResoClassAPI.Services
         public async Task<List<TopicDto>> GetAllTopics()
         {
             List<TopicDto> dtoObjects = new List<TopicDto>();
-            var topics = await Task.FromResult(dbContext.Topics.Where(item => item.IsActive == true).ToList());
+            var topics = await Task.FromResult(dbContext.Topics.Where(item => item.IsActive == true).OrderByDescending(x => x.CreatedOn).ToList());
             if (topics != null && topics.Count > 0)
             {
 
@@ -89,6 +89,9 @@ namespace ResoClassAPI.Services
                     if (!string.IsNullOrEmpty(updatedTopic.Name))
                         existingItem.Name = updatedTopic.Name;
 
+                    if (!string.IsNullOrEmpty(updatedTopic.Description))
+                        existingItem.Description = updatedTopic.Description;
+
                     if (!string.IsNullOrEmpty(updatedTopic.Thumbnail))
                         existingItem.Thumbnail = updatedTopic.Thumbnail;
 
@@ -135,6 +138,7 @@ namespace ResoClassAPI.Services
                         {
                             Id = topic.Id,
                             Name = topic.Name,
+                            Description = !string.IsNullOrEmpty(topic.Description) ? topic.Description : string.Empty,
                             Thumbnail = topic.Thumbnail,
                             SubjectId = subject.Id,
                             SubjectName = subject.Name,
