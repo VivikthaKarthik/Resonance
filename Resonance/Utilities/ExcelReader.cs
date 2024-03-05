@@ -156,29 +156,32 @@ namespace ResoClassAPI.Utilities
                     string EmailAddress = worksheet.Cells[rowNumber, 17].Text.Trim();
                     string ProfilePicture = worksheet.Cells[rowNumber, 18].Text.Trim();
 
-                    var student = new StudentProfileDto();
-                    student.AdmissionId = AdmissionId;
-                    if (!string.IsNullOrEmpty(AdmissionDate))
-                        student.AdmissionDate = Convert.ToDateTime(AdmissionDate);
-                    student.Name = Name;
-                    student.FatherName = FatherName;
-                    student.MotherName = MotherName;
-                    if (!string.IsNullOrEmpty(DateOfBirth))
-                        student.DateOfBirth = Convert.ToDateTime(DateOfBirth);
-                    student.AddressLine1 = AddressLine1;
-                    student.AddressLine2 = AddressLine2;
-                    student.Landmark = Landmark;
-                    student.City = City;
-                    student.State = State;
-                    student.PinCode = PinCode;
-                    student.Gender = Gender;
-                    student.CourseName = Course;
-                    student.MobileNumber = MobileNumber;
-                    student.AlternateMobileNumber = AlternateMobileNumber;
-                    student.EmailAddress = EmailAddress;
-                    student.ProfilePicture = ProfilePicture;
+                    if (!string.IsNullOrEmpty(AdmissionId))
+                    {
+                        var student = new StudentProfileDto();
+                        student.AdmissionId = AdmissionId;
+                        if (!string.IsNullOrEmpty(AdmissionDate))
+                            student.AdmissionDate = Convert.ToDateTime(AdmissionDate);
+                        student.Name = Name;
+                        student.FatherName = FatherName;
+                        student.MotherName = MotherName;
+                        if (!string.IsNullOrEmpty(DateOfBirth))
+                            student.DateOfBirth = Convert.ToDateTime(DateOfBirth);
+                        student.AddressLine1 = AddressLine1;
+                        student.AddressLine2 = AddressLine2;
+                        student.Landmark = Landmark;
+                        student.City = City;
+                        student.State = State;
+                        student.PinCode = PinCode;
+                        student.Gender = Gender;
+                        student.CourseName = Course;
+                        student.MobileNumber = MobileNumber;
+                        student.AlternateMobileNumber = AlternateMobileNumber;
+                        student.EmailAddress = EmailAddress;
+                        student.ProfilePicture = ProfilePicture;
 
-                    students.Add(student);
+                        students.Add(student);
+                    }
                 }
             }
 

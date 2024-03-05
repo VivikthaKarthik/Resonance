@@ -25,6 +25,8 @@ public partial class Topic
 
     public string? Description { get; set; }
 
+    public virtual Chapter Chapter { get; set; } = null!;
+
     public virtual ICollection<ExamResult> ExamResults { get; } = new List<ExamResult>();
 
     public virtual ICollection<MultipleChoiceQuestion> MultipleChoiceQuestions { get; } = new List<MultipleChoiceQuestion>();

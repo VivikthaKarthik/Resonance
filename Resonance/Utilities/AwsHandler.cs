@@ -32,7 +32,7 @@ namespace ResoClassAPI.Utilities
 
                     await fileTransferUtility.UploadAsync(memoryStream, bucketName, keyName);
 
-                    imageUrl = GenerateS3ObjectUrl(bucketName, fileName);
+                    imageUrl = GenerateS3ObjectUrl(bucketName, folderPath, fileName);
 
                 }
             }
@@ -43,10 +43,10 @@ namespace ResoClassAPI.Utilities
             return imageUrl;
         }
 
-        private string GenerateS3ObjectUrl(string bucketName, string key)
+        private string GenerateS3ObjectUrl(string bucketName, string folderName, string key)
         {
             var region = RegionEndpoint.APSoutheast1.SystemName;
-            return $"https://{bucketName}.s3.{region}.amazonaws.com/{key}";
+            return $"https://{bucketName}.s3.{region}.amazonaws.com/{folderName}/{key}";
         }
     }
 }
