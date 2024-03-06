@@ -38,35 +38,35 @@ namespace ResoClassAPI.Utilities
                             {
                                 var text = run.GetFirstChild<Text>();
 
-                                if (text != null && text.Text.StartsWith("Question"))
+                                if (text != null && text.Text.TrimStart().StartsWith("Question"))
                                     currentElement = CurrentElement.Question;
-                                else if (text != null && text.Text.StartsWith("Option1"))
+                                else if (text != null && text.Text.TrimStart().StartsWith("Option1"))
                                 {
-                                    if (currentQuestion.Question.StartsWith("<Text") && !currentQuestion.Question.EndsWith("</Text>"))
+                                    if (!currentQuestion.Question.TrimEnd().EndsWith("}} />") && !currentQuestion.Question.TrimEnd().EndsWith("</Text>"))
                                         currentQuestion.Question += "</Text>";
                                     currentElement = CurrentElement.FirstAnswer;
                                 }
-                                else if (text != null && text.Text.StartsWith("Option2"))
+                                else if (text != null && text.Text.TrimStart().StartsWith("Option2"))
                                 {
-                                    if(currentQuestion.FirstAnswer.StartsWith("<Text") && !currentQuestion.FirstAnswer.EndsWith("</Text>"))
+                                    if(!currentQuestion.FirstAnswer.TrimEnd().EndsWith("}} />") && !currentQuestion.FirstAnswer.TrimEnd().EndsWith("</Text>"))
                                         currentQuestion.FirstAnswer += "</Text>";
                                     currentElement = CurrentElement.SecondAnswer;
                                 }
-                                else if (text != null && text.Text.StartsWith("Option3"))
+                                else if (text != null && text.Text.TrimStart().StartsWith("Option3"))
                                 {
-                                    if (currentQuestion.SecondAnswer.StartsWith("<Text") && !currentQuestion.SecondAnswer.EndsWith("</Text>"))
+                                    if (!currentQuestion.SecondAnswer.TrimEnd().EndsWith("}} />") && !currentQuestion.SecondAnswer.TrimEnd().EndsWith("</Text>"))
                                         currentQuestion.SecondAnswer += "</Text>";
                                     currentElement = CurrentElement.ThirdAnswer;
                                 }
-                                else if (text != null && text.Text.StartsWith("Option4"))
+                                else if (text != null && text.Text.TrimStart().StartsWith("Option4"))
                                 {
-                                    if (currentQuestion.ThirdAnswer.StartsWith("<Text") && !currentQuestion.ThirdAnswer.EndsWith("</Text>"))
+                                    if (!currentQuestion.ThirdAnswer.TrimEnd().EndsWith("}} />") && !currentQuestion.ThirdAnswer.TrimEnd().EndsWith("</Text>"))
                                         currentQuestion.ThirdAnswer += "</Text>";
                                     currentElement = CurrentElement.FourthAnswer;
                                 }
-                                else if (text != null && text.Text.StartsWith("CorrectAnswer"))
+                                else if (text != null && text.Text.TrimStart().StartsWith("CorrectAnswer"))
                                 {
-                                    if (currentQuestion.FourthAnswer.StartsWith("<Text") && !currentQuestion.FourthAnswer.EndsWith("</Text>"))
+                                    if (!currentQuestion.FourthAnswer.TrimEnd().EndsWith("}} />") && !currentQuestion.FourthAnswer.TrimEnd().EndsWith("</Text>"))
                                         currentQuestion.FourthAnswer += "</Text>";
                                     currentElement = CurrentElement.CorrectAnswer;
                                 }
@@ -124,6 +124,8 @@ namespace ResoClassAPI.Utilities
             }
             else if (!IsAnswer(currentElement) && currentElement != CurrentElement.CorrectAnswer)
             {
+                if (currentQuestion.Question.TrimEnd().EndsWith("}} />"))
+                    currentQuestion.Question += "<Text style={styles.questionText}>" + decodedText;
                 currentQuestion.Question += decodedText;
             }
             else if (currentElement != CurrentElement.CorrectAnswer)
@@ -214,22 +216,22 @@ namespace ResoClassAPI.Utilities
             switch (currentElement)
             {
                 case CurrentElement.FirstAnswer:
-                    if(string.IsNullOrEmpty(question.FirstAnswer) && !answerText.StartsWith("<Image"))
+                    if(string.IsNullOrEmpty(question.FirstAnswer) && (!answerText.TrimStart().StartsWith("<Image") || answerText.TrimEnd().EndsWith("}} />")))
                         question.FirstAnswer = "<Text>";
                     question.FirstAnswer += answerText;
                     break;
                 case CurrentElement.SecondAnswer:
-                    if (string.IsNullOrEmpty(question.SecondAnswer) && !answerText.StartsWith("<Image"))
+                    if (string.IsNullOrEmpty(question.SecondAnswer) && (!answerText.TrimStart().StartsWith("<Image") || answerText.TrimEnd().EndsWith("}} />")))
                         question.SecondAnswer = "<Text>";
                     question.SecondAnswer += answerText;
                     break;
                 case CurrentElement.ThirdAnswer:
-                    if (string.IsNullOrEmpty(question.ThirdAnswer) && !answerText.StartsWith("<Image"))
+                    if (string.IsNullOrEmpty(question.ThirdAnswer) && (!answerText.TrimStart().StartsWith("<Image") || answerText.TrimEnd().EndsWith("}} />")))
                         question.ThirdAnswer = "<Text>";
                     question.ThirdAnswer += answerText;
                     break;
                 case CurrentElement.FourthAnswer:
-                    if (string.IsNullOrEmpty(question.FourthAnswer) && !answerText.StartsWith("<Image"))
+                    if (string.IsNullOrEmpty(question.FourthAnswer) && (!answerText.TrimStart().StartsWith("<Image") || answerText.TrimEnd().EndsWith("}} />")))
                         question.FourthAnswer = "<Text>";
                     question.FourthAnswer += answerText;
                     break;

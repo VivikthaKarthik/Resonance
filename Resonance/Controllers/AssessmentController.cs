@@ -14,7 +14,7 @@ using Amazon;
 
 namespace ResoClassAPI.Controllers
 {
-    //[Authorize]
+    [Authorize]
     [ApiController]
     public class AssessmentController : ControllerBase
     {
@@ -33,7 +33,7 @@ namespace ResoClassAPI.Controllers
         }
 
         [HttpPost]
-        //[Authorize(Policy = "Admin")]
+        [Authorize(Policy = "Admin")]
         [Route("api/QuestionBank/UploadQuestions")]
         public async Task<ResponseDto> UploadQuestions(IFormFile document, string? chapter, string? topic, string? subTopic)
         {
@@ -64,7 +64,7 @@ namespace ResoClassAPI.Controllers
 
                 if (response == "Success")
                 {
-                    responseDto.Result = questions; // "Questions Successfully uploaded";
+                    responseDto.Result = "Questions Successfully uploaded";
                     responseDto.IsSuccess = true;
                 }
                 else
