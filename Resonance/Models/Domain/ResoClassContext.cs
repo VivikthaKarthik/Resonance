@@ -33,6 +33,8 @@ public partial class ResoClassContext : DbContext
 
     public virtual DbSet<Course> Courses { get; set; }
 
+    public virtual DbSet<DifficultyLevel> DifficultyLevels { get; set; }
+
     public virtual DbSet<Exam> Exams { get; set; }
 
     public virtual DbSet<ExamResult> ExamResults { get; set; }
@@ -180,6 +182,13 @@ public partial class ResoClassContext : DbContext
             entity.Property(e => e.CreatedOn).HasColumnType("datetime");
             entity.Property(e => e.ModifiedBy).HasMaxLength(128);
             entity.Property(e => e.ModifiedOn).HasColumnType("datetime");
+        });
+
+        modelBuilder.Entity<DifficultyLevel>(entity =>
+        {
+            entity.ToTable("DifficultyLevel");
+
+            entity.Property(e => e.Name).HasMaxLength(20);
         });
 
         modelBuilder.Entity<Exam>(entity =>

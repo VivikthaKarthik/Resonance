@@ -60,7 +60,7 @@ namespace ResoClassAPI.Services
                             response = "Invalid SubTopic";
                     }
 
-                    if(topicId > 0 && chapterId > 0 && !dbContext.Topics.Any(x => x.ChapterId == chapterId && x.Id == topicId))
+                    if (topicId > 0 && chapterId > 0 && !dbContext.Topics.Any(x => x.ChapterId == chapterId && x.Id == topicId))
                     {
                         response = "Topic and Chapter are not linked";
                     }
@@ -71,7 +71,7 @@ namespace ResoClassAPI.Services
                         {
                             if (question != null && !string.IsNullOrEmpty(question.Question) && !string.IsNullOrEmpty(question.FirstAnswer)
                             && !string.IsNullOrEmpty(question.SecondAnswer) && !string.IsNullOrEmpty(question.ThirdAnswer) && !string.IsNullOrEmpty(question.FourthAnswer)
-                            && !string.IsNullOrEmpty(question.CorrectAnswer))
+                            && !string.IsNullOrEmpty(question.CorrectAnswer) && !string.IsNullOrEmpty(question.DifficultyLevel))
                             {
                                 QuestionBank questionBank = new QuestionBank();
                                 questionBank.Question = question.Question;
@@ -80,7 +80,10 @@ namespace ResoClassAPI.Services
                                 questionBank.ThirdAnswer = question.ThirdAnswer;
                                 questionBank.FourthAnswer = question.FourthAnswer;
                                 questionBank.CorrectAnswer = question.CorrectAnswer;
-                                questionBank.DifficultyLevelId = 1;
+
+                                string difficultyLevelText = question.DifficultyLevel.Remove(question.DifficultyLevel.Length - 7, 7).Remove(0, 6);
+                                var difficultyLevel = dbContext.DifficultyLevels.Where(x => x.Name.ToLower() == difficultyLevelText.ToLower()).FirstOrDefault();
+                                questionBank.DifficultyLevelId = difficultyLevel != null ? difficultyLevel.Id : 1000001;
                                 if (chapterId > 0)
                                     questionBank.ChapterId = chapterId;
 

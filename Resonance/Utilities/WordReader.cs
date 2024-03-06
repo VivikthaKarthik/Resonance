@@ -70,10 +70,14 @@ namespace ResoClassAPI.Utilities
                                         currentQuestion.FourthAnswer += "</Text>";
                                     currentElement = CurrentElement.CorrectAnswer;
                                 }
+                                else if (text != null && text.Text.TrimStart().StartsWith("DifficultyLevel"))
+                                {
+                                    currentElement = CurrentElement.DifficultyLevel;
+                                }
 
                                 if (text != null && !string.IsNullOrEmpty(text.Text) && text.Text.Trim() != "Question" &&
                                     text.Text.Trim() != "Option1" && text.Text.Trim() != "Option2" && text.Text.Trim() != "Option3"
-                                     && text.Text.Trim() != "Option4" && text.Text.Trim() != "CorrectAnswer")
+                                     && text.Text.Trim() != "Option4" && text.Text.Trim() != "CorrectAnswer" && text.Text.Trim() != "DifficultyLevel")
                                 {
                                     // Explicitly set the encoding to UTF-8
                                     string decodedText = System.Text.Encoding.UTF8.GetString(System.Text.Encoding.Default.GetBytes(text.Text));
@@ -122,19 +126,23 @@ namespace ResoClassAPI.Utilities
             {
                 currentQuestion = new QuestionsDto { Question = "<Text style={styles.questionText}>" + decodedText };
             }
-            else if (!IsAnswer(currentElement) && currentElement != CurrentElement.CorrectAnswer)
+            else if (!IsAnswer(currentElement) && currentElement != CurrentElement.CorrectAnswer && currentElement != CurrentElement.DifficultyLevel)
             {
                 if (currentQuestion.Question.TrimEnd().EndsWith("}} />"))
                     currentQuestion.Question += "<Text style={styles.questionText}>" + decodedText;
                 currentQuestion.Question += decodedText;
             }
-            else if (currentElement != CurrentElement.CorrectAnswer)
+            else if (currentElement != CurrentElement.CorrectAnswer && currentElement != CurrentElement.DifficultyLevel)
             {
                 AddAnswer(currentElement, currentQuestion, decodedText);
             }
             else if (currentElement == CurrentElement.CorrectAnswer)
             {
                 currentQuestion.CorrectAnswer = "<Text>" + decodedText + "</Text>";
+            }
+            else if (currentElement == CurrentElement.DifficultyLevel)
+            {
+                currentQuestion.DifficultyLevel = "<Text>" + decodedText + "</Text>";
             }
         }
 
@@ -206,6 +214,8 @@ namespace ResoClassAPI.Utilities
             if (string.IsNullOrEmpty(currentQuestion.FourthAnswer))
                 return false;
             if (string.IsNullOrEmpty(currentQuestion.CorrectAnswer))
+                return false;
+            if (string.IsNullOrEmpty(currentQuestion.DifficultyLevel))
                 return false;
 
             return true;

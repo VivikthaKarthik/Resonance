@@ -9,5 +9,6 @@
         public string ThirdAnswer { get; set; }
         public string FourthAnswer { get; set; }
         public string CorrectAnswer { get; set; }
+        public string DifficultyLevel { get; set; }
     }
 }
