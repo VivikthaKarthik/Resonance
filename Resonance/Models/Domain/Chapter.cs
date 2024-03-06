@@ -35,5 +35,7 @@ public partial class Chapter
 
     public virtual ICollection<Question> Questions { get; } = new List<Question>();
 
+    public virtual ICollection<Topic> Topics { get; } = new List<Topic>();
+
     public virtual ICollection<Video> Videos { get; } = new List<Video>();
 }

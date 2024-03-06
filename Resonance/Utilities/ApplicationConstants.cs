@@ -18,6 +18,7 @@
         SecondAnswer,
         ThirdAnswer,
         FourthAnswer,
-        CorrectAnswer
+        CorrectAnswer,
+        DifficultyLevel
     }
 }
