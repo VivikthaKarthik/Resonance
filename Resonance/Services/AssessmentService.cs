@@ -84,6 +84,7 @@ namespace ResoClassAPI.Services
                                 string difficultyLevelText = question.DifficultyLevel.Remove(question.DifficultyLevel.Length - 7, 7).Remove(0, 6);
                                 var difficultyLevel = dbContext.DifficultyLevels.Where(x => x.Name.ToLower() == difficultyLevelText.ToLower()).FirstOrDefault();
                                 questionBank.DifficultyLevelId = difficultyLevel != null ? difficultyLevel.Id : 1000001;
+
                                 if (chapterId > 0)
                                     questionBank.ChapterId = chapterId;
 
