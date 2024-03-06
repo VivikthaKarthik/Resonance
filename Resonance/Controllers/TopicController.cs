@@ -264,13 +264,13 @@ namespace ResoClassAPI.Controllers
 
         [HttpGet]
         [Route("api/Topic/GetTopicById")]
-        public async Task<ResponseDto> GetTopicById(long chapterId)
+        public async Task<ResponseDto> GetTopicById(long id)
         {
             ResponseDto responseDto = new ResponseDto();
             try
             {
                 logger.LogInformation("Requested GetTopicById");
-                var videos = await topicService.GetTopicById(chapterId);
+                var videos = await topicService.GetTopicById(id);
 
                 if (videos != null)
                 {
