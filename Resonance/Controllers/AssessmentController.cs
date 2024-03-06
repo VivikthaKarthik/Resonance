@@ -56,7 +56,7 @@ namespace ResoClassAPI.Controllers
 
 
                 List <QuestionsDto> questions = await wordReader.ProcessDocument(document);
-                string response =  string.Empty;
+                string response = string.Empty;
                 if (questions != null && questions.Count > 0)
                 {
                     response = await assessmentService.InsertQuestions(questions, chapter, topic, subTopic);
