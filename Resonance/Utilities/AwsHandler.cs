@@ -45,7 +45,7 @@ namespace ResoClassAPI.Utilities
 
         private string GenerateS3ObjectUrl(string bucketName, string folderName, string key)
         {
-            var region = RegionEndpoint.APSoutheast1.SystemName;
+            var region = RegionEndpoint.APSouth1.SystemName;
             return $"https://{bucketName}.s3.{region}.amazonaws.com/{folderName}/{key}";
         }
     }
