@@ -136,13 +136,13 @@ namespace ResoClassAPI.Utilities
             {
                 AddAnswer(currentElement, currentQuestion, decodedText, false);
             }
-            else if (currentElement == CurrentElement.CorrectAnswer)
+            else if (currentElement == CurrentElement.CorrectAnswer && decodedText != "")
             {
-                currentQuestion.CorrectAnswer = "<Text>" + decodedText + "</Text>\n";
+                currentQuestion.CorrectAnswer += decodedText.Trim();
             }
-            else if (currentElement == CurrentElement.DifficultyLevel)
+            else if (currentElement == CurrentElement.DifficultyLevel && decodedText != "")
             {
-                currentQuestion.DifficultyLevel = "<Text>" + decodedText + "</Text>\n";
+                currentQuestion.DifficultyLevel = decodedText.Trim();
             }
         }
 
@@ -152,17 +152,6 @@ namespace ResoClassAPI.Utilities
                 currentQuestion = new QuestionsDto();
 
             return "ResoImage_" + currentElement.ToString() + "_" + Guid.NewGuid();
-
-            //if(currentElement == CurrentElement.Question)
-            //    return "ResoImage_" + currentElement.ToString() + "_" + (!string.IsNullOrEmpty(currentQuestion.Question) ? currentQuestion.Question.Split("<img").Length : 1);
-            //else if (currentElement == CurrentElement.FirstAnswer)
-            //    return "ResoImage_" + currentElement.ToString() + "_" + (!string.IsNullOrEmpty(currentQuestion.FirstAnswer) ? currentQuestion.FirstAnswer.Split("<img").Length : 1);
-            //else if (currentElement == CurrentElement.SecondAnswer)
-            //    return "ResoImage_" + currentElement.ToString() + "_" + (!string.IsNullOrEmpty(currentQuestion.SecondAnswer) ? currentQuestion.SecondAnswer.Split("<img").Length : 1);
-            //else if (currentElement == CurrentElement.ThirdAnswer)
-            //    return "ResoImage_" + currentElement.ToString() + "_" + (!string.IsNullOrEmpty(currentQuestion.ThirdAnswer) ? currentQuestion.ThirdAnswer.Split("<img").Length : 1);
-            //else 
-            //    return "ResoImage_" + currentElement.ToString() + "_" + (!string.IsNullOrEmpty(currentQuestion.FourthAnswer) ? currentQuestion.FourthAnswer.Split("<img").Length : 1);
         }
 
         private async Task<QuestionsDto> AddImage(CurrentElement currentElement, byte[] imageArray, string name, QuestionsDto currentQuestion)

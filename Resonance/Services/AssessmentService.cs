@@ -81,8 +81,8 @@ namespace ResoClassAPI.Services
                                 questionBank.FourthAnswer = question.FourthAnswer;
                                 questionBank.CorrectAnswer = question.CorrectAnswer;
 
-                                string difficultyLevelText = question.DifficultyLevel.Remove(question.DifficultyLevel.Length - 7, 7).Remove(0, 6);
-                                var difficultyLevel = dbContext.DifficultyLevels.Where(x => x.Name.ToLower() == difficultyLevelText.ToLower()).FirstOrDefault();
+                                //string difficultyLevelText = question.DifficultyLevel.Remove(question.DifficultyLevel.Length - 7, 7).Remove(0, 6);
+                                var difficultyLevel = dbContext.DifficultyLevels.Where(x => x.Name.ToLower() == question.DifficultyLevel.ToLower()).FirstOrDefault();
                                 questionBank.DifficultyLevelId = difficultyLevel != null ? difficultyLevel.Id : 1000001;
 
                                 if (chapterId > 0)
@@ -398,6 +398,45 @@ namespace ResoClassAPI.Services
 
             }
             return false;
+        }
+
+        public async Task<AssessmentConfigurationDto> GetAssessmentConfiguration()
+        {
+            AssessmentConfigurationDto configuration = new AssessmentConfigurationDto();
+            try
+            {
+                var config = await GetAssessmentConfig();
+
+                if(config != null)
+                    configuration = mapper.Map<AssessmentConfigurationDto>(config);
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+            return configuration;
+        }
+
+        public async Task<List<AssessmentSessionDto>> GetAssessmentSessions()
+        {
+            var currentUser = authService.GetCurrentUser();
+            List<AssessmentSessionDto> sessions = new List<AssessmentSessionDto>();
+            try
+            {
+                var sessionsList = await Task.FromResult(dbContext.AssessmentSessions.Where(x => x.StudentId == currentUser.UserId));
+
+                if (sessionsList != null)
+                {
+                    foreach(var session in sessionsList)
+                        sessions.Add(mapper.Map<AssessmentSessionDto>(session));
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return sessions;
         }
     }
 }

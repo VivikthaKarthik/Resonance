@@ -32,6 +32,66 @@ namespace ResoClassAPI.Controllers
             wordReader = _wordReader;
         }
 
+        [HttpGet]
+        [Route("api/Assessment/GetAssessmentConfig")]
+        public async Task<ResponseDto> GetAssessmentConfig()
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                logger.LogInformation("Requested GetAssessmentConfig");
+                var config = await assessmentService.GetAssessmentConfiguration();
+
+                if (config != null)
+                {
+                    responseDto.Result = config;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
+
+        [HttpGet]
+        [Route("api/Assessment/GetAssessmentSessions")]
+        public async Task<ResponseDto> GetAssessmentSessions()
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                logger.LogInformation("Requested GetAssessmentConfig");
+                var sessions = await assessmentService.GetAssessmentSessions();
+
+                if (sessions != null)
+                {
+                    responseDto.Result = sessions;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
+
         [HttpPost]
         [Authorize(Policy = "Admin")]
         [Route("api/QuestionBank/UploadQuestions")]
