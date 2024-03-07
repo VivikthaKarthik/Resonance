@@ -50,5 +50,35 @@ namespace ResoClassAPI.Controllers
             }
             return responseDto;
         }
+
+
+        [HttpGet]
+        [Route("api/Home/GetListItems")]
+        public async Task<ResponseDto> GetListItems(string itemName, string? parentName, long? parentId)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                logger.LogInformation("Requested SearchItems");
+                var searchItems = await homeService.GetListItems(itemName, parentName, parentId);
+
+                if (searchItems != null)
+                {
+                    responseDto.Result = searchItems;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
     }
 }

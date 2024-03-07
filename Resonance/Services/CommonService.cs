@@ -1,5 +1,6 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using ResoClassAPI.DTOs;
 using ResoClassAPI.Services.Interfaces;
 using System.Data;
 
@@ -116,6 +117,46 @@ namespace ResoClassAPI.Services
                 object result = command.ExecuteScalar();
                 return result != null ? Convert.ToInt64(result) : -1; // Assuming IDs are integers and -1 represents not found
             }
+        }
+
+        public async Task<List<ListItemDto>> GetListItems(string tableName, string parentName, long? parentId)
+        {
+            List<ListItemDto> listItems = new List<ListItemDto>();
+            string connectionString = config["ConnectionStrings:SqlConnectionString"];
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+
+                string query = string.Empty;
+
+                if (!string.IsNullOrEmpty(parentName) && parentId > 0)
+                {
+                    query = "Select Id, Name from " + tableName + " Where " + parentName + "Id" + " = " + parentId;
+                }
+                else
+                {
+                    query = "Select Id, Name from " + tableName;
+                }
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    //command.Parameters.AddWithValue("@TableName", tableName);
+
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            ListItemDto item = new ListItemDto()
+                            {
+                                Id = reader.GetInt64(0),
+                                Name = reader.GetString(1)
+                            };
+                            listItems.Add(item);
+                        }
+                    }
+                }
+            }
+
+            return listItems;
         }
 
     }
