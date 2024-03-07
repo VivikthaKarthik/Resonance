@@ -217,6 +217,7 @@ namespace ResoClassAPI.Services
                     .OrderBy(q => random.Next())
                     .GroupBy(q => new { q.ChapterId, q.TopicId, q.SubTopicId })
                     .SelectMany(group => group.Take(numQuestionsPerId))
+                    .Take(totalQuestions)
                     .ToList();
 
                 if (selectedQuestions != null && selectedQuestions.ToList().Count > 0)

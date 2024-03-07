@@ -12,8 +12,7 @@ namespace ResoClassAPI.Controllers
         [HttpGet]
         public string Get()
         {
-            throw new NotImplementedException();
-            return "ResoClass API is Running successfully\nVersion: 13\nEnvironment: Production";
+            return "ResoClass API is Running successfully\nVersion: 14\nEnvironment: Production";
         }
     }
 }
