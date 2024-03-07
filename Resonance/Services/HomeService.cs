@@ -12,11 +12,13 @@ namespace ResoClassAPI.Services
         private readonly ResoClassContext dbContext;
         private readonly IAuthService authService;
         private readonly IMapper mapper;
-        public HomeService(ResoClassContext _dbContext, IAuthService _authService, IMapper _mapper)
+        private readonly ICommonService commonService;
+        public HomeService(ResoClassContext _dbContext, IAuthService _authService, IMapper _mapper, ICommonService commonService)
         {
             dbContext = _dbContext;
             authService = _authService;
             mapper = _mapper;
+            this.commonService = commonService;
         }
         public async Task<SearchResponseDto> SearchItems(string text)
         {
@@ -31,7 +33,7 @@ namespace ResoClassAPI.Services
                                where chapter.Name.ToLower().Contains(text)
                             join subject in dbContext.Subjects on chapter.SubjectId equals subject.Id
                             where subject.CourseId == courseid
-                            select new SearchItem
+                            select new ListItemDto
                             {
                                 Id = chapter.Id,
                                 Name = chapter.Name
@@ -43,7 +45,7 @@ namespace ResoClassAPI.Services
                              join chapter in dbContext.Chapters on topic.ChapterId equals chapter.Id
                              join subject in dbContext.Subjects on chapter.SubjectId equals subject.Id
                                where subject.CourseId == courseid
-                               select new SearchItem
+                               select new ListItemDto
                                {
                                    Id = topic.Id,
                                    Name = topic.Name
@@ -56,7 +58,7 @@ namespace ResoClassAPI.Services
                                 join chapter in dbContext.Chapters on topic.ChapterId equals chapter.Id
                                 join subject in dbContext.Subjects on chapter.SubjectId equals subject.Id
                                 where subject.CourseId == courseid
-                                select new SearchItem
+                                select new ListItemDto
                                 {
                                     Id = topic.Id,
                                     Name = topic.Name
@@ -108,6 +110,11 @@ namespace ResoClassAPI.Services
                 //}
             }
             return items;
+        }
+
+        public async Task<List<ListItemDto>> GetListItems(string tableName, string? parentName, long? parentId)
+        {
+            return await commonService.GetListItems(tableName, parentName, parentId);
         }
     }
 }

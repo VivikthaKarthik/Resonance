@@ -1,4 +1,5 @@
 ﻿using Microsoft.Data.SqlClient;
+using ResoClassAPI.DTOs;
 using System.Data;
 
 namespace ResoClassAPI.Services.Interfaces
@@ -7,5 +8,6 @@ namespace ResoClassAPI.Services.Interfaces
     {
         Task<bool> SaveDataToDatabase(string tableName, DataTable dataTable, List<string> foreignKeyColumns);
         Task<List<string>> GetForeignKeyColumns(string tableName);
+        Task<List<ListItemDto>> GetListItems(string tableName, string parentName, long? parentId);
     }
 }
