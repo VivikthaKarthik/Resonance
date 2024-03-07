@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using Amazon.S3;
 using Amazon.S3.Transfer;
 using Amazon;
+using ResoClassAPI.Middleware;
 
 namespace ResoClassAPI.Controllers
 {
@@ -22,14 +23,16 @@ namespace ResoClassAPI.Controllers
         private readonly IAwsHandler awsHandler;
         private readonly ILogger<AssessmentController> logger;
         private readonly IAssessmentService assessmentService;
+        private readonly ICommonService commonService;
 
-        public AssessmentController(IAssessmentService _assessmentService, ILogger<AssessmentController> _logger, IAwsHandler _awsHandler,
+        public AssessmentController(ICommonService _commonService, IAssessmentService _assessmentService, ILogger<AssessmentController> _logger, IAwsHandler _awsHandler,
             IWordReader _wordReader)
         {
             assessmentService = _assessmentService;
             logger = _logger;
             awsHandler = _awsHandler;
             wordReader = _wordReader;
+            commonService = _commonService;
         }
 
         [HttpGet]
@@ -129,12 +132,19 @@ namespace ResoClassAPI.Controllers
                 }
                 else
                 {
+                    if (!string.IsNullOrEmpty(response))
+                    {
+                        commonService.LogError(typeof(AssessmentController), response, "", "");
+                        responseDto.Message = response;
+                    }
+                    else
+                        responseDto.Message = "Some Error occured!. Please check the format and try again";
                     responseDto.IsSuccess = false;
-                    responseDto.Message = "Some Error occured!. Please check the format and try again";
                 }
             }
             catch (Exception ex)
             {
+                commonService.LogError(typeof(GlobalExceptionHandler), ex.Message, ex.StackTrace, ex.GetType().Name);
                 responseDto.IsSuccess = false;
                 responseDto.Message = ex.Message;
             }

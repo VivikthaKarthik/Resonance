@@ -47,7 +47,7 @@ namespace ResoClassAPI.Services
                     if (!string.IsNullOrEmpty(topic))
                     {
                         if (dbContext.Topics.Any(x => x.Name.ToLower() == topic.ToLower() && x.IsActive))
-                            topicId = dbContext.Topics.Where(x => x.Name.ToLower() == chapter.ToLower() && x.IsActive).FirstOrDefault().Id;
+                            topicId = dbContext.Topics.Where(x => x.Name.ToLower() == topic.ToLower() && x.IsActive).FirstOrDefault().Id;
                         else
                             response = "Invalid Topic";
                     }
@@ -55,7 +55,7 @@ namespace ResoClassAPI.Services
                     if (!string.IsNullOrEmpty(subTopic))
                     {
                         if (dbContext.SubTopics.Any(x => x.Name.ToLower() == subTopic.ToLower() && x.IsActive))
-                            subtopicId = dbContext.SubTopics.Where(x => x.Name.ToLower() == chapter.ToLower() && x.IsActive).FirstOrDefault().Id;
+                            subtopicId = dbContext.SubTopics.Where(x => x.Name.ToLower() == subTopic.ToLower() && x.IsActive).FirstOrDefault().Id;
                         else
                             response = "Invalid SubTopic";
                     }
@@ -469,12 +469,12 @@ namespace ResoClassAPI.Services
 
             if (assessmentSession != null)
             {
-                var questions = dbContext.AssessmentSessionQuestions.Where(x => x.AssessmentSessionId == id).ToList();
+                var questions = dbContext.AssessmentSessionQuestions.Where(x => x.AssessmentSessionId == id && x.Result != null).ToList();
                 report.AssessmentId = assessmentSession.Id;
                 report.PracticedOn = assessmentSession.StartTime.Value;
                 report.TotalAttempted = questions.Count;
-                report.CorrectAnswers = questions.Where(x => x.Result != null && x.Result.Value).Count();
-                report.WrongAnswers = questions.Where(x => x.Result == null || !x.Result.Value).Count();
+                report.CorrectAnswers = questions.Where(x => x.Result.Value).Count();
+                report.WrongAnswers = questions.Where(x => !x.Result.Value).Count();
 
                 report.PracticedFromChapters = new List<ListItemDto>();
                 var chapterIds = questions.Where(x => x.ChapterId != null).Select(x => x.ChapterId);
@@ -512,8 +512,8 @@ namespace ResoClassAPI.Services
                     }
                 }
 
-                report.CorrectAnswersAnalysis = GetAnalysis(questions.Where(x => x.Result != null && x.Result.Value).ToList());
-                report.WrongAnswersAnalysis = GetAnalysis(questions.Where(x => x.Result == null || !x.Result.Value).ToList());
+                report.CorrectAnswersAnalysis = GetAnalysis(questions.Where(x => x.Result.Value).ToList());
+                report.WrongAnswersAnalysis = GetAnalysis(questions.Where(x => !x.Result.Value).ToList());
             }
 
             return report;

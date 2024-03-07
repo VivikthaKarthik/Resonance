@@ -9,5 +9,7 @@ namespace ResoClassAPI.Services.Interfaces
         Task<bool> SaveDataToDatabase(string tableName, DataTable dataTable, List<string> foreignKeyColumns);
         Task<List<string>> GetForeignKeyColumns(string tableName);
         Task<List<ListItemDto>> GetListItems(string tableName, string parentName, long? parentId);
+
+        Task<string> LogError(Type entityType, string message, string stackTrace, string exceptionType);
     }
 }
