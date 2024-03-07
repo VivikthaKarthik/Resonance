@@ -257,6 +257,34 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
+        [HttpGet]
+        [Route("api/Assessment/GetAssessmentReport")]
+        public async Task<ResponseDto> GetAssessmentReport(long id)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                logger.LogInformation("Requested GetAssessmentConfig");
+                var report = await assessmentService.GetAssessmentReport(id);
+
+                if (report != null)
+                {
+                    responseDto.Result = report;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
 
     }
 

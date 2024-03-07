@@ -47,7 +47,7 @@ namespace ResoClassAPI.Services
                     if (!string.IsNullOrEmpty(topic))
                     {
                         if (dbContext.Topics.Any(x => x.Name.ToLower() == topic.ToLower() && x.IsActive))
-                            topicId = dbContext.Chapters.Where(x => x.Name.ToLower() == chapter.ToLower() && x.IsActive).FirstOrDefault().Id;
+                            topicId = dbContext.Topics.Where(x => x.Name.ToLower() == chapter.ToLower() && x.IsActive).FirstOrDefault().Id;
                         else
                             response = "Invalid Topic";
                     }
@@ -55,7 +55,7 @@ namespace ResoClassAPI.Services
                     if (!string.IsNullOrEmpty(subTopic))
                     {
                         if (dbContext.SubTopics.Any(x => x.Name.ToLower() == subTopic.ToLower() && x.IsActive))
-                            subtopicId = dbContext.Chapters.Where(x => x.Name.ToLower() == chapter.ToLower() && x.IsActive).FirstOrDefault().Id;
+                            subtopicId = dbContext.SubTopics.Where(x => x.Name.ToLower() == chapter.ToLower() && x.IsActive).FirstOrDefault().Id;
                         else
                             response = "Invalid SubTopic";
                     }
@@ -104,7 +104,7 @@ namespace ResoClassAPI.Services
                         });
                     }
 
-                    if(questionsList.Count > 0)
+                    if (questionsList.Count > 0)
                     {
 
                         dbContext.QuestionBanks.AddRange(questionsList);
@@ -133,14 +133,14 @@ namespace ResoClassAPI.Services
                     response.NegativeMarksPerQuestion = config.NegativeMarksPerQuestion != null ? config.NegativeMarksPerQuestion.Value : 0;
                     var questions = await GetRandomQuestions(requestDto, config.MaximumQuestions);
 
-                    if(questions != null && questions.Count > 0)
+                    if (questions != null && questions.Count > 0)
                     {
                         response.AssessmentId = await CreateNewSession(questions);
                         response.Questions = questions;
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
 
             }
@@ -231,7 +231,14 @@ namespace ResoClassAPI.Services
 
                         selectedQuestions.AddRange(additionalQuestions);
                     }
-                    finalQuestions = mapper.Map<List<QuestionData>>(selectedQuestions);
+                    foreach (var question in selectedQuestions)
+                    {
+                        var finalQuestion = mapper.Map<QuestionData>(question);
+                        if (question.DifficultyLevelId != null)
+                            finalQuestion.DifficultyLevel = dbContext.DifficultyLevels.First(x => x.Id == question.DifficultyLevelId).Name;
+
+                        finalQuestions.Add(finalQuestion);
+                    }
                 }
             }
             catch (Exception ex)
@@ -385,6 +392,21 @@ namespace ResoClassAPI.Services
                 if (assessment != null)
                 {
                     assessment.Result = request.Result;
+
+                    if (!string.IsNullOrEmpty(request.SelectedAnswer))
+                        assessment.SelectedAnswer = request.SelectedAnswer;
+
+                    if (request.ChapterId > 0)
+                        assessment.ChapterId = request.ChapterId;
+
+                    if (request.TopicId > 0)
+                        assessment.TopicId = request.TopicId;
+
+                    if (request.SubTopicId > 0)
+                        assessment.SubTopicId = request.SubTopicId;
+
+                    if (!string.IsNullOrEmpty(request.DifficultyLevel))
+                        assessment.DifficultyLevelId = dbContext.DifficultyLevels.First(x => x.Name.ToLower() == request.DifficultyLevel.ToLower()).Id;
                     await dbContext.SaveChangesAsync();
                     return true;
                 }
@@ -407,7 +429,7 @@ namespace ResoClassAPI.Services
             {
                 var config = await GetAssessmentConfig();
 
-                if(config != null)
+                if (config != null)
                     configuration = mapper.Map<AssessmentConfigurationDto>(config);
             }
             catch (Exception ex)
@@ -428,7 +450,7 @@ namespace ResoClassAPI.Services
 
                 if (sessionsList != null)
                 {
-                    foreach(var session in sessionsList)
+                    foreach (var session in sessionsList)
                         sessions.Add(mapper.Map<AssessmentSessionDto>(session));
                 }
             }
@@ -437,6 +459,162 @@ namespace ResoClassAPI.Services
 
             }
             return sessions;
+        }
+
+        public async Task<AssessmentReportDto> GetAssessmentReport(long id)
+        {
+            var currentUser = authService.GetCurrentUser();
+            AssessmentReportDto report = new AssessmentReportDto();
+            var assessmentSession = dbContext.AssessmentSessions.Where(x => x.Id == id).FirstOrDefault();
+
+            if (assessmentSession != null)
+            {
+                var questions = dbContext.AssessmentSessionQuestions.Where(x => x.AssessmentSessionId == id).ToList();
+                report.AssessmentId = assessmentSession.Id;
+                report.PracticedOn = assessmentSession.StartTime.Value;
+                report.TotalAttempted = questions.Count;
+                report.CorrectAnswers = questions.Where(x => x.Result != null && x.Result.Value).Count();
+                report.WrongAnswers = questions.Where(x => x.Result == null || !x.Result.Value).Count();
+
+                report.PracticedFromChapters = new List<ListItemDto>();
+                var chapterIds = questions.Where(x => x.ChapterId != null).Select(x => x.ChapterId);
+
+                if (chapterIds.Any())
+                {
+                    var ids = chapterIds.ToList();
+                    var chaptersList = dbContext.Chapters.Where(x => ids.Contains(x.Id)).Select(y => new ListItemDto()
+                    {
+                        Id = y.Id,
+                        Name = y.Name
+                    });
+
+                    if (chaptersList.Any())
+                    {
+                        report.PracticedFromChapters = chaptersList.ToList();
+                    }
+                }
+
+                report.PracticedFromTopics = new List<ListItemDto>();
+                var topicIds = questions.Where(x => x.TopicId != null).Select(x => x.TopicId);
+
+                if (topicIds.Any())
+                {
+                    var ids = topicIds.ToList();
+                    var topicsList = dbContext.Topics.Where(x => ids.Contains(x.Id)).Select(y => new ListItemDto()
+                    {
+                        Id = y.Id,
+                        Name = y.Name
+                    });
+
+                    if (topicsList.Any())
+                    {
+                        report.PracticedFromTopics = topicsList.ToList();
+                    }
+                }
+
+                report.CorrectAnswersAnalysis = GetAnalysis(questions.Where(x => x.Result != null && x.Result.Value).ToList());
+                report.WrongAnswersAnalysis = GetAnalysis(questions.Where(x => x.Result == null || !x.Result.Value).ToList());
+            }
+
+            return report;
+        }
+
+        private AssessmentAnalysisDto GetAnalysis(List<AssessmentSessionQuestion> questions)
+        {
+            var difficultyLevels = dbContext.DifficultyLevels.ToList();
+            AssessmentAnalysisDto answersAnalysis = new AssessmentAnalysisDto();
+
+            var groupedDifficultyLevelQuestions = questions.GroupBy(q => q.DifficultyLevelId)
+                                    .Select(g => new
+                                    {
+                                        Level = g.Key,
+                                        Count = g.Count()
+                                    });
+            if (groupedDifficultyLevelQuestions.Any())
+            {
+                answersAnalysis.DifficultyLevelAnalysis = new List<ItemWiseAnalysisDto>();
+                foreach (var group in groupedDifficultyLevelQuestions)
+                {
+                    if (group.Level != null)
+                    {
+                        var difficultylevel = difficultyLevels.First(x => x.Id == group.Level.Value);
+                        answersAnalysis.DifficultyLevelAnalysis.Add(new ItemWiseAnalysisDto()
+                        {
+                            Name = difficultylevel.Name,
+                            QuestionsCount = groupedDifficultyLevelQuestions.FirstOrDefault(g => g.Level.Value == difficultylevel.Id)?.Count ?? 0
+                        });
+                    }
+                }
+            }
+            //correctAnswersAnalysis.DifficultyLevelAnalysis = new List<ItemWiseAnalysisDto>
+            //{
+            //    new ItemWiseAnalysisDto()
+            //    {
+            //        Name = "Easy",
+            //        QuestionsCount = groupedDifficultyLevelQuestions.FirstOrDefault(g => g.Level.Value == difficultyLevels.First(x => x.Name == "Easy").Id)?.Count ?? 0
+
+            //},
+            //new ItemWiseAnalysisDto()
+            //{
+            //    Name = "Medium",
+            //    QuestionsCount = groupedDifficultyLevelQuestions.FirstOrDefault(g => g.Level.Value == difficultyLevels.First(x => x.Name == "Medium").Id)?.Count ?? 0
+            //},new ItemWiseAnalysisDto()
+            //{
+            //    Name = "Difficult",
+            //    QuestionsCount = groupedDifficultyLevelQuestions.FirstOrDefault(g => g.Level.Value == difficultyLevels.First(x => x.Name == "Difficult").Id)?.Count ?? 0
+            //},
+            //};
+
+            var chapters = dbContext.Chapters.ToList();
+            var groupedChaperQuestions = questions.GroupBy(q => q.ChapterId)
+                                    .Select(g => new
+                                    {
+                                        Level = g.Key,
+                                        Count = g.Count()
+                                    });
+
+            if (groupedChaperQuestions.Any())
+            {
+                answersAnalysis.ChapterWiseAnalysis = new List<ItemWiseAnalysisDto>();
+                foreach (var group in groupedChaperQuestions)
+                {
+                    if (group.Level != null)
+                    {
+                        var chaptersData = chapters.First(x => x.Id == group.Level.Value);
+                        answersAnalysis.ChapterWiseAnalysis.Add(new ItemWiseAnalysisDto()
+                        {
+                            Name = chaptersData.Name,
+                            QuestionsCount = groupedChaperQuestions.FirstOrDefault(g => g.Level.Value == chaptersData.Id)?.Count ?? 0
+                        });
+                    }
+                }
+            }
+            var topics = dbContext.Topics.ToList();
+            var groupedTopicQuestions = questions.GroupBy(q => q.TopicId)
+                                    .Select(g => new
+                                    {
+                                        Level = g.Key,
+                                        Count = g.Count()
+                                    });
+
+            if (groupedTopicQuestions.Any())
+            {
+                answersAnalysis.TopicWiseAnalysis = new List<ItemWiseAnalysisDto>();
+                foreach (var group in groupedTopicQuestions)
+                {
+                    if (group.Level != null)
+                    {
+                        var topicsData = topics.First(x => x.Id == group.Level.Value);
+                        answersAnalysis.TopicWiseAnalysis.Add(new ItemWiseAnalysisDto()
+                        {
+                            Name = topicsData.Name,
+                            QuestionsCount = groupedTopicQuestions.FirstOrDefault(g => g.Level.Value == topicsData.Id)?.Count ?? 0
+                        });
+                    }
+                }
+            }
+
+            return answersAnalysis;
         }
     }
 }

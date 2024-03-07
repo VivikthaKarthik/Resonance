@@ -101,6 +101,8 @@ public partial class ResoClassContext : DbContext
         {
             entity.ToTable("AssessmentSession_Questions");
 
+            entity.Property(e => e.SelectedAnswer).HasMaxLength(10);
+
             entity.HasOne(d => d.AssessmentSession).WithMany(p => p.AssessmentSessionQuestions)
                 .HasForeignKey(d => d.AssessmentSessionId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
