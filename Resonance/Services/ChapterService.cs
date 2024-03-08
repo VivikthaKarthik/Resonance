@@ -27,10 +27,10 @@ namespace ResoClassAPI.Services
             var chapters =   await Task.FromResult(dbContext.Chapters.Where(item => item.IsActive == true).OrderByDescending(x => x.CreatedOn).ToList());
             if (chapters != null && chapters.Count > 0)
             {                
-                foreach (var chapter in chapters)
+                //foreach (var chapter in chapters)
                 {
-                    var dtoObject = mapper.Map<ChapterResponseDto>(chapter);
-                    dtoObjects.Add(dtoObject);
+                    dtoObjects = mapper.Map<List<ChapterResponseDto>>(chapters);
+                    //dtoObjects.Add(dtoObject);
                 }
                 return dtoObjects;
             }
