@@ -64,6 +64,8 @@ builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<IStudentService, StudentService>();
 builder.Services.AddScoped<IAssessmentService, AssessmentService>();
 builder.Services.AddScoped<IHomeService, HomeService>();
+builder.Services.AddScoped<IReportService, ReportService>();
+
 
 builder.Services.AddScoped<IExcelReader, ExcelReader>();
 builder.Services.AddScoped<IWordReader, WordReader>();

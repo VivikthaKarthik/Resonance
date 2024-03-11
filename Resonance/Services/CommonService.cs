@@ -1,4 +1,5 @@
 ﻿using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using Microsoft.Extensions.Configuration;
 using ResoClassAPI.DTOs;
@@ -111,6 +112,58 @@ namespace ResoClassAPI.Services
             }
 
             return foreignKeyColumns;
+        }
+
+        public int GetTotalQUestionsCountBySubjectId(long  subjectId)
+        {
+            int count = 0;
+            string connectionString = config["ConnectionStrings:SqlConnectionString"];
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+
+                string query = @"Select COUNT(AQ.ID) from AssessmentSession_Questions AQ
+                                Inner Join Chapter C ON AQ.ChapterId = C.Id
+                                Inner Join Subject S ON C.SubjectId = S.Id
+                                Where S.Id = " + subjectId;
+
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                            count = reader.GetInt32(0);
+                    }
+                }
+            }
+
+            return count;
+        }
+
+        public int GetCorrectAnswersCountBySubjectId(long subjectId)
+        {
+            int count = 0;
+            string connectionString = config["ConnectionStrings:SqlConnectionString"];
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+
+                string query = @"Select Count(AQ.ID) from AssessmentSession_Questions AQ
+                            Inner Join Chapter C ON AQ.ChapterId = C.Id
+                            Inner Join Subject S ON C.SubjectId = S.Id
+                            Where AQ.Result IS not NUll and AQ.Result = 1 And S.Id = " + subjectId;
+
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                            count = reader.GetInt32(0);
+                    }
+                }
+            }
+
+            return count;
         }
 
         private long GetForeignKeyId(SqlConnection connection, string tableName, string value)

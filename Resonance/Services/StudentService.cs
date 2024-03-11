@@ -246,6 +246,7 @@ namespace ResoClassAPI.Services
             if (existingItem != null)
             {
                 existingItem.Password = authService.DecryptPassword(password);
+                existingItem.IsPasswordChangeRequired = false;
                 existingItem.ModifiedBy = currentUser.Name;
                 existingItem.ModifiedOn = DateTime.Now;
 

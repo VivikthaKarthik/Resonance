@@ -520,10 +520,10 @@ namespace ResoClassAPI.Services
             return report;
         }
 
-        private AssessmentAnalysisDto GetAnalysis(List<AssessmentSessionQuestion> questions)
+        private ChapterAnalysisDto GetAnalysis(List<AssessmentSessionQuestion> questions)
         {
             var difficultyLevels = dbContext.DifficultyLevels.ToList();
-            AssessmentAnalysisDto answersAnalysis = new AssessmentAnalysisDto();
+            ChapterAnalysisDto answersAnalysis = new ChapterAnalysisDto();
 
             var groupedDifficultyLevelQuestions = questions.GroupBy(q => q.DifficultyLevelId)
                                     .Select(g => new
