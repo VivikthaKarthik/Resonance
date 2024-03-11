@@ -13,5 +13,7 @@ namespace ResoClassAPI.Services.Interfaces
         Task<bool> StartAssessment(long assessmentId);
         Task<bool> EndAssessment(long assessmentId);
         Task<bool> UpdateQuestionStatus(UpdateAssessmentStatusDto request);
+
+        Task<AssessmentReportDto> GetAssessmentReport(long id);
     }
 }

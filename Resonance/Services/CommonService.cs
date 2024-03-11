@@ -1,6 +1,9 @@
 ﻿using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using Microsoft.Extensions.Configuration;
 using ResoClassAPI.DTOs;
+using ResoClassAPI.Models.Domain;
 using ResoClassAPI.Services.Interfaces;
 using System.Data;
 
@@ -9,9 +12,11 @@ namespace ResoClassAPI.Services
     public class CommonService : ICommonService
     {
         private IConfiguration config;
-        public CommonService(IConfiguration configuration)
+        private readonly ResoClassContext dbContext;
+        public CommonService(ResoClassContext _dbContext, IConfiguration configuration)
         {
             config = configuration;
+            this.dbContext = _dbContext;
        }
 
         public async Task<bool> SaveDataToDatabase(string tableName, DataTable dataTable, List<string> foreignKeyColumns)
@@ -109,6 +114,58 @@ namespace ResoClassAPI.Services
             return foreignKeyColumns;
         }
 
+        public int GetTotalQUestionsCountBySubjectId(long  subjectId)
+        {
+            int count = 0;
+            string connectionString = config["ConnectionStrings:SqlConnectionString"];
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+
+                string query = @"Select COUNT(AQ.ID) from AssessmentSession_Questions AQ
+                                Inner Join Chapter C ON AQ.ChapterId = C.Id
+                                Inner Join Subject S ON C.SubjectId = S.Id
+                                Where S.Id = " + subjectId;
+
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                            count = reader.GetInt32(0);
+                    }
+                }
+            }
+
+            return count;
+        }
+
+        public int GetCorrectAnswersCountBySubjectId(long subjectId)
+        {
+            int count = 0;
+            string connectionString = config["ConnectionStrings:SqlConnectionString"];
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+
+                string query = @"Select Count(AQ.ID) from AssessmentSession_Questions AQ
+                            Inner Join Chapter C ON AQ.ChapterId = C.Id
+                            Inner Join Subject S ON C.SubjectId = S.Id
+                            Where AQ.Result IS not NUll and AQ.Result = 1 And S.Id = " + subjectId;
+
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                            count = reader.GetInt32(0);
+                    }
+                }
+            }
+
+            return count;
+        }
+
         private long GetForeignKeyId(SqlConnection connection, string tableName, string value)
         {
             using (SqlCommand command = new SqlCommand($"SELECT Id FROM {tableName} WHERE Name = @Value", connection))
@@ -157,6 +214,31 @@ namespace ResoClassAPI.Services
             }
 
             return listItems;
+        }
+
+        public async Task<string> LogError(Type entityType, string message, string stackTrace, string exceptionType)
+        {
+            string referenceNumber = string.Empty;
+            try
+            {
+                referenceNumber = Guid.NewGuid().ToString();
+                Logger log = new Logger();
+                log.ReferenceNumber = referenceNumber;
+                log.Message = message;
+                log.LogType = "Error";
+                log.StackTrace = stackTrace;
+                log.EntityName = "";
+                log.ExceptionType = exceptionType;
+                log.CreateOn = DateTime.Now;
+
+                dbContext.Loggers.Add(log);
+                dbContext.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return referenceNumber;
         }
 
     }

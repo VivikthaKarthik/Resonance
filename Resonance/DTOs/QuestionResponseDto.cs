@@ -20,6 +20,7 @@
         public string ThirdAnswer { get; set; }
         public string FourthAnswer { get; set; }
         public string CorrectAnswer { get; set; }
+        public string DifficultyLevel { get; set; }
         public long? SubTopicId { get; set; }
         public long? TopicId { get; set; }
         public long? ChapterId { get; set; }

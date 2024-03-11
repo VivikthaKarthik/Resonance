@@ -39,6 +39,8 @@ public partial class ResoClassContext : DbContext
 
     public virtual DbSet<ExamResult> ExamResults { get; set; }
 
+    public virtual DbSet<Logger> Loggers { get; set; }
+
     public virtual DbSet<MultipleChoiceQuestion> MultipleChoiceQuestions { get; set; }
 
     public virtual DbSet<Question> Questions { get; set; }
@@ -100,6 +102,8 @@ public partial class ResoClassContext : DbContext
         modelBuilder.Entity<AssessmentSessionQuestion>(entity =>
         {
             entity.ToTable("AssessmentSession_Questions");
+
+            entity.Property(e => e.SelectedAnswer).HasMaxLength(10);
 
             entity.HasOne(d => d.AssessmentSession).WithMany(p => p.AssessmentSessionQuestions)
                 .HasForeignKey(d => d.AssessmentSessionId)
@@ -250,6 +254,15 @@ public partial class ResoClassContext : DbContext
             entity.HasOne(d => d.Topic).WithMany(p => p.ExamResults)
                 .HasForeignKey(d => d.TopicId)
                 .HasConstraintName("FK_Exam_Result_Topic");
+        });
+
+        modelBuilder.Entity<Logger>(entity =>
+        {
+            entity.ToTable("Logger");
+
+            entity.Property(e => e.CreateOn).HasColumnType("datetime");
+            entity.Property(e => e.LogType).HasMaxLength(50);
+            entity.Property(e => e.ReferenceNumber).HasMaxLength(250);
         });
 
         modelBuilder.Entity<MultipleChoiceQuestion>(entity =>

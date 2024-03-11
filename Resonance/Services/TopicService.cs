@@ -39,11 +39,11 @@ namespace ResoClassAPI.Services
             if (topics != null && topics.Count > 0)
             {
 
-                foreach (var topic in topics)
-                {
-                    var dtoObject = mapper.Map<TopicDto>(topic);
-                    dtoObjects.Add(dtoObject);
-                }
+                //foreach (var topic in topics)
+                //{
+                dtoObjects = mapper.Map<List<TopicDto>>(topics);
+                    //dtoObjects.Add(dtoObject);
+                //}
                 return dtoObjects;
             }
             else
