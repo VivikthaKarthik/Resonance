@@ -29,13 +29,14 @@ namespace ResoClassAPI.Controllers
         [HttpGet]
         [Authorize(Policy = "Admin")]
         [Route("api/Student/Get")]
-        public async Task<ResponseDto> Get(long studentId)
+        public async Task<ResponseDto> Get(string studentId)
         {
-            ResponseDto responseDto = new ResponseDto();
+            long studentID = Convert.ToInt64(studentId);
+             ResponseDto responseDto = new ResponseDto();
             try
             {
                 logger.LogInformation("Requested GetUser");
-                var student = await studentService.GetStudent(studentId);
+                var student = await studentService.GetStudent(studentID);
 
                 if (student != null)
                 {
@@ -224,7 +225,7 @@ namespace ResoClassAPI.Controllers
                 }
                 else
                 {
-                    responseDto.Result = "Chapter Deleted Successfully";
+                    responseDto.Result = "Student Deleted Successfully";
                     responseDto.IsSuccess = true;
                 }
             }
