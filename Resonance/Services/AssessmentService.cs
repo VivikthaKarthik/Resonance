@@ -23,7 +23,7 @@ namespace ResoClassAPI.Services
             mapper = _mapper;
         }
 
-        public async Task<string> InsertQuestions(List<QuestionsDto> questions, string? chapter, string? topic, string? subTopic)
+        public async Task<string> InsertQuestions(List<QuestionsDto> questions, QuestionsUploadRequestDto request)
         {
             string response = string.Empty;
             var currentUser = authService.GetCurrentUser();
@@ -31,40 +31,53 @@ namespace ResoClassAPI.Services
             {
                 if (questions != null && questions.Count > 0)
                 {
+                    long courseId = 0;
+                    long subjectId = 0;
                     long chapterId = 0;
                     long topicId = 0;
                     long subtopicId = 0;
                     List<QuestionBank> questionsList = new List<QuestionBank>();
 
-                    if (!string.IsNullOrEmpty(chapter))
+                    if (!string.IsNullOrEmpty(request.Course))
                     {
-                        if (dbContext.Chapters.Any(x => x.Name.ToLower() == chapter.ToLower() && x.IsActive))
-                            chapterId = dbContext.Chapters.Where(x => x.Name.ToLower() == chapter.ToLower() && x.IsActive).FirstOrDefault().Id;
+                        if (dbContext.Courses.Any(x => x.Name.ToLower() == request.Course.ToLower() && x.IsActive))
+                            courseId = dbContext.Courses.Where(x => x.Name.ToLower() == request.Course.ToLower() && x.IsActive).FirstOrDefault().Id;
+                        else
+                            response = "Invalid Course";
+                    }
+
+                    if (!string.IsNullOrEmpty(request.Subject))
+                    {
+                        if (dbContext.Subjects.Any(x => x.Name.ToLower() == request.Subject.ToLower() && x.CourseId == courseId && x.IsActive))
+                            subjectId = dbContext.Subjects.Where(x => x.Name.ToLower() == request.Subject.ToLower() && x.CourseId == courseId && x.IsActive).FirstOrDefault().Id;
+                        else
+                            response = "Invalid Subject";
+                    }
+
+                    if (!string.IsNullOrEmpty(request.Chapter))
+                    {
+                        if (dbContext.Chapters.Any(x => x.Name.ToLower() == request.Chapter.ToLower() && x.SubjectId == subjectId && x.IsActive))
+                            chapterId = dbContext.Chapters.Where(x => x.Name.ToLower() == request.Chapter.ToLower() && x.SubjectId == subjectId && x.IsActive).FirstOrDefault().Id;
                         else
                             response = "Invalid Chapter";
                     }
 
-                    if (!string.IsNullOrEmpty(topic))
+                    if (!string.IsNullOrEmpty(request.Topic))
                     {
-                        if (dbContext.Topics.Any(x => x.Name.ToLower() == topic.ToLower() && x.IsActive))
-                            topicId = dbContext.Topics.Where(x => x.Name.ToLower() == topic.ToLower() && x.IsActive).FirstOrDefault().Id;
+                        if (dbContext.Topics.Any(x => x.Name.ToLower() == request.Topic.ToLower() && x.ChapterId == chapterId && x.IsActive))
+                            topicId = dbContext.Topics.Where(x => x.Name.ToLower() == request.Topic.ToLower() && x.ChapterId == chapterId && x.IsActive).FirstOrDefault().Id;
                         else
                             response = "Invalid Topic";
                     }
 
-                    if (!string.IsNullOrEmpty(subTopic))
+                    if (!string.IsNullOrEmpty(request.SubTopic))
                     {
-                        if (dbContext.SubTopics.Any(x => x.Name.ToLower() == subTopic.ToLower() && x.IsActive))
-                            subtopicId = dbContext.SubTopics.Where(x => x.Name.ToLower() == subTopic.ToLower() && x.IsActive).FirstOrDefault().Id;
+                        if (dbContext.SubTopics.Any(x => x.Name.ToLower() == request.SubTopic.ToLower() && x.TopicId == topicId && x.IsActive))
+                            subtopicId = dbContext.SubTopics.Where(x => x.Name.ToLower() == request.SubTopic.ToLower() && x.TopicId == topicId && x.IsActive).FirstOrDefault().Id;
                         else
                             response = "Invalid SubTopic";
                     }
-
-                    if (topicId > 0 && chapterId > 0 && !dbContext.Topics.Any(x => x.ChapterId == chapterId && x.Id == topicId))
-                    {
-                        response = "Topic and Chapter are not linked";
-                    }
-
+                    var difficultyLevels = dbContext.DifficultyLevels.ToList();
                     if (response == string.Empty)
                     {
                         questions.ForEach(question =>
@@ -81,8 +94,7 @@ namespace ResoClassAPI.Services
                                 questionBank.FourthAnswer = question.FourthAnswer;
                                 questionBank.CorrectAnswer = question.CorrectAnswer;
 
-                                //string difficultyLevelText = question.DifficultyLevel.Remove(question.DifficultyLevel.Length - 7, 7).Remove(0, 6);
-                                var difficultyLevel = dbContext.DifficultyLevels.Where(x => x.Name.ToLower() == question.DifficultyLevel.ToLower()).FirstOrDefault();
+                                var difficultyLevel = difficultyLevels.Where(x => x.Name.ToLower() == question.DifficultyLevel.ToLower()).FirstOrDefault();
                                 questionBank.DifficultyLevelId = difficultyLevel != null ? difficultyLevel.Id : 1000001;
 
                                 if (chapterId > 0)

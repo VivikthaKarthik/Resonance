@@ -73,7 +73,5 @@ public partial class Student
 
     public virtual City City { get; set; } = null!;
 
-    public virtual ICollection<ExamResult> ExamResults { get; } = new List<ExamResult>();
-
     public virtual State State { get; set; } = null!;
 }

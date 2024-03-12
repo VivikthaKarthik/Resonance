@@ -12,6 +12,8 @@ using Amazon.S3;
 using Amazon.S3.Transfer;
 using Amazon;
 using ResoClassAPI.Middleware;
+using Microsoft.IdentityModel.Tokens;
+using ResoClassAPI.Utilities;
 
 namespace ResoClassAPI.Controllers
 {
@@ -98,7 +100,7 @@ namespace ResoClassAPI.Controllers
         [HttpPost]
         [Authorize(Policy = "Admin")]
         [Route("api/QuestionBank/UploadQuestions")]
-        public async Task<ResponseDto> UploadQuestions(IFormFile document, string? chapter, string? topic, string? subTopic)
+        public async Task<ResponseDto> UploadQuestions([ModelBinder(BinderType = typeof(JsonModelBinder))] QuestionsUploadRequestDto request, IFormFile document)
         {
             ResponseDto responseDto = new ResponseDto();
             try
@@ -110,7 +112,7 @@ namespace ResoClassAPI.Controllers
                     return responseDto;
                 }
                 
-                if(string.IsNullOrEmpty(chapter) && string.IsNullOrEmpty(topic) && string.IsNullOrEmpty(subTopic))
+                if(string.IsNullOrEmpty(request.Course) && string.IsNullOrEmpty(request.Topic) && string.IsNullOrEmpty(request.SubTopic))
                 {
                     responseDto.IsSuccess = false;
                     responseDto.Message = "Questions should be linked to atleast one master data(Chapter / Topic / SubTopic)";
@@ -122,7 +124,7 @@ namespace ResoClassAPI.Controllers
                 string response = string.Empty;
                 if (questions != null && questions.Count > 0)
                 {
-                    response = await assessmentService.InsertQuestions(questions, chapter, topic, subTopic);
+                    response = await assessmentService.InsertQuestions(questions, request);
                 }
 
                 if (response == "Success")
@@ -267,34 +269,34 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
-        [HttpGet]
-        [Route("api/Assessment/GetAssessmentReport")]
-        public async Task<ResponseDto> GetAssessmentReport(long id)
-        {
-            ResponseDto responseDto = new ResponseDto();
-            try
-            {
-                logger.LogInformation("Requested GetAssessmentConfig");
-                var report = await assessmentService.GetAssessmentReport(id);
+        //[HttpGet]
+        //[Route("api/Assessment/GetAssessmentReport")]
+        //public async Task<ResponseDto> GetAssessmentReport(long id)
+        //{
+        //    ResponseDto responseDto = new ResponseDto();
+        //    try
+        //    {
+        //        logger.LogInformation("Requested GetAssessmentConfig");
+        //        var report = await assessmentService.GetAssessmentReport(id);
 
-                if (report != null)
-                {
-                    responseDto.Result = report;
-                    responseDto.IsSuccess = true;
-                }
-                else
-                {
-                    responseDto.IsSuccess = false;
-                    responseDto.Message = "Not Found";
-                }
-            }
-            catch (Exception ex)
-            {
-                responseDto.IsSuccess = false;
-                responseDto.Message = ex.Message;
-            }
-            return responseDto;
-        }
+        //        if (report != null)
+        //        {
+        //            responseDto.Result = report;
+        //            responseDto.IsSuccess = true;
+        //        }
+        //        else
+        //        {
+        //            responseDto.IsSuccess = false;
+        //            responseDto.Message = "Not Found";
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        responseDto.IsSuccess = false;
+        //        responseDto.Message = ex.Message;
+        //    }
+        //    return responseDto;
+        //}
 
     }
 

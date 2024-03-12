@@ -160,5 +160,64 @@ namespace ResoClassAPI.Services
             else
                 throw new Exception("Not Found");
         }
+        public async Task<bool> InsertTopics(List<TopicExcelRequestDto> topics)
+        {
+            try
+            {
+                var currentUser = authService.GetCurrentUser();
+                foreach (var topicDto in topics)
+                {
+                    // Get the course ID based on the course name
+                    long courseId = dbContext.Courses.Where(c => c.Name == topicDto.Course && c.IsActive).Select(c => c.Id).FirstOrDefault();
+
+                    if (courseId == 0)
+                    {
+                        throw new Exception($"Course '{topicDto.Course}' not found in the database.");
+                    }
+
+                    long subjectId = dbContext.Subjects.Where(c => c.Name == topicDto.Subject && c.CourseId == courseId && c.IsActive).Select(c => c.Id).FirstOrDefault();
+
+                    if (subjectId == 0)
+                    {
+                        throw new Exception($"Subject '{topicDto.Subject}' not found in the database.");
+                    }
+
+                    long chapterId = dbContext.Chapters.Where(c => c.Name == topicDto.Chapter && c.SubjectId == subjectId && c.IsActive).Select(c => c.Id).FirstOrDefault();
+
+                    if (chapterId == 0)
+                    {
+                        throw new Exception($"Chapter '{topicDto.Chapter}' not found in the database.");
+                    }
+
+                    // Insert the subject if it doesn't exist
+                    Topic existingTopic = dbContext.Topics.FirstOrDefault(s => s.Name == topicDto.Name && s.ChapterId == chapterId && s.IsActive);
+
+                    if (existingTopic == null)
+                    {
+                        existingTopic = new Topic
+                        {
+                            Name = topicDto.Name,
+                            Description = !string.IsNullOrEmpty(topicDto.Description) ? topicDto.Description : string.Empty,
+                            Thumbnail = topicDto.Thumbnail,
+                            ChapterId = chapterId,
+                            IsActive = true,
+                            CreatedBy = currentUser.Name,
+                            CreatedOn = DateTime.Now,
+                            ModifiedBy = currentUser.Name,
+                            ModifiedOn = DateTime.Now
+                        };
+                        dbContext.Topics.Add(existingTopic);
+
+                    }
+                }
+                await dbContext.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+        }
     }
 }

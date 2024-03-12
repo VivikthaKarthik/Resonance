@@ -22,14 +22,14 @@ namespace ResoClassAPI.Controllers
         }
 
         [HttpGet]
-        [Route("api/Report/GetStudentReport")]
-        public async Task<ResponseDto> GetStudentReport()
+        [Route("api/Report/GetSubjectsReport")]
+        public async Task<ResponseDto> GetSubjectsReport()
         {
             ResponseDto responseDto = new ResponseDto();
             try
             {
-                logger.LogInformation("Requested GetStudentReport");
-                var report = await reportService.GetStudentReport();
+                logger.LogInformation("Requested GetSubjectsReport");
+                var report = await reportService.GetSubjectsReport();
 
                 if (report != null)
                 {
@@ -48,65 +48,95 @@ namespace ResoClassAPI.Controllers
                 responseDto.Message = ex.Message;
             }
             return responseDto;
+
         }
 
-        [HttpGet]
-        [Route("api/Report/GetSubjectReport")]
-        public async Task<ResponseDto> GetSubjectReport(long id)
-        {
-            ResponseDto responseDto = new ResponseDto();
-            try
-            {
-                logger.LogInformation("Requested GetSubjectReport");
-                var report = await reportService.GetSubjectReport(id);
+        //[HttpGet]
+        //[Route("api/Report/GetStudentReport")]
+        //public async Task<ResponseDto> GetStudentReport()
+        //{
+        //    ResponseDto responseDto = new ResponseDto();
+        //    try
+        //    {
+        //        logger.LogInformation("Requested GetStudentReport");
+        //        var report = await reportService.GetStudentReport();
 
-                if (report != null)
-                {
-                    responseDto.Result = report;
-                    responseDto.IsSuccess = true;
-                }
-                else
-                {
-                    responseDto.IsSuccess = false;
-                    responseDto.Message = "Not Found";
-                }
-            }
-            catch (Exception ex)
-            {
-                responseDto.IsSuccess = false;
-                responseDto.Message = ex.Message;
-            }
-            return responseDto;
-        }
+        //        if (report != null)
+        //        {
+        //            responseDto.Result = report;
+        //            responseDto.IsSuccess = true;
+        //        }
+        //        else
+        //        {
+        //            responseDto.IsSuccess = false;
+        //            responseDto.Message = "Not Found";
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        responseDto.IsSuccess = false;
+        //        responseDto.Message = ex.Message;
+        //    }
+        //    return responseDto;
+        //}
 
-        [HttpGet]
-        [Route("api/Report/GetChapterReport")]
-        public async Task<ResponseDto> GetChapterReport(long id)
-        {
-            ResponseDto responseDto = new ResponseDto();
-            try
-            {
-                logger.LogInformation("Requested GetChapterReport");
-                var report = await reportService.GetChapterReport(id);
+        //[HttpGet]
+        //[Route("api/Report/GetSubjectReport")]
+        //public async Task<ResponseDto> GetSubjectReport(long id)
+        //{
+        //    ResponseDto responseDto = new ResponseDto();
+        //    try
+        //    {
+        //        logger.LogInformation("Requested GetSubjectReport");
+        //        var report = await reportService.GetSubjectReport(id);
 
-                if (report != null)
-                {
-                    responseDto.Result = report;
-                    responseDto.IsSuccess = true;
-                }
-                else
-                {
-                    responseDto.IsSuccess = false;
-                    responseDto.Message = "Not Found";
-                }
-            }
-            catch (Exception ex)
-            {
-                responseDto.IsSuccess = false;
-                responseDto.Message = ex.Message;
-            }
-            return responseDto;
-        }
+        //        if (report != null)
+        //        {
+        //            responseDto.Result = report;
+        //            responseDto.IsSuccess = true;
+        //        }
+        //        else
+        //        {
+        //            responseDto.IsSuccess = false;
+        //            responseDto.Message = "Not Found";
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        responseDto.IsSuccess = false;
+        //        responseDto.Message = ex.Message;
+        //    }
+        //    return responseDto;
+        //}
+
+        //[HttpGet]
+        //[Route("api/Report/GetChapterReport")]
+        //public async Task<ResponseDto> GetChapterReport(long id)
+        //{
+        //    ResponseDto responseDto = new ResponseDto();
+        //    try
+        //    {
+        //        logger.LogInformation("Requested GetChapterReport");
+        //        var report = await reportService.GetChapterReport(id);
+
+        //        if (report != null)
+        //        {
+        //            responseDto.Result = report;
+        //            responseDto.IsSuccess = true;
+        //        }
+        //        else
+        //        {
+        //            responseDto.IsSuccess = false;
+        //            responseDto.Message = "Not Found";
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        responseDto.IsSuccess = false;
+        //        responseDto.Message = ex.Message;
+        //    }
+        //    return responseDto;
+        //}
 
         [HttpGet]
         [Route("api/Report/GetAssessmentReport")]

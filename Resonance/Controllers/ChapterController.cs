@@ -91,22 +91,22 @@ namespace ResoClassAPI.Controllers
         [HttpPost]
         [Authorize(Policy = "Admin")]
         [Route("api/Chapter/Create")]
-        public async Task<ResponseDto> Post(ChapterRequestDto requestDto)
+        public async Task<ResponseDto> Post([ModelBinder(BinderType = typeof(JsonModelBinder))]ChapterRequestDto request, IFormFile thumbnail)
         {
             ResponseDto responseDto = new ResponseDto();
             try
             {
-                if (requestDto == null)
+                if (request == null)
                 {
                     responseDto.IsSuccess = false;
                     responseDto.Message = "Invalid Request";
                     return responseDto;
                 }
-                long newId = await chapterService.CreateChapter(requestDto);
+                long newId = await chapterService.CreateChapter(request);
                 if (newId > 0)
                 {
-                    requestDto.Id = newId;
-                    responseDto.Result = requestDto;
+                    request.Id = newId;
+                    responseDto.Result = request;
                     responseDto.IsSuccess = true;
                 }
                 else
@@ -179,7 +179,7 @@ namespace ResoClassAPI.Controllers
         [HttpPut]
         [Authorize(Policy = "Admin")]
         [Route("api/Chapter/Update/{id}")]
-        public async Task<ResponseDto> Put(long id, ChapterRequestDto requestDto)
+        public async Task<ResponseDto> Put(long id, [ModelBinder(BinderType = typeof(JsonModelBinder))]ChapterRequestDto requestDto, IFormFile thumbnail)
         {
             ResponseDto responseDto = new ResponseDto();
             try

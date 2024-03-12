@@ -197,5 +197,96 @@ namespace ResoClassAPI.Services
             else
                 throw new Exception("Not Found");
         }
+
+
+        public async Task<bool> InsertVideos(List<VideoExcelRequestDto> videos)
+        {
+            try
+            {
+                var currentUser = authService.GetCurrentUser();
+                foreach (var video in videos)
+                {
+                    long chapterId = 0;
+                    long topicId = 0;
+                    long subTopicId = 0;
+
+                    long courseId = dbContext.Courses.Where(c => c.Name == video.Course && c.IsActive).Select(c => c.Id).FirstOrDefault();
+
+                    if (courseId == 0)
+                    {
+                        throw new Exception($"Course '{video.Course}' not found in the database.");
+                    }
+
+                    long subjectId = dbContext.Subjects.Where(c => c.Name == video.Subject && c.CourseId == courseId && c.IsActive).Select(c => c.Id).FirstOrDefault();
+
+                    if (subjectId == 0)
+                    {
+                        throw new Exception($"Course '{video.Subject}' not found in the database.");
+                    }
+
+                    if (!string.IsNullOrEmpty(video.Chapter))
+                    {
+                        chapterId = dbContext.Chapters.Where(c => c.Name == video.Chapter && c.SubjectId == subjectId && c.IsActive).Select(c => c.Id).FirstOrDefault();
+
+                        if (chapterId == 0)
+                        {
+                            throw new Exception($"Chapter '{video.Chapter}' not found in the database.");
+                        }
+                    }
+
+                    if (!string.IsNullOrEmpty(video.Topic))
+                    {
+                        topicId = dbContext.Topics.Where(c => c.Name == video.Topic && c.ChapterId == chapterId && c.IsActive).Select(c => c.Id).FirstOrDefault();
+
+                        if (topicId == 0)
+                        {
+                            throw new Exception($"Topic '{video.Topic}' not found in the database.");
+                        }
+                    }
+
+                    if (!string.IsNullOrEmpty(video.SubTopic))
+                    {
+                        subTopicId = dbContext.SubTopics.Where(c => c.Name == video.SubTopic && c.TopicId == topicId && c.IsActive).Select(c => c.Id).FirstOrDefault();
+
+                        if (subTopicId == 0)
+                        {
+                            throw new Exception($"SubTopic '{video.SubTopic}' not found in the database.");
+                        }
+                    }
+
+                    Video newVideo = new Video
+                    {
+                        Title = video.Title,
+                        Description = !string.IsNullOrEmpty(video.Description) ? video.Description : string.Empty,
+                        ThumbNail = video.Thumbnail,
+                        HomeDisplay = video.HomeDisplay,
+                        SourceUrl = video.SourceUrl,
+                        IsActive = true,
+                        CreatedBy = currentUser.Name,
+                        CreatedOn = DateTime.Now,
+                        ModifiedBy = currentUser.Name,
+                        ModifiedOn = DateTime.Now
+                    };
+
+                    if (subTopicId > 0)
+                        newVideo.SubTopicId = subTopicId;
+
+                    if (topicId > 0)
+                        newVideo.TopicId = topicId;
+
+                    if (chapterId > 0)
+                        newVideo.ChapterId = chapterId;
+                    dbContext.Videos.Add(newVideo);
+
+                }
+                await dbContext.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+        }
     }
 }

@@ -45,15 +45,11 @@ public partial class Question
 
     public virtual Choice CorrectChoice { get; set; } = null!;
 
-    public virtual ICollection<ExamResult> ExamResults { get; } = new List<ExamResult>();
-
     public virtual Choice FirstChoice { get; set; } = null!;
 
     public virtual Choice FourthChoice { get; set; } = null!;
 
     public virtual ICollection<MultipleChoiceQuestion> MultipleChoiceQuestions { get; } = new List<MultipleChoiceQuestion>();
-
-    public virtual ICollection<QuestionImage> QuestionImages { get; } = new List<QuestionImage>();
 
     public virtual Choice SecondChoice { get; set; } = null!;
 

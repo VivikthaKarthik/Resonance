@@ -12,5 +12,6 @@ namespace ResoClassAPI.Services.Interfaces
         Task<List<VideoResponseDto>> GetVideosWithChapterId(long chapterId);
         Task<List<VideoResponseDto>> GetVideosWithTopicId(long topicId);
         Task<List<VideoResponseDto>> GetVideosWithSubTopicId(long subTopicId);
+        Task<bool> InsertVideos(List<VideoExcelRequestDto> videos);
     }
 }

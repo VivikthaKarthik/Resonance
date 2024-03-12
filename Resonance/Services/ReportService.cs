@@ -23,6 +23,32 @@ namespace ResoClassAPI.Services
             commonService = _commonService;
         }
 
+        public async Task<List<SubjectWeightageDto>> GetSubjectsReport()
+        {
+            var currentUser = authService.GetCurrentUser();
+            List<SubjectWeightageDto> items = new List<SubjectWeightageDto>();
+
+            var student = dbContext.Students.Where(x => x.Id == currentUser.UserId).FirstOrDefault();
+
+            var course = dbContext.Courses.Where(x => x.Id == student.CourseId).FirstOrDefault();
+
+            var subjects = dbContext.Subjects.Where(x => x.CourseId == course.Id && x.IsActive).ToList();
+
+            if(subjects.Any())
+            {
+                foreach(var subject in subjects)
+                {
+                    int totalQuestions = commonService.GetTotalQUestionsCountBySubjectId(subject.Id);
+                    int correctAnswers = commonService.GetCorrectAnswersCountBySubjectId(subject.Id);
+
+                    double percentage = ((double)totalQuestions / 100) * correctAnswers;
+                    items.Add(new SubjectWeightageDto() { Name = subject.Name, Percentage = Math.Round(percentage, 2), ColorCode = subject.ColorCode });
+                }
+            }
+
+            return items;
+        }
+
         public async Task<StudentReportDto> GetStudentReport()
         {
             var currentUser = authService.GetCurrentUser();
