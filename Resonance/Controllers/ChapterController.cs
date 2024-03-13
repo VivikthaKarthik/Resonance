@@ -9,6 +9,7 @@ using ResoClassAPI.Services;
 using ResoClassAPI.Services.Interfaces;
 using ResoClassAPI.Utilities;
 using ResoClassAPI.Utilities.Interfaces;
+using System.IO;
 namespace ResoClassAPI.Controllers
 {
     [Authorize]
@@ -18,12 +19,15 @@ namespace ResoClassAPI.Controllers
         private readonly IChapterService chapterService;
         private readonly ILogger<ChapterController> logger;
         private readonly IExcelReader excelReader;
+        private readonly IAwsHandler awsHandler;
 
-        public ChapterController(IChapterService _chapterService, ILogger<ChapterController> _logger, IExcelReader _excelReader)
+        public ChapterController(IChapterService _chapterService, ILogger<ChapterController> _logger, IExcelReader _excelReader,
+            IAwsHandler _awsHandler)
         {
             chapterService = _chapterService;
             logger = _logger;
             excelReader = _excelReader;
+            awsHandler = _awsHandler;
         }
 
         #region Admin
@@ -102,6 +106,25 @@ namespace ResoClassAPI.Controllers
                     responseDto.Message = "Invalid Request";
                     return responseDto;
                 }
+
+                var extension = "." + thumbnail.FileName.Split('.')[thumbnail.FileName.Split('.').Length - 1];
+                if (extension != ".png" && extension != ".jpg" && extension != ".webp")
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Invalid file type.";
+                    return responseDto;
+                }
+                else
+                {
+                    using (var stream = new MemoryStream())
+                    {
+                        await thumbnail.CopyToAsync(stream);
+                        stream.Position = 0;
+                        string thumbnailUrl = await awsHandler.UploadImage(stream.ToArray(), "chapters", thumbnail.FileName);
+                        request.Thumbnail = thumbnailUrl;
+                    }
+                }
+
                 long newId = await chapterService.CreateChapter(request);
                 if (newId > 0)
                 {

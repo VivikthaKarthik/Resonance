@@ -156,7 +156,7 @@ namespace ResoClassAPI.Utilities
 
         private async Task<QuestionsDto> AddImage(CurrentElement currentElement, byte[] imageArray, string name, QuestionsDto currentQuestion)
         {
-            string fileUrl = await awsHandler.UploadImage(imageArray, name);
+            string fileUrl = await awsHandler.UploadImage(imageArray, "QuestionAndAnswerImages", name);
 
             if (currentQuestion == null)
                 currentQuestion = new QuestionsDto();

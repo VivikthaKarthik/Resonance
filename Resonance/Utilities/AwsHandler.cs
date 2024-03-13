@@ -26,48 +26,85 @@ namespace ResoClassAPI.Utilities
             _commonService = commonService;
             _config = configuration;
         }
-        public async Task<string> UploadImage(byte[] imageData, string fileName)
+
+        public async Task<string> UploadImage(byte[] imageData, string folderName, string fileName)
         {
             string imageUrl = string.Empty;
             try
             {
                 string bucketName = _config["S3:BucketName"];
-                string folderPath = _config["S3:FolderName"];
                 using (var memoryStream = new MemoryStream(imageData))
                 {
                     var credentials = new Amazon.Runtime.BasicAWSCredentials("AKIAQ3EGRZ7DC24FKX3X", "2M5fIKfy7EMWLegExiQgH1EYz2gc+4L0G5kf3PkV");
-                    var region = RegionEndpoint.APSoutheast2;
-                    // Create S3 client with root credentials
-                    var s3Client = new AmazonS3Client(credentials, region);
+                    var region = RegionEndpoint.APSouth1; // Change this to your desired region
 
-                    var fileTransferUtility = new TransferUtility(_s3Client);
-
-                    var keyName = folderPath + "/" + fileName;
-                    var putRequest = new PutObjectRequest
+                    // Create S3 client
+                    using (var s3Client = new AmazonS3Client(credentials, region))
                     {
-                        BucketName = bucketName,
-                        Key = keyName,
-                        InputStream = memoryStream
-                    };
+                        var fileTransferUtility = new TransferUtility(s3Client);
 
-                    var response = await s3Client.PutObjectAsync(putRequest);
-                    _commonService.LogError(typeof(GlobalExceptionHandler), bucketName, keyName, typeof(AwsHandler).Name);
-                    var regionName = region.SystemName;
-                    imageUrl = GenerateS3ObjectUrl(regionName, bucketName, folderPath, fileName);
+                        var keyName = folderName + "/" + fileName;
+                        var putRequest = new PutObjectRequest
+                        {
+                            BucketName = bucketName,
+                            Key = keyName,
+                            InputStream = memoryStream,
+                            CannedACL = S3CannedACL.PublicRead
+                        };
 
+                        var response = await s3Client.PutObjectAsync(putRequest);
+
+                        imageUrl = $"https://{bucketName}.s3.{region.SystemName}.amazonaws.com/{keyName}";
+                    }
                 }
             }
             catch (Exception ex)
             {
+                // Log the exception
                 _commonService.LogError(typeof(GlobalExceptionHandler), ex.Message, ex.StackTrace, ex.GetType().Name);
-                throw ex;
+                throw; 
             }
             return imageUrl;
         }
 
-        private string GenerateS3ObjectUrl(string regionName, string bucketName, string folderName, string key)
-        {
-            return $"https://{bucketName}.s3.{regionName}.amazonaws.com/{folderName}/{key}";
-        }
+
+        //public async Task<string> UploadImage(byte[] imageData, string folderName, string fileName)
+        //{
+        //    string imageUrl = string.Empty;
+        //    try
+        //    {
+        //        string bucketName = _config["S3:BucketName"];
+        //        using (var memoryStream = new MemoryStream(imageData))
+        //        {
+        //            var credentials = new Amazon.Runtime.BasicAWSCredentials("AKIAQ3EGRZ7DC24FKX3X", "2M5fIKfy7EMWLegExiQgH1EYz2gc+4L0G5kf3PkV");
+        //            var region = RegionEndpoint.APSouth1;
+        //            // Create S3 client with root credentials
+        //            var s3Client = new AmazonS3Client(credentials, region);
+
+        //            var fileTransferUtility = new TransferUtility(_s3Client);
+
+        //            var keyName = folderName + "/" + fileName;
+        //            var putRequest = new PutObjectRequest
+        //            {
+        //                BucketName = bucketName,
+        //                Key = keyName,
+        //                InputStream = memoryStream,
+        //                CannedACL = S3CannedACL.PublicRead
+        //            };
+
+        //            var response = await s3Client.PutObjectAsync(putRequest);
+
+        //            _commonService.LogError(typeof(GlobalExceptionHandler), bucketName, keyName, typeof(AwsHandler).Name);
+        //            imageUrl = $"https://{bucketName}.s3.{region.SystemName}.amazonaws.com/{keyName}";
+
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _commonService.LogError(typeof(GlobalExceptionHandler), ex.Message, ex.StackTrace, ex.GetType().Name);
+        //        throw ex;
+        //    }
+        //    return imageUrl;
+        //}
     }
 }
