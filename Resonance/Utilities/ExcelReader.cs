@@ -273,7 +273,7 @@ namespace ResoClassAPI.Utilities
                             SubTopic = subTopic,
                             Topic = topic,
                             Chapter = chapter,
-                            HomeDisplay = homeDisplay,
+                            HomeDisplay = !string.IsNullOrEmpty(homeDisplay) && homeDisplay.ToLower() == "true",
                             Course = course,
                             Subject = subject
                         });

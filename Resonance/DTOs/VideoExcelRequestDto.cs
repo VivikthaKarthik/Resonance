@@ -11,6 +11,6 @@
         public string Chapter { get; set; }
         public string Subject { get; set; }
         public string Course { get; set; }
-        public string HomeDisplay { get; set; }
+        public bool HomeDisplay { get; set; }
     }
 }

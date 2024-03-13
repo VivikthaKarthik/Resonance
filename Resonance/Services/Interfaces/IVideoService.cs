@@ -4,7 +4,7 @@ namespace ResoClassAPI.Services.Interfaces
 {
     public interface IVideoService
     {
-        Task<List<VideoDto>> GetAllVideos();
+        Task<List<VideoResponseDto>> GetAllVideos();
         Task<VideoDto> GetVideo(long topicId);
         Task<long> CreateVideo(VideoDto newItem);
         Task<bool> UpdateVideo(VideoDto updatedItem);

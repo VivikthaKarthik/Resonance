@@ -82,16 +82,28 @@ namespace ResoClassAPI.Services
             return false;
         }
 
-        public async Task<List<VideoDto>> GetAllVideos()
+        public async Task<List<VideoResponseDto>> GetAllVideos()
         {
-            List<VideoDto> dtoObjects = new List<VideoDto>();
-            var vid = await Task.FromResult(dbContext.Videos.Where(item => item.IsActive == true).OrderByDescending(x => x.CreatedOn).ToList());
-            if (vid != null && vid.Count > 0)
+            List<VideoResponseDto> dtoObjects = new List<VideoResponseDto>();
+            var videosList = await Task.FromResult(dbContext.Videos.Where(item => item.IsActive == true).OrderByDescending(x => x.CreatedOn).ToList());
+            var chapters = await Task.FromResult(dbContext.Chapters.ToList());
+            var topics = await Task.FromResult(dbContext.Topics.ToList());
+            var subTopics = await Task.FromResult(dbContext.SubTopics.ToList());
+            if (videosList != null && videosList.Count > 0)
             {
-
-                foreach (var vrVideo in vid)
+                foreach (var video in videosList)
                 {
-                    var dtoObject = mapper.Map<VideoDto>(vrVideo);
+                    var dtoObject = mapper.Map<VideoResponseDto>(video);
+
+                    if(video.ChapterId != null && chapters.Count > 0)
+                        dtoObject.Chapter = chapters.Where(x => x.Id == video.ChapterId).FirstOrDefault().Name;
+
+                    if (video.TopicId != null && topics.Count > 0)
+                        dtoObject.Topic = topics.Where(x => x.Id == video.TopicId).FirstOrDefault().Name;
+
+                    if (video.SubTopicId != null && subTopics.Count > 0)
+                        dtoObject.SubTopic = subTopics.Where(x => x.Id == video.SubTopicId).FirstOrDefault().Name;
+
                     dtoObjects.Add(dtoObject);
                 }
                 return dtoObjects;
@@ -157,7 +169,7 @@ namespace ResoClassAPI.Services
                             throw new Exception("Invalid ChapterId");
                     }
 
-                    if (!string.IsNullOrEmpty(updatedItem.HomeDisplay))
+                    if (existingItem.HomeDisplay != updatedItem.HomeDisplay)
                         existingItem.HomeDisplay = updatedItem.HomeDisplay;
 
                     existingItem.ModifiedBy = currentUser.Name;

@@ -21,7 +21,7 @@ public partial class Video
 
     public long? ChapterId { get; set; }
 
-    public string? HomeDisplay { get; set; }
+    public bool? HomeDisplay { get; set; }
 
     public bool IsActive { get; set; }
 

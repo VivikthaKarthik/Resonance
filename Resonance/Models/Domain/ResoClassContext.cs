@@ -437,7 +437,6 @@ public partial class ResoClassContext : DbContext
 
             entity.Property(e => e.CreatedBy).HasMaxLength(128);
             entity.Property(e => e.CreatedOn).HasColumnType("datetime");
-            entity.Property(e => e.HomeDisplay).HasMaxLength(5);
             entity.Property(e => e.ModifiedBy).HasMaxLength(128);
             entity.Property(e => e.ModifiedOn).HasColumnType("datetime");
             entity.Property(e => e.Title).HasMaxLength(250);
