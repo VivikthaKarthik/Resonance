@@ -33,6 +33,7 @@ namespace Resonance
 
                 //Video Mapper
                 config.CreateMap<VideoDto, Video>();
+                config.CreateMap<Video, VideoDto>();
                 config.CreateMap<Video, VideoResponseDto>();
 
                 //Course Mapper

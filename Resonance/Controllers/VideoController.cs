@@ -132,6 +132,7 @@ namespace ResoClassAPI.Controllers
             ResponseDto responseDto = new ResponseDto();
             try
             {
+                bool isDataUploaded = false;
                 if (file == null || file.Length == 0)
                 {
                     responseDto.IsSuccess = false;
@@ -146,8 +147,16 @@ namespace ResoClassAPI.Controllers
                     responseDto.Message = "Invalid file type.";
                     return responseDto;
                 }
+                using (var stream = new MemoryStream())
+                {
+                    await file.CopyToAsync(stream);
+                    stream.Position = 0;
 
-                if (await excelReader.BulkUpload(file, SqlTableName.Video))
+                    List<VideoExcelRequestDto> videos = await excelReader.ReadVideosFromExcel(stream);
+                    isDataUploaded = await videoService.InsertVideos(videos);
+                }
+
+                if (isDataUploaded)
                 {
                     responseDto.Result = "Data uploaded successfully";
                     responseDto.IsSuccess = true;

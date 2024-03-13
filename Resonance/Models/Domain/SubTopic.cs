@@ -23,8 +23,6 @@ public partial class SubTopic
 
     public DateTime ModifiedOn { get; set; }
 
-    public virtual ICollection<ExamResult> ExamResults { get; } = new List<ExamResult>();
-
     public virtual Topic IdNavigation { get; set; } = null!;
 
     public virtual ICollection<MultipleChoiceQuestion> MultipleChoiceQuestions { get; } = new List<MultipleChoiceQuestion>();

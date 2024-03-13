@@ -9,6 +9,7 @@ using ResoClassAPI.Services;
 using ResoClassAPI.Services.Interfaces;
 using ResoClassAPI.Utilities;
 using ResoClassAPI.Utilities.Interfaces;
+using System.IO;
 namespace ResoClassAPI.Controllers
 {
     [Authorize]
@@ -18,12 +19,15 @@ namespace ResoClassAPI.Controllers
         private readonly IChapterService chapterService;
         private readonly ILogger<ChapterController> logger;
         private readonly IExcelReader excelReader;
+        private readonly IAwsHandler awsHandler;
 
-        public ChapterController(IChapterService _chapterService, ILogger<ChapterController> _logger, IExcelReader _excelReader)
+        public ChapterController(IChapterService _chapterService, ILogger<ChapterController> _logger, IExcelReader _excelReader,
+            IAwsHandler _awsHandler)
         {
             chapterService = _chapterService;
             logger = _logger;
             excelReader = _excelReader;
+            awsHandler = _awsHandler;
         }
 
         #region Admin
@@ -91,22 +95,41 @@ namespace ResoClassAPI.Controllers
         [HttpPost]
         [Authorize(Policy = "Admin")]
         [Route("api/Chapter/Create")]
-        public async Task<ResponseDto> Post(ChapterRequestDto requestDto)
+        public async Task<ResponseDto> Post([ModelBinder(BinderType = typeof(JsonModelBinder))]ChapterRequestDto request, IFormFile thumbnail)
         {
             ResponseDto responseDto = new ResponseDto();
             try
             {
-                if (requestDto == null)
+                if (request == null)
                 {
                     responseDto.IsSuccess = false;
                     responseDto.Message = "Invalid Request";
                     return responseDto;
                 }
-                long newId = await chapterService.CreateChapter(requestDto);
+
+                var extension = "." + thumbnail.FileName.Split('.')[thumbnail.FileName.Split('.').Length - 1];
+                if (extension != ".png" && extension != ".jpg" && extension != ".webp")
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Invalid file type.";
+                    return responseDto;
+                }
+                else
+                {
+                    using (var stream = new MemoryStream())
+                    {
+                        await thumbnail.CopyToAsync(stream);
+                        stream.Position = 0;
+                        string thumbnailUrl = await awsHandler.UploadImage(stream.ToArray(), "chapters", thumbnail.FileName);
+                        request.Thumbnail = thumbnailUrl;
+                    }
+                }
+
+                long newId = await chapterService.CreateChapter(request);
                 if (newId > 0)
                 {
-                    requestDto.Id = newId;
-                    responseDto.Result = requestDto;
+                    request.Id = newId;
+                    responseDto.Result = request;
                     responseDto.IsSuccess = true;
                 }
                 else
@@ -179,7 +202,7 @@ namespace ResoClassAPI.Controllers
         [HttpPut]
         [Authorize(Policy = "Admin")]
         [Route("api/Chapter/Update/{id}")]
-        public async Task<ResponseDto> Put(long id, ChapterRequestDto requestDto)
+        public async Task<ResponseDto> Put(long id, [ModelBinder(BinderType = typeof(JsonModelBinder))]ChapterRequestDto requestDto, IFormFile thumbnail)
         {
             ResponseDto responseDto = new ResponseDto();
             try

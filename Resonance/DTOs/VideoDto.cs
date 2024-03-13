@@ -10,7 +10,7 @@
         public int SubTopicId { get; set; }
         public int TopicId { get; set; }
         public int ChapterId { get; set; }
-        public string HomeDisplay { get; set; } = null!;
+        public bool HomeDisplay { get; set; }
         
     }
 }

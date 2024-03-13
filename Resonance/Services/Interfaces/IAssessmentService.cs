@@ -6,7 +6,7 @@ namespace ResoClassAPI.Services.Interfaces
     {
         Task<List<AssessmentSessionDto>> GetAssessmentSessions();
         Task<AssessmentConfigurationDto> GetAssessmentConfiguration();
-        Task<string> InsertQuestions(List<QuestionsDto> questions, string? chapter, string? topic, string? subTopic);
+        Task<string> InsertQuestions(List<QuestionsDto> questions, QuestionsUploadRequestDto request);
 
         Task<QuestionResponseDto> GetQuestions(QuestionRequestDto requestDto);
 

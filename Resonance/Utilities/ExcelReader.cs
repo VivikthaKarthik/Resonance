@@ -117,8 +117,9 @@ namespace ResoClassAPI.Utilities
                     string subjectName = worksheet.Cells[rowNumber, 1].Text.Trim();
                     string thumbnail = worksheet.Cells[rowNumber, 2].Text.Trim();
                     string courseName = worksheet.Cells[rowNumber, 3].Text.Trim();
+                    string colorCode = worksheet.Cells[rowNumber, 4].Text.Trim();
 
-                    subjects.Add(new SubjectDto { Name = subjectName, Thumbnail = thumbnail, CourseName = courseName });
+                    subjects.Add(new SubjectDto { Name = subjectName, Thumbnail = thumbnail, CourseName = courseName, ColorCode = colorCode });
                 }
             }
 
@@ -206,13 +207,82 @@ namespace ResoClassAPI.Utilities
                     string isRecommended = worksheet.Cells[rowNumber, 5].Text.Trim();
                     string description = worksheet.Cells[rowNumber, 6].Text.Trim();
 
-                    chapters.Add(new ChapterExcelRequestDto { Name = chapterName, Description = description, Thumbnail = thumbnail, Course = course, Subject = subject, IsRecommended = isRecommended.ToLower() == "true" });
+                    chapters.Add(new ChapterExcelRequestDto { Name = chapterName, Description = description, Thumbnail = thumbnail, Course = course, Subject = subject, IsRecommended = (isRecommended == "1" || isRecommended.ToLower() == "true") });
                 }
             }
 
             return chapters;
         }
 
+        public async Task<List<TopicExcelRequestDto>> ReadTopicsFromExcel(Stream stream)
+        {
+            List<TopicExcelRequestDto> topics = new List<TopicExcelRequestDto>();
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            using (ExcelPackage package = new ExcelPackage(stream))
+            {
+                ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
+
+                for (int rowNumber = 2; rowNumber <= worksheet.Dimension.End.Row; rowNumber++)
+                {
+                    string name = worksheet.Cells[rowNumber, 1].Text.Trim();
+                    string thumbnail = worksheet.Cells[rowNumber, 2].Text.Trim();
+                    string chapter = worksheet.Cells[rowNumber, 3].Text.Trim();
+                    string subject = worksheet.Cells[rowNumber, 4].Text.Trim();
+                    string course = worksheet.Cells[rowNumber, 5].Text.Trim();
+                    string description = worksheet.Cells[rowNumber, 6].Text.Trim();
+
+                    topics.Add(new TopicExcelRequestDto { Name = name, Description = description, Thumbnail = thumbnail, Chapter = chapter, Course = course, Subject = subject });
+                }
+            }
+
+            return topics;
+        }
+
+
+        public async Task<List<VideoExcelRequestDto>> ReadVideosFromExcel(Stream stream)
+        {
+            List<VideoExcelRequestDto> videos = new List<VideoExcelRequestDto>();
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            using (ExcelPackage package = new ExcelPackage(stream))
+            {
+                ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
+
+                for (int rowNumber = 2; rowNumber <= worksheet.Dimension.End.Row; rowNumber++)
+                {
+                    string title = worksheet.Cells[rowNumber, 1].Text.Trim();
+                    string description = worksheet.Cells[rowNumber, 2].Text.Trim();
+                    string thumbnail = worksheet.Cells[rowNumber, 3].Text.Trim();
+                    string sourceUrl = worksheet.Cells[rowNumber, 4].Text.Trim();
+                    string subTopic = worksheet.Cells[rowNumber, 5].Text.Trim();
+                    string topic = worksheet.Cells[rowNumber, 6].Text.Trim();
+                    string chapter = worksheet.Cells[rowNumber, 7].Text.Trim();
+                    string homeDisplay = worksheet.Cells[rowNumber, 8].Text.Trim();
+                    string subject = worksheet.Cells[rowNumber, 9].Text.Trim();
+                    string course = worksheet.Cells[rowNumber, 10].Text.Trim();
+
+                    if (!string.IsNullOrEmpty(title) && !string.IsNullOrEmpty(sourceUrl))
+                    {
+                        videos.Add(new VideoExcelRequestDto
+                        {
+                            Title = title,
+                            Description = description,
+                            Thumbnail = thumbnail,
+                            SourceUrl = sourceUrl,
+                            SubTopic = subTopic,
+                            Topic = topic,
+                            Chapter = chapter,
+                            HomeDisplay = !string.IsNullOrEmpty(homeDisplay) && homeDisplay.ToLower() == "true",
+                            Course = course,
+                            Subject = subject
+                        });
+                    }
+                }
+            }
+
+            return videos;
+        }
 
     }
 }

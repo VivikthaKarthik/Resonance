@@ -18,6 +18,7 @@ using Amazon.S3;
 using Microsoft.Extensions.Configuration;
 using Amazon.Extensions.NETCore.Setup;
 using Amazon.Runtime;
+using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -97,7 +98,8 @@ builder.Services.AddCors(o => o.AddPolicy("MyPolicy", builder =>
 //    Credentials = new BasicAWSCredentials("", "")
 //};
 builder.Services.AddDefaultAWSOptions(builder.Configuration.GetAWSOptions());
-builder.Services.AddAWSService<IAmazonS3>();
+builder.Services.AddAWSService<IAmazonS3>(); 
+//builder.Services.Configure<AWSOptions>(builder.Configuration.GetSection("AWS"));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddScheme<AuthenticationSchemeOptions, AuthTokenHandler>(JwtBearerDefaults.AuthenticationScheme, null);

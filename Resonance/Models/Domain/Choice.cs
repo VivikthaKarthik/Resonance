@@ -23,10 +23,6 @@ public partial class Choice
 
     public DateTime ModifiedOn { get; set; }
 
-    public virtual ICollection<ChoiceImage> ChoiceImages { get; } = new List<ChoiceImage>();
-
-    public virtual ICollection<ExamResult> ExamResults { get; } = new List<ExamResult>();
-
     public virtual ICollection<MultipleChoiceQuestion> MultipleChoiceQuestionCorrectChoices { get; } = new List<MultipleChoiceQuestion>();
 
     public virtual ICollection<MultipleChoiceQuestion> MultipleChoiceQuestionFirstChoices { get; } = new List<MultipleChoiceQuestion>();

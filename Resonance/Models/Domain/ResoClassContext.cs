@@ -27,17 +27,11 @@ public partial class ResoClassContext : DbContext
 
     public virtual DbSet<Choice> Choices { get; set; }
 
-    public virtual DbSet<ChoiceImage> ChoiceImages { get; set; }
-
     public virtual DbSet<City> Cities { get; set; }
 
     public virtual DbSet<Course> Courses { get; set; }
 
     public virtual DbSet<DifficultyLevel> DifficultyLevels { get; set; }
-
-    public virtual DbSet<Exam> Exams { get; set; }
-
-    public virtual DbSet<ExamResult> ExamResults { get; set; }
 
     public virtual DbSet<Logger> Loggers { get; set; }
 
@@ -46,8 +40,6 @@ public partial class ResoClassContext : DbContext
     public virtual DbSet<Question> Questions { get; set; }
 
     public virtual DbSet<QuestionBank> QuestionBanks { get; set; }
-
-    public virtual DbSet<QuestionImage> QuestionImages { get; set; }
 
     public virtual DbSet<Role> Roles { get; set; }
 
@@ -146,22 +138,6 @@ public partial class ResoClassContext : DbContext
             entity.Property(e => e.ModifiedOn).HasColumnType("datetime");
         });
 
-        modelBuilder.Entity<ChoiceImage>(entity =>
-        {
-            entity.ToTable("Choice_Image");
-
-            entity.Property(e => e.Id).ValueGeneratedNever();
-            entity.Property(e => e.CreatedBy).HasMaxLength(128);
-            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
-            entity.Property(e => e.ModifiedBy).HasMaxLength(128);
-            entity.Property(e => e.ModifiedOn).HasColumnType("datetime");
-
-            entity.HasOne(d => d.Choice).WithMany(p => p.ChoiceImages)
-                .HasForeignKey(d => d.ChoiceId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Choice_Image_Choice");
-        });
-
         modelBuilder.Entity<City>(entity =>
         {
             entity.ToTable("City");
@@ -193,67 +169,6 @@ public partial class ResoClassContext : DbContext
             entity.ToTable("DifficultyLevel");
 
             entity.Property(e => e.Name).HasMaxLength(20);
-        });
-
-        modelBuilder.Entity<Exam>(entity =>
-        {
-            entity.ToTable("Exam");
-
-            entity.Property(e => e.CreatedBy).HasMaxLength(128);
-            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
-            entity.Property(e => e.ModifiedBy).HasMaxLength(128);
-            entity.Property(e => e.ModifiedOn).HasColumnType("datetime");
-            entity.Property(e => e.Name).HasMaxLength(512);
-            entity.Property(e => e.ScheduledOn).HasColumnType("datetime");
-        });
-
-        modelBuilder.Entity<ExamResult>(entity =>
-        {
-            entity.ToTable("Exam_Result");
-
-            entity.Property(e => e.ConductedOn).HasColumnType("datetime");
-            entity.Property(e => e.CreatedBy).HasMaxLength(128);
-            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
-            entity.Property(e => e.ExamType).HasMaxLength(80);
-            entity.Property(e => e.ModifiedBy).HasMaxLength(128);
-            entity.Property(e => e.ModifiedOn).HasColumnType("datetime");
-            entity.Property(e => e.Status).HasMaxLength(10);
-
-            entity.HasOne(d => d.Answer).WithMany(p => p.ExamResults)
-                .HasForeignKey(d => d.AnswerId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Exam_Result_Choice");
-
-            entity.HasOne(d => d.Chapter).WithMany(p => p.ExamResults)
-                .HasForeignKey(d => d.ChapterId)
-                .HasConstraintName("FK_Exam_Result_Chapter");
-
-            entity.HasOne(d => d.Exam).WithMany(p => p.ExamResults)
-                .HasForeignKey(d => d.ExamId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Exam_Result_Exam");
-
-            entity.HasOne(d => d.Question).WithMany(p => p.ExamResults)
-                .HasForeignKey(d => d.QuestionId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Exam_Result_Question");
-
-            entity.HasOne(d => d.Student).WithMany(p => p.ExamResults)
-                .HasForeignKey(d => d.StudentId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Exam_Result_Exam_Result");
-
-            entity.HasOne(d => d.SubTopic).WithMany(p => p.ExamResults)
-                .HasForeignKey(d => d.SubTopicId)
-                .HasConstraintName("FK_Exam_Result_SubTopic");
-
-            entity.HasOne(d => d.Subject).WithMany(p => p.ExamResults)
-                .HasForeignKey(d => d.SubjectId)
-                .HasConstraintName("FK_Exam_Result_Subject");
-
-            entity.HasOne(d => d.Topic).WithMany(p => p.ExamResults)
-                .HasForeignKey(d => d.TopicId)
-                .HasConstraintName("FK_Exam_Result_Topic");
         });
 
         modelBuilder.Entity<Logger>(entity =>
@@ -382,21 +297,6 @@ public partial class ResoClassContext : DbContext
                 .HasConstraintName("FK_QuestionBank_Topic");
         });
 
-        modelBuilder.Entity<QuestionImage>(entity =>
-        {
-            entity.ToTable("Question_Image");
-
-            entity.Property(e => e.CreatedBy).HasMaxLength(128);
-            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
-            entity.Property(e => e.ModifiedBy).HasMaxLength(128);
-            entity.Property(e => e.ModifiedOn).HasColumnType("datetime");
-
-            entity.HasOne(d => d.Question).WithMany(p => p.QuestionImages)
-                .HasForeignKey(d => d.QuestionId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Question_Image_Question");
-        });
-
         modelBuilder.Entity<Role>(entity =>
         {
             entity.ToTable("Role");
@@ -478,6 +378,7 @@ public partial class ResoClassContext : DbContext
         {
             entity.ToTable("Subject");
 
+            entity.Property(e => e.ColorCode).HasMaxLength(100);
             entity.Property(e => e.CreatedBy).HasMaxLength(128);
             entity.Property(e => e.CreatedOn).HasColumnType("datetime");
             entity.Property(e => e.ModifiedBy).HasMaxLength(128);
@@ -536,7 +437,6 @@ public partial class ResoClassContext : DbContext
 
             entity.Property(e => e.CreatedBy).HasMaxLength(128);
             entity.Property(e => e.CreatedOn).HasColumnType("datetime");
-            entity.Property(e => e.HomeDisplay).HasMaxLength(5);
             entity.Property(e => e.ModifiedBy).HasMaxLength(128);
             entity.Property(e => e.ModifiedOn).HasColumnType("datetime");
             entity.Property(e => e.Title).HasMaxLength(250);

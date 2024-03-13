@@ -82,16 +82,28 @@ namespace ResoClassAPI.Services
             return false;
         }
 
-        public async Task<List<VideoDto>> GetAllVideos()
+        public async Task<List<VideoResponseDto>> GetAllVideos()
         {
-            List<VideoDto> dtoObjects = new List<VideoDto>();
-            var vid = await Task.FromResult(dbContext.Videos.Where(item => item.IsActive == true).OrderByDescending(x => x.CreatedOn).ToList());
-            if (vid != null && vid.Count > 0)
+            List<VideoResponseDto> dtoObjects = new List<VideoResponseDto>();
+            var videosList = await Task.FromResult(dbContext.Videos.Where(item => item.IsActive == true).OrderByDescending(x => x.CreatedOn).ToList());
+            var chapters = await Task.FromResult(dbContext.Chapters.ToList());
+            var topics = await Task.FromResult(dbContext.Topics.ToList());
+            var subTopics = await Task.FromResult(dbContext.SubTopics.ToList());
+            if (videosList != null && videosList.Count > 0)
             {
-
-                foreach (var vrVideo in vid)
+                foreach (var video in videosList)
                 {
-                    var dtoObject = mapper.Map<VideoDto>(vrVideo);
+                    var dtoObject = mapper.Map<VideoResponseDto>(video);
+
+                    if(video.ChapterId != null && chapters.Count > 0)
+                        dtoObject.Chapter = chapters.Where(x => x.Id == video.ChapterId).FirstOrDefault().Name;
+
+                    if (video.TopicId != null && topics.Count > 0)
+                        dtoObject.Topic = topics.Where(x => x.Id == video.TopicId).FirstOrDefault().Name;
+
+                    if (video.SubTopicId != null && subTopics.Count > 0)
+                        dtoObject.SubTopic = subTopics.Where(x => x.Id == video.SubTopicId).FirstOrDefault().Name;
+
                     dtoObjects.Add(dtoObject);
                 }
                 return dtoObjects;
@@ -157,7 +169,7 @@ namespace ResoClassAPI.Services
                             throw new Exception("Invalid ChapterId");
                     }
 
-                    if (!string.IsNullOrEmpty(updatedItem.HomeDisplay))
+                    if (existingItem.HomeDisplay != updatedItem.HomeDisplay)
                         existingItem.HomeDisplay = updatedItem.HomeDisplay;
 
                     existingItem.ModifiedBy = currentUser.Name;
@@ -196,6 +208,97 @@ namespace ResoClassAPI.Services
                 return mapper.Map<List<VideoResponseDto>>(videos);
             else
                 throw new Exception("Not Found");
+        }
+
+
+        public async Task<bool> InsertVideos(List<VideoExcelRequestDto> videos)
+        {
+            try
+            {
+                var currentUser = authService.GetCurrentUser();
+                foreach (var video in videos)
+                {
+                    long chapterId = 0;
+                    long topicId = 0;
+                    long subTopicId = 0;
+
+                    long courseId = dbContext.Courses.Where(c => c.Name == video.Course && c.IsActive).Select(c => c.Id).FirstOrDefault();
+
+                    if (courseId == 0)
+                    {
+                        throw new Exception($"Course '{video.Course}' not found in the database.");
+                    }
+
+                    long subjectId = dbContext.Subjects.Where(c => c.Name == video.Subject && c.CourseId == courseId && c.IsActive).Select(c => c.Id).FirstOrDefault();
+
+                    if (subjectId == 0)
+                    {
+                        throw new Exception($"Course '{video.Subject}' not found in the database.");
+                    }
+
+                    if (!string.IsNullOrEmpty(video.Chapter))
+                    {
+                        chapterId = dbContext.Chapters.Where(c => c.Name == video.Chapter && c.SubjectId == subjectId && c.IsActive).Select(c => c.Id).FirstOrDefault();
+
+                        if (chapterId == 0)
+                        {
+                            throw new Exception($"Chapter '{video.Chapter}' not found in the database.");
+                        }
+                    }
+
+                    if (!string.IsNullOrEmpty(video.Topic))
+                    {
+                        topicId = dbContext.Topics.Where(c => c.Name == video.Topic && c.ChapterId == chapterId && c.IsActive).Select(c => c.Id).FirstOrDefault();
+
+                        if (topicId == 0)
+                        {
+                            throw new Exception($"Topic '{video.Topic}' not found in the database.");
+                        }
+                    }
+
+                    if (!string.IsNullOrEmpty(video.SubTopic))
+                    {
+                        subTopicId = dbContext.SubTopics.Where(c => c.Name == video.SubTopic && c.TopicId == topicId && c.IsActive).Select(c => c.Id).FirstOrDefault();
+
+                        if (subTopicId == 0)
+                        {
+                            throw new Exception($"SubTopic '{video.SubTopic}' not found in the database.");
+                        }
+                    }
+
+                    Video newVideo = new Video
+                    {
+                        Title = video.Title,
+                        Description = !string.IsNullOrEmpty(video.Description) ? video.Description : string.Empty,
+                        ThumbNail = video.Thumbnail,
+                        HomeDisplay = video.HomeDisplay,
+                        SourceUrl = video.SourceUrl,
+                        IsActive = true,
+                        CreatedBy = currentUser.Name,
+                        CreatedOn = DateTime.Now,
+                        ModifiedBy = currentUser.Name,
+                        ModifiedOn = DateTime.Now
+                    };
+
+                    if (subTopicId > 0)
+                        newVideo.SubTopicId = subTopicId;
+
+                    if (topicId > 0)
+                        newVideo.TopicId = topicId;
+
+                    if (chapterId > 0)
+                        newVideo.ChapterId = chapterId;
+                    dbContext.Videos.Add(newVideo);
+
+                }
+                await dbContext.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
         }
     }
 }

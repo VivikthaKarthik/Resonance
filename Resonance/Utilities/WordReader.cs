@@ -156,18 +156,14 @@ namespace ResoClassAPI.Utilities
 
         private async Task<QuestionsDto> AddImage(CurrentElement currentElement, byte[] imageArray, string name, QuestionsDto currentQuestion)
         {
-            var bucketName = "lessonvids";
-            var folderPath = "QuestionAndAnswerImages";
-
-            string fileUrl = await awsHandler.UploadImage(imageArray, name, bucketName, folderPath);
-            string imageTag = string.Empty;
+            string fileUrl = await awsHandler.UploadImage(imageArray, "QuestionAndAnswerImages", name);
 
             if (currentQuestion == null)
                 currentQuestion = new QuestionsDto();
 
             if (currentElement == CurrentElement.Question)
             {
-                imageTag = "<Image style={styles.questionImage} source={{ uri: " + fileUrl + "}} />\n";
+                string imageTag = "<Image style={styles.questionImage} source={{ uri: " + fileUrl + "}} />\n";
                 if (!string.IsNullOrEmpty(currentQuestion.Question))
                     currentQuestion.Question += "</Text>\n" + imageTag;
                 else
@@ -175,7 +171,7 @@ namespace ResoClassAPI.Utilities
             }
             else
             {
-                imageTag = "<Image style={styles.answerImage} source={{ uri: " + fileUrl + "}} />\n";
+                string imageTag = "<Image style={styles.answerImage} source={{ uri: " + fileUrl + "}} />\n";
                 AddAnswer(currentElement, currentQuestion, imageTag, true);
             }
             return currentQuestion; 

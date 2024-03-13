@@ -240,7 +240,7 @@ namespace ResoClassAPI.Services
                     }
 
                     // Insert the subject if it doesn't exist
-                    Chapter existingChapter = dbContext.Chapters.FirstOrDefault(s => s.Name == chapterDto.Name && s.IsActive);
+                    Chapter existingChapter = dbContext.Chapters.FirstOrDefault(s => s.Name == chapterDto.Name && s.SubjectId == subjectId && s.IsActive);
 
                     if (existingChapter == null)
                     {
@@ -249,6 +249,7 @@ namespace ResoClassAPI.Services
                             Name = chapterDto.Name,
                             Description = !string.IsNullOrEmpty(chapterDto.Description) ? chapterDto.Description : string.Empty,
                             Thumbnail = chapterDto.Thumbnail,
+                            IsRecommended = chapterDto.IsRecommended.Value,
                             SubjectId = subjectId,
                             IsActive = true,
                             CreatedBy = currentUser.Name,

@@ -2,6 +2,6 @@
 {
     public interface IAwsHandler
     {
-        Task<string> UploadImage(byte[] imageData, string filename, string bucketName, string folderPath);
+        Task<string> UploadImage(byte[] imageData, string folderName, string filename);
     }
 }

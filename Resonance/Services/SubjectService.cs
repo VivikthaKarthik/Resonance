@@ -174,6 +174,7 @@ namespace ResoClassAPI.Services
                             Name = subjectDto.Name, 
                             IsActive = true,
                             CourseId = courseId,
+                            ColorCode = subjectDto.ColorCode,                            
                             CreatedBy = currentUser.Name,
                             CreatedOn = DateTime.Now,
                             ModifiedBy = currentUser.Name,

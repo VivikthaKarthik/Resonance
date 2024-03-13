@@ -11,5 +11,6 @@ namespace ResoClassAPI.Services.Interfaces
         Task<bool> DeleteTopic(long topicId);
         Task<List<TopicDto>> GetTopicsWithChapterId(long chapterId);
         Task<TopicResponseDto> GetTopicById(long topicId);
+        Task<bool> InsertTopics(List<TopicExcelRequestDto> topics);
     }
 }
