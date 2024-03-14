@@ -31,51 +31,36 @@ namespace ResoClassAPI.Services
             {
                 if (questions != null && questions.Count > 0)
                 {
-                    long courseId = 0;
-                    long subjectId = 0;
-                    long chapterId = 0;
-                    long topicId = 0;
-                    long subtopicId = 0;
                     List<QuestionBank> questionsList = new List<QuestionBank>();
 
-                    if (!string.IsNullOrEmpty(request.Course))
+                    if (request.CourseId > 0)
                     {
-                        if (dbContext.Courses.Any(x => x.Name.ToLower() == request.Course.ToLower() && x.IsActive))
-                            courseId = dbContext.Courses.Where(x => x.Name.ToLower() == request.Course.ToLower() && x.IsActive).FirstOrDefault().Id;
-                        else
+                        if (!dbContext.Courses.Any(x => x.Id == request.CourseId && x.IsActive))
                             response = "Invalid Course";
                     }
 
-                    if (!string.IsNullOrEmpty(request.Subject))
+                    if (request.SubjectId > 0)
                     {
-                        if (dbContext.Subjects.Any(x => x.Name.ToLower() == request.Subject.ToLower() && x.CourseId == courseId && x.IsActive))
-                            subjectId = dbContext.Subjects.Where(x => x.Name.ToLower() == request.Subject.ToLower() && x.CourseId == courseId && x.IsActive).FirstOrDefault().Id;
-                        else
+                        if (!dbContext.Subjects.Any(x => x.Id == request.SubjectId && x.CourseId == request.CourseId && x.IsActive))
                             response = "Invalid Subject";
                     }
 
-                    if (!string.IsNullOrEmpty(request.Chapter))
+                    if (request.ChapterId > 0)
                     {
-                        if (dbContext.Chapters.Any(x => x.Name.ToLower() == request.Chapter.ToLower() && x.SubjectId == subjectId && x.IsActive))
-                            chapterId = dbContext.Chapters.Where(x => x.Name.ToLower() == request.Chapter.ToLower() && x.SubjectId == subjectId && x.IsActive).FirstOrDefault().Id;
-                        else
+                        if (dbContext.Chapters.Any(x => x.Id == request.ChapterId && x.SubjectId == request.SubjectId && x.IsActive))
                             response = "Invalid Chapter";
                     }
 
-                    if (!string.IsNullOrEmpty(request.Topic))
+                    if (request.TopicId > 0)
                     {
-                        if (dbContext.Topics.Any(x => x.Name.ToLower() == request.Topic.ToLower() && x.ChapterId == chapterId && x.IsActive))
-                            topicId = dbContext.Topics.Where(x => x.Name.ToLower() == request.Topic.ToLower() && x.ChapterId == chapterId && x.IsActive).FirstOrDefault().Id;
-                        else
+                        if (!dbContext.Topics.Any(x => x.Id == request.TopicId && x.ChapterId == request.ChapterId && x.IsActive))
                             response = "Invalid Topic";
                     }
 
-                    if (!string.IsNullOrEmpty(request.SubTopic))
+                    if (request.SubTopicId > 0)
                     {
-                        if (dbContext.SubTopics.Any(x => x.Name.ToLower() == request.SubTopic.ToLower() && x.TopicId == topicId && x.IsActive))
-                            subtopicId = dbContext.SubTopics.Where(x => x.Name.ToLower() == request.SubTopic.ToLower() && x.TopicId == topicId && x.IsActive).FirstOrDefault().Id;
-                        else
-                            response = "Invalid SubTopic";
+                        if (dbContext.SubTopics.Any(x => x.Id == request.SubTopicId && x.TopicId == request.TopicId && x.IsActive))
+                           response = "Invalid SubTopic";
                     }
                     var difficultyLevels = dbContext.DifficultyLevels.ToList();
                     if (response == string.Empty)
@@ -97,14 +82,14 @@ namespace ResoClassAPI.Services
                                 var difficultyLevel = difficultyLevels.Where(x => x.Name.ToLower() == question.DifficultyLevel.ToLower()).FirstOrDefault();
                                 questionBank.DifficultyLevelId = difficultyLevel != null ? difficultyLevel.Id : 1000001;
 
-                                if (chapterId > 0)
-                                    questionBank.ChapterId = chapterId;
+                                if (request.ChapterId > 0)
+                                    questionBank.ChapterId = request.ChapterId;
 
-                                if (topicId > 0)
-                                    questionBank.TopicId = topicId;
+                                if (request.TopicId > 0)
+                                    questionBank.TopicId = request.TopicId;
 
-                                if (subtopicId > 0)
-                                    questionBank.SubTopicId = subtopicId;
+                                if (request.SubTopicId > 0)
+                                    questionBank.SubTopicId = request.SubTopicId;
 
                                 questionBank.IsActive = true;
                                 questionBank.CreatedBy = currentUser.Name;
@@ -474,160 +459,98 @@ namespace ResoClassAPI.Services
             return sessions;
         }
 
-        public async Task<AssessmentReportDto> GetAssessmentReport(long id)
+        public async Task<bool> DeleteQuestions(List<long> ids)
         {
-            var currentUser = authService.GetCurrentUser();
-            AssessmentReportDto report = new AssessmentReportDto();
-            var assessmentSession = dbContext.AssessmentSessions.Where(x => x.Id == id).FirstOrDefault();
-
-            if (assessmentSession != null)
+            try
             {
-                var questions = dbContext.AssessmentSessionQuestions.Where(x => x.AssessmentSessionId == id && x.Result != null).ToList();
-                report.AssessmentId = assessmentSession.Id;
-                report.PracticedOn = assessmentSession.StartTime.Value;
-                report.TotalAttempted = questions.Count;
-                report.CorrectAnswers = questions.Where(x => x.Result.Value).Count();
-                report.WrongAnswers = questions.Where(x => !x.Result.Value).Count();
-
-                report.PracticedFromChapters = new List<ListItemDto>();
-                var chapterIds = questions.Where(x => x.ChapterId != null).Select(x => x.ChapterId);
-
-                if (chapterIds.Any())
+                foreach (var id in ids)
                 {
-                    var ids = chapterIds.ToList();
-                    var chaptersList = dbContext.Chapters.Where(x => ids.Contains(x.Id)).Select(y => new ListItemDto()
+                    if (dbContext.QuestionBanks.Any(x => x.Id == id))
                     {
-                        Id = y.Id,
-                        Name = y.Name
-                    });
-
-                    if (chaptersList.Any())
+                        var question = dbContext.QuestionBanks.FirstOrDefault(x => x.Id == id);
+                        dbContext.QuestionBanks.Remove(question);
+                    }
+                    else
                     {
-                        report.PracticedFromChapters = chaptersList.ToList();
+                        return false;
                     }
                 }
-
-                report.PracticedFromTopics = new List<ListItemDto>();
-                var topicIds = questions.Where(x => x.TopicId != null).Select(x => x.TopicId);
-
-                if (topicIds.Any())
-                {
-                    var ids = topicIds.ToList();
-                    var topicsList = dbContext.Topics.Where(x => ids.Contains(x.Id)).Select(y => new ListItemDto()
-                    {
-                        Id = y.Id,
-                        Name = y.Name
-                    });
-
-                    if (topicsList.Any())
-                    {
-                        report.PracticedFromTopics = topicsList.ToList();
-                    }
-                }
-
-                report.CorrectAnswersAnalysis = GetAnalysis(questions.Where(x => x.Result.Value).ToList());
-                report.WrongAnswersAnalysis = GetAnalysis(questions.Where(x => !x.Result.Value).ToList());
+                await dbContext.SaveChangesAsync();
+                return true;
             }
-
-            return report;
+            catch(Exception ex)
+            {
+                throw ex;
+            }
         }
 
-        private ChapterAnalysisDto GetAnalysis(List<AssessmentSessionQuestion> questions)
+
+        public async Task<List<QuestionsDto>> GetQuestions(QuestionsUploadRequestDto requestDto)
         {
-            var difficultyLevels = dbContext.DifficultyLevels.ToList();
-            ChapterAnalysisDto answersAnalysis = new ChapterAnalysisDto();
-
-            var groupedDifficultyLevelQuestions = questions.GroupBy(q => q.DifficultyLevelId)
-                                    .Select(g => new
-                                    {
-                                        Level = g.Key,
-                                        Count = g.Count()
-                                    });
-            if (groupedDifficultyLevelQuestions.Any())
+            List<QuestionsDto> response = new List<QuestionsDto>();
+            try
             {
-                answersAnalysis.DifficultyLevelAnalysis = new List<ItemWiseAnalysisDto>();
-                foreach (var group in groupedDifficultyLevelQuestions)
+                List<QuestionBank> questions = new List<QuestionBank>();
+
+                if (requestDto.SubTopicId > 0)
                 {
-                    if (group.Level != null)
+                    if (requestDto.ChapterId > 0 && requestDto.TopicId > 0)
                     {
-                        var difficultylevel = difficultyLevels.First(x => x.Id == group.Level.Value);
-                        answersAnalysis.DifficultyLevelAnalysis.Add(new ItemWiseAnalysisDto()
-                        {
-                            Name = difficultylevel.Name,
-                            QuestionsCount = groupedDifficultyLevelQuestions.FirstOrDefault(g => g.Level.Value == difficultylevel.Id)?.Count ?? 0
-                        });
+                        questions.AddRange(dbContext.QuestionBanks.Where(x =>
+                        x.ChapterId != null && x.ChapterId.Value == requestDto.ChapterId &&
+                        x.TopicId != null && x.TopicId.Value == requestDto.TopicId &&
+                        x.SubTopicId != null && x.SubTopicId.Value == requestDto.SubTopicId &&
+                        x.IsActive));
+                    }
+                    else if (requestDto.TopicId > 0)
+                    {
+                        questions.AddRange(dbContext.QuestionBanks.Where(x =>
+                        x.TopicId != null && x.TopicId.Value == requestDto.TopicId &&
+                        x.SubTopicId != null && x.SubTopicId.Value == requestDto.SubTopicId &&
+                        x.IsActive));
+                    }
+                    else
+                    {
+                        questions.AddRange(dbContext.QuestionBanks.Where(x =>
+                        x.SubTopicId != null && x.SubTopicId.Value == requestDto.SubTopicId &&
+                        x.IsActive));
                     }
                 }
-            }
-            //correctAnswersAnalysis.DifficultyLevelAnalysis = new List<ItemWiseAnalysisDto>
-            //{
-            //    new ItemWiseAnalysisDto()
-            //    {
-            //        Name = "Easy",
-            //        QuestionsCount = groupedDifficultyLevelQuestions.FirstOrDefault(g => g.Level.Value == difficultyLevels.First(x => x.Name == "Easy").Id)?.Count ?? 0
-
-            //},
-            //new ItemWiseAnalysisDto()
-            //{
-            //    Name = "Medium",
-            //    QuestionsCount = groupedDifficultyLevelQuestions.FirstOrDefault(g => g.Level.Value == difficultyLevels.First(x => x.Name == "Medium").Id)?.Count ?? 0
-            //},new ItemWiseAnalysisDto()
-            //{
-            //    Name = "Difficult",
-            //    QuestionsCount = groupedDifficultyLevelQuestions.FirstOrDefault(g => g.Level.Value == difficultyLevels.First(x => x.Name == "Difficult").Id)?.Count ?? 0
-            //},
-            //};
-
-            var chapters = dbContext.Chapters.ToList();
-            var groupedChaperQuestions = questions.GroupBy(q => q.ChapterId)
-                                    .Select(g => new
-                                    {
-                                        Level = g.Key,
-                                        Count = g.Count()
-                                    });
-
-            if (groupedChaperQuestions.Any())
-            {
-                answersAnalysis.ChapterWiseAnalysis = new List<ItemWiseAnalysisDto>();
-                foreach (var group in groupedChaperQuestions)
+                else if (requestDto.TopicId > 0)
                 {
-                    if (group.Level != null)
+                    if (requestDto.ChapterId > 0)
                     {
-                        var chaptersData = chapters.First(x => x.Id == group.Level.Value);
-                        answersAnalysis.ChapterWiseAnalysis.Add(new ItemWiseAnalysisDto()
-                        {
-                            Name = chaptersData.Name,
-                            QuestionsCount = groupedChaperQuestions.FirstOrDefault(g => g.Level.Value == chaptersData.Id)?.Count ?? 0
-                        });
+                        questions.AddRange(dbContext.QuestionBanks.Where(x =>
+                        x.ChapterId != null && x.ChapterId.Value == requestDto.ChapterId &&
+                        x.TopicId != null && x.TopicId.Value == requestDto.TopicId &&
+                        x.IsActive));
+                    }
+                    else
+                    {
+                        questions.AddRange(dbContext.QuestionBanks.Where(x =>
+                        x.TopicId != null && x.TopicId.Value == requestDto.TopicId &&
+                        x.IsActive));
                     }
                 }
-            }
-            var topics = dbContext.Topics.ToList();
-            var groupedTopicQuestions = questions.GroupBy(q => q.TopicId)
-                                    .Select(g => new
-                                    {
-                                        Level = g.Key,
-                                        Count = g.Count()
-                                    });
-
-            if (groupedTopicQuestions.Any())
-            {
-                answersAnalysis.TopicWiseAnalysis = new List<ItemWiseAnalysisDto>();
-                foreach (var group in groupedTopicQuestions)
+                else if (requestDto.ChapterId > 0)
                 {
-                    if (group.Level != null)
-                    {
-                        var topicsData = topics.First(x => x.Id == group.Level.Value);
-                        answersAnalysis.TopicWiseAnalysis.Add(new ItemWiseAnalysisDto()
-                        {
-                            Name = topicsData.Name,
-                            QuestionsCount = groupedTopicQuestions.FirstOrDefault(g => g.Level.Value == topicsData.Id)?.Count ?? 0
-                        });
-                    }
+                    questions.AddRange(dbContext.QuestionBanks.Where(x => 
+                    x.ChapterId != null && x.ChapterId.Value == requestDto.ChapterId 
+                    && x.IsActive));
                 }
-            }
 
-            return answersAnalysis;
+
+                if(questions.Count > 0)
+                {
+                    response = mapper.Map<List<QuestionsDto>>(questions);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return response;
         }
     }
 }
