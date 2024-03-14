@@ -2,10 +2,10 @@
 {
     public class QuestionsUploadRequestDto
     {
-        public string Course { get; set; } = null!;
-        public string Subject { get; set; } = null!;
-        public string Chapter { get; set; }
-        public string Topic { get; set; }
-        public string SubTopic { get; set; }
+        public long CourseId { get; set; }
+        public long SubjectId { get; set; }
+        public long? ChapterId { get; set; }
+        public long? TopicId { get; set; }
+        public long? SubTopicId { get; set; }
     }
 }

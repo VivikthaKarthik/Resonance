@@ -112,7 +112,7 @@ namespace ResoClassAPI.Controllers
                     return responseDto;
                 }
                 
-                if(string.IsNullOrEmpty(request.Course) && string.IsNullOrEmpty(request.Topic) && string.IsNullOrEmpty(request.SubTopic))
+                if(request.CourseId <= 0 && request.TopicId <= 0 && request.SubTopicId <= 0)
                 {
                     responseDto.IsSuccess = false;
                     responseDto.Message = "Questions should be linked to atleast one master data(Chapter / Topic / SubTopic)";
@@ -269,34 +269,65 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
-        //[HttpGet]
-        //[Route("api/Assessment/GetAssessmentReport")]
-        //public async Task<ResponseDto> GetAssessmentReport(long id)
-        //{
-        //    ResponseDto responseDto = new ResponseDto();
-        //    try
-        //    {
-        //        logger.LogInformation("Requested GetAssessmentConfig");
-        //        var report = await assessmentService.GetAssessmentReport(id);
+        [HttpDelete]
+        [Authorize(Policy = "Admin")]
+        [Route("api/Assessment/DeleteQuestions")]
+        public async Task<ResponseDto> DeleteQuestions(List<long> ids)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                logger.LogInformation("Requested GetChapter");
+                var isCompleted = await assessmentService.DeleteQuestions(ids);
 
-        //        if (report != null)
-        //        {
-        //            responseDto.Result = report;
-        //            responseDto.IsSuccess = true;
-        //        }
-        //        else
-        //        {
-        //            responseDto.IsSuccess = false;
-        //            responseDto.Message = "Not Found";
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        responseDto.IsSuccess = false;
-        //        responseDto.Message = ex.Message;
-        //    }
-        //    return responseDto;
-        //}
+                if (isCompleted)
+                {
+                    responseDto.Result = "Question(s) Deleted Successfully";
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+                
+        [HttpPost]
+        [Authorize(Policy = "Admin")]
+        [Route("api/Assessment/GetAllQuestions")]
+        public async Task<ResponseDto> GetAllQuestions(QuestionsUploadRequestDto request)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                logger.LogInformation("Requested GetChapter");
+                var questions = await assessmentService.GetQuestions(request);
+
+                if (questions != null)
+                {
+                    responseDto.Result = questions;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
 
     }
 

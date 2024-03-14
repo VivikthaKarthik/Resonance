@@ -47,6 +47,8 @@ namespace Resonance
 
                 //QuestionBank Mapper
                 config.CreateMap<QuestionBank, QuestionData>();
+                config.CreateMap<QuestionBank, QuestionsDto>();
+                
 
                 //Assessment Mapper
                 config.CreateMap<AssessmentConfiguration, AssessmentConfigurationDto>();
