@@ -3,9 +3,9 @@
     public class AssessmentSessionResponseDto
     {
         public long Id { get; set; }
-
+        public string PracticeSession { get; set; }
         public DateTime PracticedOn { get; set; }
-
-        public bool? Result { get; set; }
+        public int AttemptedQuestions { get; set; }
+        public int Score { get; set; }
     }
 }

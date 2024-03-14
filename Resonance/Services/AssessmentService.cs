@@ -632,18 +632,30 @@ namespace ResoClassAPI.Services
         }
 
 
-        public async Task<List<AssessmentSessionDto>> GetAssessmentsByStudentId(long id)
+        public async Task<List<AssessmentSessionResponseDto>> GetAssessmentsByStudentId(long id)
         {
             var currentUser = authService.GetCurrentUser();
-            List<AssessmentSessionDto> sessions = new List<AssessmentSessionDto>();
+            List<AssessmentSessionResponseDto> sessions = new List<AssessmentSessionResponseDto>();
             try
             {
-                var sessionsList = await Task.FromResult(dbContext.AssessmentSessions.Where(x => x.StudentId == id));
-
+                var student = dbContext.Students.FirstOrDefault(x => x.Id == id);
+                var sessionsList = await Task.FromResult(dbContext.AssessmentSessions.Where(x => x.StudentId == student.Id && x.StartTime != null));
+                var config = dbContext.AssessmentConfigurations.Where(x=>x.CourseId == student.CourseId).FirstOrDefault();
                 if (sessionsList != null)
                 {
                     foreach (var session in sessionsList)
-                        sessions.Add(mapper.Map<AssessmentSessionDto>(session));
+                    {
+                        AssessmentSessionResponseDto item = new AssessmentSessionResponseDto();
+                        item.Id = session.Id;
+                        item.PracticedOn = session.StartTime.Value;
+                        var questions = dbContext.AssessmentSessionQuestions.Where(x => x.AssessmentSessionId == session.Id).ToList();
+                        if (questions != null && questions.Count > 0)
+                        {
+                            item.AttemptedQuestions = questions.Count;
+                            item.Score = 0;
+                        }
+                        sessions.Add(item);
+                    }
                 }
             }
             catch (Exception ex)
