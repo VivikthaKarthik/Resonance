@@ -7,6 +7,7 @@ using ResoClassAPI.DTOs;
 using ResoClassAPI.Models;
 using ResoClassAPI.Models.Domain;
 using ResoClassAPI.Services.Interfaces;
+using ResoClassAPI.Utilities;
 using System.Linq;
 
 namespace ResoClassAPI.Services
@@ -132,6 +133,7 @@ namespace ResoClassAPI.Services
 
                     if (questions != null && questions.Count > 0)
                     {
+                        questions = await ReplaceTags(questions, clientType.Mobile);
                         response.AssessmentId = await CreateNewSession(questions);
                         response.Questions = questions;
                     }
@@ -143,6 +145,81 @@ namespace ResoClassAPI.Services
             }
             return response;
         }
+
+        private async Task<List<QuestionData>> ReplaceTags(List<QuestionData> questions, clientType clientType)
+        {
+            foreach(var question in questions)
+            {
+                if(clientType == clientType.WEB)
+                {
+                    question.Question = ReplaceWebText(question.Question);
+                    question.FirstAnswer = ReplaceWebText(question.FirstAnswer);
+                    question.SecondAnswer = ReplaceWebText(question.SecondAnswer);
+                    question.ThirdAnswer = ReplaceWebText(question.ThirdAnswer);
+                    question.FourthAnswer = ReplaceWebText(question.FourthAnswer);
+                }
+                else if(clientType == clientType.Mobile)
+                {
+                    question.Question = ReplaceMobileText(question.Question);
+                    question.FirstAnswer = ReplaceMobileText(question.FirstAnswer);
+                    question.SecondAnswer = ReplaceMobileText(question.SecondAnswer);
+                    question.ThirdAnswer = ReplaceMobileText(question.ThirdAnswer);
+                    question.FourthAnswer = ReplaceMobileText(question.FourthAnswer);
+                }
+            }
+            return questions;
+        }
+
+        private async Task<List<QuestionBank>> ReplaceTags(List<QuestionBank> questions, clientType clientType)
+        {
+            foreach (var question in questions)
+            {
+                if (clientType == clientType.WEB)
+                {
+                    question.Question = ReplaceWebText(question.Question);
+                    question.FirstAnswer = ReplaceWebText(question.FirstAnswer);
+                    question.SecondAnswer = ReplaceWebText(question.SecondAnswer);
+                    question.ThirdAnswer = ReplaceWebText(question.ThirdAnswer);
+                    question.FourthAnswer = ReplaceWebText(question.FourthAnswer);
+                }
+                else if (clientType == clientType.Mobile)
+                {
+                    question.Question = ReplaceMobileText(question.Question);
+                    question.FirstAnswer = ReplaceMobileText(question.FirstAnswer);
+                    question.SecondAnswer = ReplaceMobileText(question.SecondAnswer);
+                    question.ThirdAnswer = ReplaceMobileText(question.ThirdAnswer);
+                    question.FourthAnswer = ReplaceMobileText(question.FourthAnswer);
+                }
+            }
+            return questions;
+        }
+
+        private string ReplaceMobileText(string source)
+        {
+            string updated = source.
+                Replace(QuestionAndAnswerTags.QuestionImageOpeningTag, "<Image style={styles.questionImage} source={{ uri: ").
+                Replace(QuestionAndAnswerTags.ImageClosingTag, "}} />").
+                Replace(QuestionAndAnswerTags.QuestionTextOpeningTag, "<Text style={styles.questionText}>").
+                Replace(QuestionAndAnswerTags.AnswerImageOpeningTag, "<Image style={styles.answerImage} source={{ uri: ").
+                Replace(QuestionAndAnswerTags.AnswerTextOpeningTag, "<Text>").
+                Replace(QuestionAndAnswerTags.TextClosingTag, "</Text>").
+                Replace(QuestionAndAnswerTags.NewLineTag, "\n");
+            return updated;
+        }
+
+        private string ReplaceWebText(string source)
+        {
+            string updated = source.
+                Replace(QuestionAndAnswerTags.QuestionImageOpeningTag, "<img class='questionImage' src='").
+                Replace(QuestionAndAnswerTags.ImageClosingTag, "' />").
+                Replace(QuestionAndAnswerTags.QuestionTextOpeningTag, "<span class='questionText'>").
+                Replace(QuestionAndAnswerTags.AnswerImageOpeningTag, "<img class='answerImage' src='").
+                Replace(QuestionAndAnswerTags.AnswerTextOpeningTag, "<span>").
+                Replace(QuestionAndAnswerTags.TextClosingTag, "</span>").
+                Replace(QuestionAndAnswerTags.NewLineTag, "</ br>");
+            return updated;
+        }
+
         private async Task<long> CreateNewSession(List<QuestionData> questions)
         {
             var currentUser = authService.GetCurrentUser();
@@ -542,6 +619,7 @@ namespace ResoClassAPI.Services
 
                 if(questions.Count > 0)
                 {
+                    questions = await ReplaceTags(questions, clientType.WEB);
                     response = mapper.Map<List<QuestionsDto>>(questions);
                 }
 
@@ -551,6 +629,28 @@ namespace ResoClassAPI.Services
                 throw ex;
             }
             return response;
+        }
+
+
+        public async Task<List<AssessmentSessionDto>> GetAssessmentsByStudentId(long id)
+        {
+            var currentUser = authService.GetCurrentUser();
+            List<AssessmentSessionDto> sessions = new List<AssessmentSessionDto>();
+            try
+            {
+                var sessionsList = await Task.FromResult(dbContext.AssessmentSessions.Where(x => x.StudentId == id));
+
+                if (sessionsList != null)
+                {
+                    foreach (var session in sessionsList)
+                        sessions.Add(mapper.Map<AssessmentSessionDto>(session));
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return sessions;
         }
     }
 }

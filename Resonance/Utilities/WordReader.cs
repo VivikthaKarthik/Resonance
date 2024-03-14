@@ -8,6 +8,17 @@ namespace ResoClassAPI.Utilities
     public class WordReader : IWordReader
     {
         private readonly IAwsHandler awsHandler;
+        private const string QuestionIndicator = "Question";
+        private const string FirstAnswerIndicator = "Option1";
+        private const string SecondAnswerIndicator = "Option2";
+        private const string ThirdAnswerIndicator = "Option3";
+        private const string FourthAnswerIndicator = "Option4";
+        private const string CorrectAnswerIndicator = "CorrectAnswer";
+        private const string DifficultyLevelIndicator = "DifficultyLevel";
+        private const string ImageNameAppender = "ResoImage_";
+        private const string S3BucketFolderName = "QuestionAndAnswerImages";
+
+
         public WordReader(IAwsHandler _awsHandler)
         {
             awsHandler = _awsHandler;
@@ -38,46 +49,46 @@ namespace ResoClassAPI.Utilities
                             {
                                 var text = run.GetFirstChild<Text>();
 
-                                if (text != null && text.Text.TrimStart().StartsWith("Question"))
+                                if (text != null && text.Text.TrimStart().StartsWith(QuestionIndicator))
                                     currentElement = CurrentElement.Question;
-                                else if (text != null && text.Text.TrimStart().StartsWith("Option1"))
+                                else if (text != null && text.Text.TrimStart().StartsWith(FirstAnswerIndicator))
                                 {
-                                    if (!currentQuestion.Question.TrimEnd().EndsWith("}} />") && !currentQuestion.Question.TrimEnd().EndsWith("</Text>"))
-                                        currentQuestion.Question += "</Text>\n";
+                                    if (!currentQuestion.Question.TrimEnd().EndsWith(QuestionAndAnswerTags.TextClosingTag) && !currentQuestion.Question.TrimEnd().EndsWith(QuestionAndAnswerTags.TextClosingTag))
+                                        currentQuestion.Question += QuestionAndAnswerTags.TextClosingTag + QuestionAndAnswerTags.NewLineTag;
                                     currentElement = CurrentElement.FirstAnswer;
                                 }
-                                else if (text != null && text.Text.TrimStart().StartsWith("Option2"))
+                                else if (text != null && text.Text.TrimStart().StartsWith(SecondAnswerIndicator))
                                 {
-                                    if(!currentQuestion.FirstAnswer.TrimEnd().EndsWith("}} />") && !currentQuestion.FirstAnswer.TrimEnd().EndsWith("</Text>"))
-                                        currentQuestion.FirstAnswer += "</Text>\n";
+                                    if(!currentQuestion.FirstAnswer.TrimEnd().EndsWith(QuestionAndAnswerTags.TextClosingTag) && !currentQuestion.FirstAnswer.TrimEnd().EndsWith(QuestionAndAnswerTags.TextClosingTag))
+                                        currentQuestion.FirstAnswer += QuestionAndAnswerTags.TextClosingTag + QuestionAndAnswerTags.NewLineTag;
                                     currentElement = CurrentElement.SecondAnswer;
                                 }
-                                else if (text != null && text.Text.TrimStart().StartsWith("Option3"))
+                                else if (text != null && text.Text.TrimStart().StartsWith(ThirdAnswerIndicator))
                                 {
-                                    if (!currentQuestion.SecondAnswer.TrimEnd().EndsWith("}} />") && !currentQuestion.SecondAnswer.TrimEnd().EndsWith("</Text>"))
-                                        currentQuestion.SecondAnswer += "</Text>\n";
+                                    if (!currentQuestion.SecondAnswer.TrimEnd().EndsWith(QuestionAndAnswerTags.TextClosingTag) && !currentQuestion.SecondAnswer.TrimEnd().EndsWith(QuestionAndAnswerTags.TextClosingTag))
+                                        currentQuestion.SecondAnswer += QuestionAndAnswerTags.TextClosingTag + QuestionAndAnswerTags.NewLineTag;
                                     currentElement = CurrentElement.ThirdAnswer;
                                 }
-                                else if (text != null && text.Text.TrimStart().StartsWith("Option4"))
+                                else if (text != null && text.Text.TrimStart().StartsWith(FourthAnswerIndicator))
                                 {
-                                    if (!currentQuestion.ThirdAnswer.TrimEnd().EndsWith("}} />") && !currentQuestion.ThirdAnswer.TrimEnd().EndsWith("</Text>"))
-                                        currentQuestion.ThirdAnswer += "</Text>\n";
+                                    if (!currentQuestion.ThirdAnswer.TrimEnd().EndsWith(QuestionAndAnswerTags.TextClosingTag) && !currentQuestion.ThirdAnswer.TrimEnd().EndsWith(QuestionAndAnswerTags.TextClosingTag))
+                                        currentQuestion.ThirdAnswer += QuestionAndAnswerTags.TextClosingTag + QuestionAndAnswerTags.NewLineTag;
                                     currentElement = CurrentElement.FourthAnswer;
                                 }
-                                else if (text != null && text.Text.TrimStart().StartsWith("CorrectAnswer"))
+                                else if (text != null && text.Text.TrimStart().StartsWith(CorrectAnswerIndicator))
                                 {
-                                    if (!currentQuestion.FourthAnswer.TrimEnd().EndsWith("}} />") && !currentQuestion.FourthAnswer.TrimEnd().EndsWith("</Text>"))
-                                        currentQuestion.FourthAnswer += "</Text>\n";
+                                    if (!currentQuestion.FourthAnswer.TrimEnd().EndsWith(QuestionAndAnswerTags.TextClosingTag) && !currentQuestion.FourthAnswer.TrimEnd().EndsWith(QuestionAndAnswerTags.TextClosingTag))
+                                        currentQuestion.FourthAnswer += QuestionAndAnswerTags.TextClosingTag + QuestionAndAnswerTags.NewLineTag;
                                     currentElement = CurrentElement.CorrectAnswer;
                                 }
-                                else if (text != null && text.Text.TrimStart().StartsWith("DifficultyLevel"))
+                                else if (text != null && text.Text.TrimStart().StartsWith(DifficultyLevelIndicator))
                                 {
                                     currentElement = CurrentElement.DifficultyLevel;
                                 }
 
-                                if (text != null && !string.IsNullOrEmpty(text.Text) && text.Text.Trim() != "Question" &&
-                                    text.Text.Trim() != "Option1" && text.Text.Trim() != "Option2" && text.Text.Trim() != "Option3"
-                                     && text.Text.Trim() != "Option4" && text.Text.Trim() != "CorrectAnswer" && text.Text.Trim() != "DifficultyLevel")
+                                if (text != null && !string.IsNullOrEmpty(text.Text) && text.Text.Trim() != QuestionIndicator &&
+                                    text.Text.Trim() != FirstAnswerIndicator && text.Text.Trim() != SecondAnswerIndicator && text.Text.Trim() != ThirdAnswerIndicator
+                                     && text.Text.Trim() != FourthAnswerIndicator && text.Text.Trim() != CorrectAnswerIndicator && text.Text.Trim() != DifficultyLevelIndicator)
                                 {
                                     // Explicitly set the encoding to UTF-8
                                     string decodedText = System.Text.Encoding.UTF8.GetString(System.Text.Encoding.Default.GetBytes(text.Text));
@@ -124,23 +135,23 @@ namespace ResoClassAPI.Utilities
         {
             if (currentQuestion == null)
             {
-                currentQuestion = new QuestionsDto { Question = "<Text style={styles.questionText}>" + decodedText };
+                currentQuestion = new QuestionsDto { Question = QuestionAndAnswerTags.QuestionTextOpeningTag + decodedText };
             }
             else if (!IsAnswer(currentElement) && currentElement != CurrentElement.CorrectAnswer && currentElement != CurrentElement.DifficultyLevel)
             {
-                if (currentQuestion.Question.TrimEnd().EndsWith("}} />"))
-                    currentQuestion.Question += "<Text style={styles.questionText}>" + decodedText;
+                if (currentQuestion.Question.TrimEnd().EndsWith(QuestionAndAnswerTags.ImageClosingTag))
+                    currentQuestion.Question += QuestionAndAnswerTags.QuestionTextOpeningTag + decodedText;
                 currentQuestion.Question += decodedText;
             }
             else if (currentElement != CurrentElement.CorrectAnswer && currentElement != CurrentElement.DifficultyLevel)
             {
                 AddAnswer(currentElement, currentQuestion, decodedText, false);
             }
-            else if (currentElement == CurrentElement.CorrectAnswer && decodedText != "")
+            else if (currentElement == CurrentElement.CorrectAnswer && decodedText != string.Empty)
             {
                 currentQuestion.CorrectAnswer += decodedText.Trim();
             }
-            else if (currentElement == CurrentElement.DifficultyLevel && decodedText != "")
+            else if (currentElement == CurrentElement.DifficultyLevel && decodedText != string.Empty)
             {
                 currentQuestion.DifficultyLevel = decodedText.Trim();
             }
@@ -151,27 +162,27 @@ namespace ResoClassAPI.Utilities
             if (currentQuestion == null)
                 currentQuestion = new QuestionsDto();
 
-            return "ResoImage_" + currentElement.ToString() + "_" + Guid.NewGuid();
+            return ImageNameAppender + Guid.NewGuid();
         }
 
         private async Task<QuestionsDto> AddImage(CurrentElement currentElement, byte[] imageArray, string name, QuestionsDto currentQuestion)
         {
-            string fileUrl = await awsHandler.UploadImage(imageArray, "QuestionAndAnswerImages", name);
+            string fileUrl = await awsHandler.UploadImage(imageArray, S3BucketFolderName, name);
 
             if (currentQuestion == null)
                 currentQuestion = new QuestionsDto();
 
             if (currentElement == CurrentElement.Question)
             {
-                string imageTag = "<Image style={styles.questionImage} source={{ uri: " + fileUrl + "}} />\n";
+                string imageTag = QuestionAndAnswerTags.QuestionImageOpeningTag + fileUrl + QuestionAndAnswerTags.ImageClosingTag + QuestionAndAnswerTags.NewLineTag;
                 if (!string.IsNullOrEmpty(currentQuestion.Question))
-                    currentQuestion.Question += "</Text>\n" + imageTag;
+                    currentQuestion.Question += QuestionAndAnswerTags.TextClosingTag + QuestionAndAnswerTags.NewLineTag + imageTag;
                 else
                     currentQuestion.Question += imageTag;
             }
             else
             {
-                string imageTag = "<Image style={styles.answerImage} source={{ uri: " + fileUrl + "}} />\n";
+                string imageTag = QuestionAndAnswerTags.AnswerImageOpeningTag + fileUrl + QuestionAndAnswerTags.ImageClosingTag + QuestionAndAnswerTags.NewLineTag;
                 AddAnswer(currentElement, currentQuestion, imageTag, true);
             }
             return currentQuestion; 
@@ -214,22 +225,22 @@ namespace ResoClassAPI.Utilities
             {
                 case CurrentElement.FirstAnswer:
                     if(string.IsNullOrEmpty(question.FirstAnswer) && !isImage)
-                        question.FirstAnswer = "<Text>";
+                        question.FirstAnswer  = QuestionAndAnswerTags.AnswerTextOpeningTag;
                     question.FirstAnswer += answerText;
                     break;
                 case CurrentElement.SecondAnswer:
                     if (string.IsNullOrEmpty(question.SecondAnswer) && !isImage)
-                        question.SecondAnswer = "<Text>";
+                        question.SecondAnswer = QuestionAndAnswerTags.AnswerTextOpeningTag;
                     question.SecondAnswer += answerText;
                     break;
                 case CurrentElement.ThirdAnswer:
                     if (string.IsNullOrEmpty(question.ThirdAnswer) && !isImage)
-                        question.ThirdAnswer = "<Text>";
+                        question.ThirdAnswer = QuestionAndAnswerTags.AnswerTextOpeningTag;
                     question.ThirdAnswer += answerText;
                     break;
                 case CurrentElement.FourthAnswer:
                     if (string.IsNullOrEmpty(question.FourthAnswer) && !isImage)
-                        question.FourthAnswer = "<Text>";
+                        question.FourthAnswer = QuestionAndAnswerTags.AnswerTextOpeningTag;
                     question.FourthAnswer += answerText;
                     break;
             }
