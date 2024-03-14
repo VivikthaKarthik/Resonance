@@ -21,4 +21,21 @@
         CorrectAnswer,
         DifficultyLevel
     }
+
+    public enum clientType
+    {
+        WEB,
+        Mobile
+    }
+
+    public static class  QuestionAndAnswerTags
+    {
+        public const string QuestionImageOpeningTag = "<QuestionImageOpeningTag>";
+        public const string AnswerImageOpeningTag = "<AnswerImageOpeningTag>";
+        public const string ImageClosingTag = "<ImageClosingTag>";
+        public const string QuestionTextOpeningTag = "<QuestionTextOpeningTag>";
+        public const string AnswerTextOpeningTag = "<AnswerTextOpeningTag>";
+        public const string TextClosingTag = "<TextClosingTag>";
+        public const string NewLineTag = "<NewLineTag>";
+    }
 }

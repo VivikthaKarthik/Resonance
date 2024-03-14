@@ -13,6 +13,7 @@ namespace ResoClassAPI.Services.Interfaces
         Task<bool> UpdateQuestionStatus(UpdateAssessmentStatusDto request);
         Task<bool> DeleteQuestions(List<long> ids);                
         Task<List<QuestionsDto>> GetQuestions(QuestionsUploadRequestDto requestDto);
+        Task<List<AssessmentSessionDto>> GetAssessmentsByStudentId(long id);
 
     }
 }

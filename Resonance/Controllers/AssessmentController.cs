@@ -329,6 +329,39 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
+
+
+        [HttpGet]
+        [Authorize(Policy = "Admin")]
+        [Route("api/Assessment/GetAssessmentsByStudentId")]
+        public async Task<ResponseDto> GetAssessmentsByStudentId(long id)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                logger.LogInformation("Requested GetAssessmentConfig");
+                var sessions = await assessmentService.GetAssessmentsByStudentId(id);
+
+                if (sessions != null)
+                {
+                    responseDto.Result = sessions;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
+
     }
 
 }

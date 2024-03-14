@@ -19,12 +19,15 @@ namespace ResoClassAPI.Controllers
         private readonly IVideoService videoService;
         private readonly ILogger<SubTopicController> logger;
         private readonly IExcelReader excelReader;
+        private readonly IAwsHandler awsHandler;
 
-        public VideoController(IVideoService _videoService, ILogger<SubTopicController> _logger, IExcelReader _excelReader)
+        public VideoController(IVideoService _videoService, ILogger<SubTopicController> _logger, IExcelReader _excelReader,
+            IAwsHandler _awsHandler)
         {
             videoService = _videoService;
             logger = _logger;
             excelReader = _excelReader;
+            awsHandler = _awsHandler;
         }
 
         #region Admin
@@ -92,7 +95,7 @@ namespace ResoClassAPI.Controllers
         [HttpPost]
         [Authorize(Policy = "Admin")]
         [Route("api/Video/Create")]
-        public async Task<ResponseDto> Post(VideoDto requestDto)
+        public async Task<ResponseDto> Post([ModelBinder(BinderType = typeof(JsonModelBinder))] VideoDto requestDto, IFormFile thumbnail)
         {
             ResponseDto responseDto = new ResponseDto();
             try
@@ -102,6 +105,25 @@ namespace ResoClassAPI.Controllers
                     responseDto.IsSuccess = false;
                     responseDto.Message = "Invalid Request";
                     return responseDto;
+                }
+
+                var extension = "." + thumbnail.FileName.Split('.')[thumbnail.FileName.Split('.').Length - 1];
+                if (extension != ".png" && extension != ".jpg" && extension != ".webp")
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Invalid file type.";
+                    return responseDto;
+                }
+                else
+                {
+                    using (var stream = new MemoryStream())
+                    {
+                        await thumbnail.CopyToAsync(stream);
+                        stream.Position = 0;
+                        string thumbnailUrl = await awsHandler.UploadImage(stream.ToArray(), "videos", thumbnail.FileName);
+                        requestDto.ThumbNail = thumbnailUrl;
+                    }
+
                 }
                 long newId = await videoService.CreateVideo(requestDto);
                 if (newId > 0)
@@ -188,6 +210,59 @@ namespace ResoClassAPI.Controllers
                     responseDto.IsSuccess = false;
                     responseDto.Message = "Invalid Request";
                     return responseDto;
+                }
+
+                if (await videoService.UpdateVideo(requestDto))
+                {
+                    responseDto.Result = requestDto;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Internal Server Error";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
+        [HttpPut]
+        [Authorize(Policy = "Admin")]
+        [Route("api/Video/UpdateWithFile/{id}")]
+        public async Task<ResponseDto> Put([ModelBinder(BinderType = typeof(JsonModelBinder))] VideoDto requestDto, IFormFile thumbnail)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                if (requestDto == null)
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Invalid Request";
+                    return responseDto;
+                }
+
+                var extension = "." + thumbnail.FileName.Split('.')[thumbnail.FileName.Split('.').Length - 1];
+                if (extension != ".png" && extension != ".jpg" && extension != ".webp")
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Invalid file type.";
+                    return responseDto;
+                }
+                else
+                {
+                    using (var stream = new MemoryStream())
+                    {
+                        await thumbnail.CopyToAsync(stream);
+                        stream.Position = 0;
+                        string thumbnailUrl = await awsHandler.UploadImage(stream.ToArray(), "videos", thumbnail.FileName);
+                        requestDto.ThumbNail = thumbnailUrl;
+                    }
+
                 }
 
                 if (await videoService.UpdateVideo(requestDto))

@@ -1,5 +1,6 @@
 ﻿
 using AutoMapper;
+using Azure.Core;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -201,8 +202,61 @@ namespace ResoClassAPI.Controllers
 
         [HttpPut]
         [Authorize(Policy = "Admin")]
-        [Route("api/Chapter/Update/{id}")]
+        [Route("api/Chapter/UpdateWithFile/{id}")]
         public async Task<ResponseDto> Put(long id, [ModelBinder(BinderType = typeof(JsonModelBinder))]ChapterRequestDto requestDto, IFormFile thumbnail)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                if (requestDto == null)
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Invalid Request";
+                    return responseDto;
+                }
+
+
+                var extension = "." + thumbnail.FileName.Split('.')[thumbnail.FileName.Split('.').Length - 1];
+                if (extension != ".png" && extension != ".jpg" && extension != ".webp")
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Invalid file type.";
+                    return responseDto;
+                }
+                else
+                {
+                    using (var stream = new MemoryStream())
+                    {
+                        await thumbnail.CopyToAsync(stream);
+                        stream.Position = 0;
+                        string thumbnailUrl = await awsHandler.UploadImage(stream.ToArray(), "chapters", thumbnail.FileName);
+                        requestDto.Thumbnail = thumbnailUrl;
+                    }
+                }
+
+                if (await chapterService.UpdateChapter(requestDto))
+                {
+                    responseDto.Result = requestDto;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Internal Server Error";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
+        [HttpPut]
+        [Authorize(Policy = "Admin")]
+        [Route("api/Chapter/Update/{id}")]
+        public async Task<ResponseDto> Put(long id, ChapterRequestDto requestDto)
         {
             ResponseDto responseDto = new ResponseDto();
             try
@@ -232,6 +286,7 @@ namespace ResoClassAPI.Controllers
             }
             return responseDto;
         }
+
 
         [HttpDelete]
         [Authorize(Policy = "Admin")]
