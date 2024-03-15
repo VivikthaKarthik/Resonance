@@ -544,6 +544,11 @@ namespace ResoClassAPI.Services
                 {
                     if (dbContext.QuestionBanks.Any(x => x.Id == id))
                     {
+                        if (dbContext.AssessmentSessionQuestions.Any(x => x.QuestionId == id))
+                        {
+                            var assessment = dbContext.AssessmentSessionQuestions.FirstOrDefault(x => x.Id == id);
+                            dbContext.AssessmentSessionQuestions.Remove(assessment);
+                        }
                         var question = dbContext.QuestionBanks.FirstOrDefault(x => x.Id == id);
                         dbContext.QuestionBanks.Remove(question);
                     }
@@ -568,7 +573,7 @@ namespace ResoClassAPI.Services
             try
             {
                 List<QuestionBank> questions = new List<QuestionBank>();
-
+                var difficultyLevels = dbContext.DifficultyLevels.ToList();
                 if (requestDto.SubTopicId > 0)
                 {
                     if (requestDto.ChapterId > 0 && requestDto.TopicId > 0)
@@ -620,7 +625,14 @@ namespace ResoClassAPI.Services
                 if(questions.Count > 0)
                 {
                     questions = await ReplaceTags(questions, clientType.WEB);
-                    response = mapper.Map<List<QuestionsDto>>(questions);
+                    foreach (var question in questions)
+                    {
+                        var mappedItem = mapper.Map<QuestionsDto>(question);
+                        if (question.DifficultyLevelId > 0)
+                            mappedItem.DifficultyLevel = difficultyLevels.First(x => x.Id == question.DifficultyLevelId).Name;
+                        response.Add(mappedItem);
+                    }
+
                 }
 
             }

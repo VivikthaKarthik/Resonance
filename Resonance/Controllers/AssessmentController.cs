@@ -269,7 +269,7 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
-        [HttpDelete]
+        [HttpPost]
         [Authorize(Policy = "Admin")]
         [Route("api/Assessment/DeleteQuestions")]
         public async Task<ResponseDto> DeleteQuestions(List<long> ids)
