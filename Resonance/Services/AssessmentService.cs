@@ -48,7 +48,7 @@ namespace ResoClassAPI.Services
 
                     if (request.ChapterId > 0)
                     {
-                        if (dbContext.Chapters.Any(x => x.Id == request.ChapterId && x.SubjectId == request.SubjectId && x.IsActive))
+                        if (!dbContext.Chapters.Any(x => x.Id == request.ChapterId && x.SubjectId == request.SubjectId && x.IsActive))
                             response = "Invalid Chapter";
                     }
 
@@ -60,7 +60,7 @@ namespace ResoClassAPI.Services
 
                     if (request.SubTopicId > 0)
                     {
-                        if (dbContext.SubTopics.Any(x => x.Id == request.SubTopicId && x.TopicId == request.TopicId && x.IsActive))
+                        if (!dbContext.SubTopics.Any(x => x.Id == request.SubTopicId && x.TopicId == request.TopicId && x.IsActive))
                            response = "Invalid SubTopic";
                     }
                     var difficultyLevels = dbContext.DifficultyLevels.ToList();
