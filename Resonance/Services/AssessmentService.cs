@@ -48,7 +48,7 @@ namespace ResoClassAPI.Services
 
                     if (request.ChapterId > 0)
                     {
-                        if (dbContext.Chapters.Any(x => x.Id == request.ChapterId && x.SubjectId == request.SubjectId && x.IsActive))
+                        if (!dbContext.Chapters.Any(x => x.Id == request.ChapterId && x.SubjectId == request.SubjectId && x.IsActive))
                             response = "Invalid Chapter";
                     }
 
@@ -60,7 +60,7 @@ namespace ResoClassAPI.Services
 
                     if (request.SubTopicId > 0)
                     {
-                        if (dbContext.SubTopics.Any(x => x.Id == request.SubTopicId && x.TopicId == request.TopicId && x.IsActive))
+                        if (!dbContext.SubTopics.Any(x => x.Id == request.SubTopicId && x.TopicId == request.TopicId && x.IsActive))
                            response = "Invalid SubTopic";
                     }
                     var difficultyLevels = dbContext.DifficultyLevels.ToList();
@@ -544,6 +544,11 @@ namespace ResoClassAPI.Services
                 {
                     if (dbContext.QuestionBanks.Any(x => x.Id == id))
                     {
+                        if (dbContext.AssessmentSessionQuestions.Any(x => x.QuestionId == id))
+                        {
+                            var assessment = dbContext.AssessmentSessionQuestions.FirstOrDefault(x => x.Id == id);
+                            dbContext.AssessmentSessionQuestions.Remove(assessment);
+                        }
                         var question = dbContext.QuestionBanks.FirstOrDefault(x => x.Id == id);
                         dbContext.QuestionBanks.Remove(question);
                     }
@@ -568,7 +573,7 @@ namespace ResoClassAPI.Services
             try
             {
                 List<QuestionBank> questions = new List<QuestionBank>();
-
+                var difficultyLevels = dbContext.DifficultyLevels.ToList();
                 if (requestDto.SubTopicId > 0)
                 {
                     if (requestDto.ChapterId > 0 && requestDto.TopicId > 0)
@@ -620,7 +625,14 @@ namespace ResoClassAPI.Services
                 if(questions.Count > 0)
                 {
                     questions = await ReplaceTags(questions, clientType.WEB);
-                    response = mapper.Map<List<QuestionsDto>>(questions);
+                    foreach (var question in questions)
+                    {
+                        var mappedItem = mapper.Map<QuestionsDto>(question);
+                        if (question.DifficultyLevelId > 0)
+                            mappedItem.DifficultyLevel = difficultyLevels.First(x => x.Id == question.DifficultyLevelId).Name;
+                        response.Add(mappedItem);
+                    }
+
                 }
 
             }
@@ -632,18 +644,30 @@ namespace ResoClassAPI.Services
         }
 
 
-        public async Task<List<AssessmentSessionDto>> GetAssessmentsByStudentId(long id)
+        public async Task<List<AssessmentSessionResponseDto>> GetAssessmentsByStudentId(long id)
         {
             var currentUser = authService.GetCurrentUser();
-            List<AssessmentSessionDto> sessions = new List<AssessmentSessionDto>();
+            List<AssessmentSessionResponseDto> sessions = new List<AssessmentSessionResponseDto>();
             try
             {
-                var sessionsList = await Task.FromResult(dbContext.AssessmentSessions.Where(x => x.StudentId == id));
-
+                var student = dbContext.Students.FirstOrDefault(x => x.Id == id);
+                var sessionsList = await Task.FromResult(dbContext.AssessmentSessions.Where(x => x.StudentId == student.Id && x.StartTime != null));
+                var config = dbContext.AssessmentConfigurations.Where(x=>x.CourseId == student.CourseId).FirstOrDefault();
                 if (sessionsList != null)
                 {
                     foreach (var session in sessionsList)
-                        sessions.Add(mapper.Map<AssessmentSessionDto>(session));
+                    {
+                        AssessmentSessionResponseDto item = new AssessmentSessionResponseDto();
+                        item.Id = session.Id;
+                        item.PracticedOn = session.StartTime.Value;
+                        var questions = dbContext.AssessmentSessionQuestions.Where(x => x.AssessmentSessionId == session.Id).ToList();
+                        if (questions != null && questions.Count > 0)
+                        {
+                            item.AttemptedQuestions = questions.Count;
+                            item.Score = 0;
+                        }
+                        sessions.Add(item);
+                    }
                 }
             }
             catch (Exception ex)
