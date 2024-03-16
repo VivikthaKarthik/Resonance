@@ -119,7 +119,8 @@ namespace ResoClassAPI.Utilities
                     string courseName = worksheet.Cells[rowNumber, 3].Text.Trim();
                     string colorCode = worksheet.Cells[rowNumber, 4].Text.Trim();
 
-                    subjects.Add(new SubjectDto { Name = subjectName, Thumbnail = thumbnail, CourseName = courseName, ColorCode = colorCode });
+                    if (!string.IsNullOrEmpty(subjectName) && !string.IsNullOrEmpty(courseName))
+                        subjects.Add(new SubjectDto { Name = subjectName, Thumbnail = thumbnail, CourseName = courseName, ColorCode = colorCode });
                 }
             }
 
@@ -207,7 +208,8 @@ namespace ResoClassAPI.Utilities
                     string isRecommended = worksheet.Cells[rowNumber, 5].Text.Trim();
                     string description = worksheet.Cells[rowNumber, 6].Text.Trim();
 
-                    chapters.Add(new ChapterExcelRequestDto { Name = chapterName, Description = description, Thumbnail = thumbnail, Course = course, Subject = subject, IsRecommended = (isRecommended == "1" || isRecommended.ToLower() == "true") });
+                    if (!string.IsNullOrEmpty(chapterName) && !string.IsNullOrEmpty(course))
+                        chapters.Add(new ChapterExcelRequestDto { Name = chapterName, Description = description, Thumbnail = thumbnail, Course = course, Subject = subject, IsRecommended = (isRecommended == "1" || isRecommended.ToLower() == "true") });
                 }
             }
 
@@ -232,7 +234,8 @@ namespace ResoClassAPI.Utilities
                     string course = worksheet.Cells[rowNumber, 5].Text.Trim();
                     string description = worksheet.Cells[rowNumber, 6].Text.Trim();
 
-                    topics.Add(new TopicExcelRequestDto { Name = name, Description = description, Thumbnail = thumbnail, Chapter = chapter, Course = course, Subject = subject });
+                    if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(course))
+                        topics.Add(new TopicExcelRequestDto { Name = name, Description = description, Thumbnail = thumbnail, Chapter = chapter, Course = course, Subject = subject });
                 }
             }
 

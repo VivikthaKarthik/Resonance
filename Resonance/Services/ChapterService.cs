@@ -24,7 +24,7 @@ namespace ResoClassAPI.Services
         public async Task<List<ChapterResponseDto>> GetAllChapters()
         {
             List<ChapterResponseDto> dtoObjects = new List<ChapterResponseDto>();
-            var chapters =   await Task.FromResult(dbContext.Chapters.Where(item => item.IsActive == true).OrderByDescending(x => x.CreatedOn).ToList());
+            var chapters =   await Task.FromResult(dbContext.Chapters.Where(item => item.IsActive == true).ToList());
             if (chapters != null && chapters.Count > 0)
             {                
                 //foreach (var chapter in chapters)

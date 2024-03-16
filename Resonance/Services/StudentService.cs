@@ -28,7 +28,7 @@ namespace ResoClassAPI.Services
         public async Task<List<StudentDto>> GetAllStudents()
         {
             List<StudentDto> dtoObjects = new List<StudentDto>();
-            var students = await Task.FromResult(dbContext.Students.Where(item => item.IsActive == true).OrderByDescending(x => x.CreatedOn).ToList());
+            var students = await Task.FromResult(dbContext.Students.Where(item => item.IsActive == true).ToList());
             if (students != null && students.Count > 0)
             {
                 foreach (var chapter in students)

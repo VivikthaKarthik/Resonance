@@ -23,7 +23,7 @@ namespace ResoClassAPI.Services
         public async Task<List<SubTopicResponseDto>> GetAllSubTopics()
         {
             List<SubTopicResponseDto> dtoObjects = new List<SubTopicResponseDto>();
-            var topics = await Task.FromResult(dbContext.SubTopics.Where(item => item.IsActive == true).OrderByDescending(x => x.CreatedOn).ToList());
+            var topics = await Task.FromResult(dbContext.SubTopics.Where(item => item.IsActive == true).ToList());
             if (topics != null && topics.Count > 0)
             {
 
