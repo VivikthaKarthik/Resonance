@@ -43,6 +43,12 @@ public partial class ResoClassContext : DbContext
 
     public virtual DbSet<Role> Roles { get; set; }
 
+    public virtual DbSet<ScheduledExam> ScheduledExams { get; set; }
+
+    public virtual DbSet<ScheduledExamQuestion> ScheduledExamQuestions { get; set; }
+
+    public virtual DbSet<ScheduledExamResult> ScheduledExamResults { get; set; }
+
     public virtual DbSet<State> States { get; set; }
 
     public virtual DbSet<Student> Students { get; set; }
@@ -306,6 +312,67 @@ public partial class ResoClassContext : DbContext
             entity.Property(e => e.ModifiedBy).HasMaxLength(128);
             entity.Property(e => e.ModifiedOn).HasColumnType("datetime");
             entity.Property(e => e.Name).HasMaxLength(50);
+        });
+
+        modelBuilder.Entity<ScheduledExam>(entity =>
+        {
+            entity.ToTable("ScheduledExam");
+
+            entity.Property(e => e.CreatedBy).HasMaxLength(128);
+            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.EndDate).HasColumnType("datetime");
+            entity.Property(e => e.ModifiedBy).HasMaxLength(128);
+            entity.Property(e => e.ModifiedOn).HasColumnType("datetime");
+            entity.Property(e => e.Name).HasMaxLength(250);
+            entity.Property(e => e.StartDate).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Course).WithMany(p => p.ScheduledExams)
+                .HasForeignKey(d => d.CourseId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ScheduledExam_Course");
+
+            entity.HasOne(d => d.Subject).WithMany(p => p.ScheduledExams)
+                .HasForeignKey(d => d.SubjectId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ScheduledExam_Subject");
+        });
+
+        modelBuilder.Entity<ScheduledExamQuestion>(entity =>
+        {
+            entity.ToTable("ScheduledExamQuestion");
+
+            entity.Property(e => e.CreatedBy).HasMaxLength(128);
+            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.ModifiedBy).HasMaxLength(128);
+            entity.Property(e => e.ModifiedOn).HasColumnType("datetime");
+
+            entity.HasOne(d => d.ScheduledExam).WithMany(p => p.ScheduledExamQuestions)
+                .HasForeignKey(d => d.ScheduledExamId)
+                .HasConstraintName("FK_ScheduledExamQuestion_ScheduledExam");
+        });
+
+        modelBuilder.Entity<ScheduledExamResult>(entity =>
+        {
+            entity.ToTable("ScheduledExam_Results");
+
+            entity.Property(e => e.EndTime).HasColumnType("datetime");
+            entity.Property(e => e.SelectedAnswer).HasMaxLength(10);
+            entity.Property(e => e.StartTime).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Question).WithMany(p => p.ScheduledExamResults)
+                .HasForeignKey(d => d.QuestionId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ScheduledExam_Results_ScheduledExamQuestion");
+
+            entity.HasOne(d => d.ScheduledExam).WithMany(p => p.ScheduledExamResults)
+                .HasForeignKey(d => d.ScheduledExamId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ScheduledExam_Results_ScheduledExam");
+
+            entity.HasOne(d => d.Student).WithMany(p => p.ScheduledExamResults)
+                .HasForeignKey(d => d.StudentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ScheduledExam_Results_Student");
         });
 
         modelBuilder.Entity<State>(entity =>

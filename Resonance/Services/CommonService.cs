@@ -215,31 +215,5 @@ namespace ResoClassAPI.Services
 
             return listItems;
         }
-
-        public async Task<string> LogError(Type entityType, string message, string stackTrace, string exceptionType)
-        {
-            string referenceNumber = string.Empty;
-            try
-            {
-                referenceNumber = Guid.NewGuid().ToString();
-                Logger log = new Logger();
-                log.ReferenceNumber = referenceNumber;
-                log.Message = message;
-                log.LogType = "Error";
-                log.StackTrace = stackTrace;
-                log.EntityName = "";
-                log.ExceptionType = exceptionType;
-                log.CreateOn = DateTime.Now;
-
-                dbContext.Loggers.Add(log);
-                dbContext.SaveChanges();
-            }
-            catch (Exception ex)
-            {
-
-            }
-            return referenceNumber;
-        }
-
     }
 }

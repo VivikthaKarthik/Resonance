@@ -16,14 +16,14 @@ namespace ResoClassAPI.Utilities
     {
         private readonly ILogger<AwsHandler> logger;
         private readonly IAmazonS3 _s3Client;
-        private readonly ICommonService _commonService;
+        private readonly ILoggerService _loggerService;
         private IConfiguration _config;
 
-        public AwsHandler(ILogger<AwsHandler> _logger, IAmazonS3 s3Client, IConfiguration configuration, ICommonService commonService)
+        public AwsHandler(ILogger<AwsHandler> _logger, IAmazonS3 s3Client, IConfiguration configuration, ILoggerService loggerService)
         {
             logger = _logger;
             _s3Client = s3Client;
-            _commonService = commonService;
+            _loggerService = loggerService;
             _config = configuration;
         }
 
@@ -61,7 +61,7 @@ namespace ResoClassAPI.Utilities
             catch (Exception ex)
             {
                 // Log the exception
-                _commonService.LogError(typeof(GlobalExceptionHandler), ex.Message, ex.StackTrace, ex.GetType().Name);
+                _loggerService.Error(typeof(GlobalExceptionHandler), ex.Message, ex.StackTrace, ex.GetType().Name);
                 throw; 
             }
             return imageUrl;
