@@ -103,6 +103,33 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
+        [HttpGet]
+        [Route("api/ScheduledExam/GetExams")]
+        public async Task<ResponseDto> GetExams()
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                var exams = await scheduledExamService.GetExams();
+
+                if (exams != null)
+                {
+                    responseDto.Result = exams;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
 
         [HttpPost]
         [Authorize(Policy = "Admin")]
@@ -117,6 +144,149 @@ namespace ResoClassAPI.Controllers
                 if (questions != null)
                 {
                     responseDto.Result = questions;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
+
+        [HttpPost]
+        [Authorize(Policy = "Admin")]
+        [Route("api/ScheduledExam/DeleteQuestions")]
+        public async Task<ResponseDto> DeleteQuestions(List<long> ids)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                var isCompleted = await scheduledExamService.DeleteQuestions(ids);
+
+                if (isCompleted)
+                {
+                    responseDto.Result = "Question(s) Deleted Successfully";
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
+
+        [HttpPost]
+        [Route("api/ScheduledExam/GetQuestions")]
+        public async Task<ResponseDto> GetQuestions(long id)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                var questions = await scheduledExamService.GetQuestions(id);
+
+                if (questions != null)
+                {
+                    responseDto.Result = questions;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
+        [HttpPost]
+        [Route("api/ScheduledExam/StartAssessment")]
+        public async Task<ResponseDto> StartAssessment(long assessmentId)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                var isStarted = await scheduledExamService.StartAssessment(assessmentId);
+
+                if (isStarted)
+                {
+                    responseDto.Result = "Exam Started Successfully";
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
+        [HttpPost]
+        [Route("api/ScheduledExam/EndAssessment")]
+        public async Task<ResponseDto> EndAssessment(long assessmentId)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                var isCompleted = await scheduledExamService.EndAssessment(assessmentId);
+
+                if (isCompleted)
+                {
+                    responseDto.Result = "Exam Completed Successfully";
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
+        [HttpPost]
+        [Route("api/ScheduledExam/UpdateQuestionStatus")]
+        public async Task<ResponseDto> UpdateQuestionStatus(UpdateScheduledExamQuestionStatusDto request)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                var isUpdated = await scheduledExamService.UpdateQuestionStatus(request);
+
+                if (isUpdated)
+                {
+                    responseDto.Result = "Result Updated Successfully";
                     responseDto.IsSuccess = true;
                 }
                 else

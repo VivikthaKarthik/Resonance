@@ -37,7 +37,7 @@ public partial class ScheduledExam
 
     public virtual ICollection<ScheduledExamQuestion> ScheduledExamQuestions { get; } = new List<ScheduledExamQuestion>();
 
-    public virtual ICollection<ScheduledExamResult> ScheduledExamResults { get; } = new List<ScheduledExamResult>();
+    public virtual ICollection<ScheduledExamSession> ScheduledExamSessions { get; } = new List<ScheduledExamSession>();
 
     public virtual Subject Subject { get; set; } = null!;
 }

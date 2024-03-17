@@ -49,6 +49,8 @@ public partial class ResoClassContext : DbContext
 
     public virtual DbSet<ScheduledExamResult> ScheduledExamResults { get; set; }
 
+    public virtual DbSet<ScheduledExamSession> ScheduledExamSessions { get; set; }
+
     public virtual DbSet<State> States { get; set; }
 
     public virtual DbSet<Student> Students { get; set; }
@@ -355,24 +357,35 @@ public partial class ResoClassContext : DbContext
         {
             entity.ToTable("ScheduledExam_Results");
 
-            entity.Property(e => e.EndTime).HasColumnType("datetime");
             entity.Property(e => e.SelectedAnswer).HasMaxLength(10);
-            entity.Property(e => e.StartTime).HasColumnType("datetime");
 
             entity.HasOne(d => d.Question).WithMany(p => p.ScheduledExamResults)
                 .HasForeignKey(d => d.QuestionId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_ScheduledExam_Results_ScheduledExamQuestion");
 
-            entity.HasOne(d => d.ScheduledExam).WithMany(p => p.ScheduledExamResults)
-                .HasForeignKey(d => d.ScheduledExamId)
+            entity.HasOne(d => d.ScheduledExamSession).WithMany(p => p.ScheduledExamResults)
+                .HasForeignKey(d => d.ScheduledExamSessionId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_ScheduledExam_Results_ScheduledExam");
+        });
 
-            entity.HasOne(d => d.Student).WithMany(p => p.ScheduledExamResults)
+        modelBuilder.Entity<ScheduledExamSession>(entity =>
+        {
+            entity.ToTable("ScheduledExamSession");
+
+            entity.Property(e => e.EndTime).HasColumnType("datetime");
+            entity.Property(e => e.StartTime).HasColumnType("datetime");
+
+            entity.HasOne(d => d.ScheduledExam).WithMany(p => p.ScheduledExamSessions)
+                .HasForeignKey(d => d.ScheduledExamId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ScheduledExamSession_ScheduledExam");
+
+            entity.HasOne(d => d.Student).WithMany(p => p.ScheduledExamSessions)
                 .HasForeignKey(d => d.StudentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_ScheduledExam_Results_Student");
+                .HasConstraintName("FK_ScheduledExamSession_Student");
         });
 
         modelBuilder.Entity<State>(entity =>

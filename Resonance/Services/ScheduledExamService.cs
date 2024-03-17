@@ -50,6 +50,39 @@ namespace ResoClassAPI.Services
             return list;
         }
 
+        public async Task<List<ScheduledExamResponseDto>> GetExams()
+        {
+            List<ScheduledExamResponseDto> list = new List<ScheduledExamResponseDto>();
+            var currentUser = authService.GetCurrentUser();
+            try
+            {
+                var student = await Task.FromResult(dbContext.Students.Where(x => x.Id == currentUser.UserId).First());
+                var examsList = await Task.FromResult(dbContext.ScheduledExams.Where(x => x.CourseId == student.CourseId && x.IsActive));
+                var courses = await Task.FromResult(dbContext.Courses.Where(x => x.IsActive).ToList());
+                var subjects = await Task.FromResult(dbContext.Subjects.Where(x => x.IsActive).ToList());
+                if (examsList != null)
+                {
+                    foreach (var exam in examsList)
+                    {
+                        var item = mapper.Map<ScheduledExamResponseDto>(exam);
+
+                        if (exam.CourseId > 0)
+                            item.Course = courses.Where(x => x.Id == exam.CourseId).FirstOrDefault().Name;
+
+                        if (exam.SubjectId > 0)
+                            item.Subject = subjects.Where(x => x.Id == exam.SubjectId).FirstOrDefault().Name;
+
+                        list.Add(item);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return list;
+        }
+
         public async Task<string> InsertQuestions(List<QuestionsDto> questions, ScheduledExamRequestDto request)
         {
             string response = string.Empty;
@@ -246,6 +279,197 @@ namespace ResoClassAPI.Services
             return updated;
         }
 
+        public async Task<bool> DeleteQuestions(List<long> ids)
+        {
+            try
+            {
+                var currentUser = authService.GetCurrentUser();
+                foreach (var id in ids)
+                {
+                    if (dbContext.ScheduledExamQuestions.Any(x => x.Id == id))
+                    {
+                        if (dbContext.ScheduledExamResults.Any(x => x.QuestionId == id))
+                        {
+                            var result = dbContext.ScheduledExamResults.FirstOrDefault(x => x.QuestionId == id);
+                            dbContext.ScheduledExamResults.Remove(result);
+                        }
+                        var question = dbContext.ScheduledExamQuestions.FirstOrDefault(x => x.Id == id);
+                        if (question != null)
+                        {
+                            question.IsActive = false;
+                            question.ModifiedBy = currentUser.Name;
+                            question.ModifiedOn = DateTime.Now;
+                        }
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                await dbContext.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public async Task<ScheduledExamQuestionsResponseDto> GetQuestions(long id)
+        {
+            ScheduledExamQuestionsResponseDto response = new ScheduledExamQuestionsResponseDto();
+            try
+            {
+                if(id > 0)
+                {
+                    var difficultyLevels = dbContext.DifficultyLevels.ToList();
+                    if (id > 0)
+                    {
+                        var exam = dbContext.ScheduledExams.FirstOrDefault(x => x.Id == id);
+                        if (exam != null)
+                        {
+                            response.MarksPerQuestion = exam.MarksPerQuestion;
+                            response.NegativeMarksPerQuestion = exam.NegativeMarksPerQuestion;
+                            response.HasNegativeMarking = exam.NegativeMarksPerQuestion != 0;
+                            response.StartDate = exam.StartDate;
+                            response.EndDate = exam.EndDate;
+                            response.MaxAllowedTime = exam.MaxAllowedTime;
+                            response.CourseId = exam.CourseId;
+                            response.SubjectId = exam.SubjectId;
+                            response.Course = dbContext.Courses.FirstOrDefault(x => x.Id == exam.CourseId).Name;
+                            response.Subject = dbContext.Subjects.FirstOrDefault(x => x.Id == exam.SubjectId).Name;
+
+                            List<ScheduledExamQuestion> dbQuestions = new List<ScheduledExamQuestion>();
+                            dbQuestions.AddRange(dbContext.ScheduledExamQuestions.Where(x =>
+                            x.ScheduledExamId == id && x.IsActive));
+
+                            if (dbQuestions.Count > 0)
+                            {
+                                response.Questions = new List<ScheduledExamQuestionData>();
+                                dbQuestions = await ReplaceTags(dbQuestions, clientType.Mobile);
+                                foreach (var question in dbQuestions)
+                                {
+                                    var mappedItem = mapper.Map<ScheduledExamQuestionData>(question);
+                                    if (question.DifficultyLevelId > 0)
+                                        mappedItem.DifficultyLevel = difficultyLevels.First(x => x.Id == question.DifficultyLevelId).Name;
+                                    response.Questions.Add(mappedItem);
+                                }
+                                response.TotalQuestions = response.Questions.Count;
+                                response.ScheduleExamSessionId = await CreateNewSession(response.Questions, id);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return response;
+        }
+
+        private async Task<long> CreateNewSession(List<ScheduledExamQuestionData> questions, long examId)
+        {
+            var currentUser = authService.GetCurrentUser();
+            long newSessionId = 0;
+            try
+            {
+                if (questions == null || questions.Count == 0)
+                { return newSessionId; }
+
+                ScheduledExamSession newSession = new ScheduledExamSession();
+                newSession.ScheduledExamId = examId;
+                newSession.StudentId = currentUser.UserId;
+                dbContext.ScheduledExamSessions.Add(newSession);
+                await dbContext.SaveChangesAsync();
+                newSessionId = newSession.Id;
+
+                List<ScheduledExamResult> ScheduledExamResults = new List<ScheduledExamResult>();
+                foreach (var question in questions)
+                {
+                    ScheduledExamResult examResult = new ScheduledExamResult();
+                    examResult.ScheduledExamSessionId = newSessionId;
+                    examResult.QuestionId = question.Id;
+                    ScheduledExamResults.Add(examResult);
+                }
+                await dbContext.ScheduledExamResults.AddRangeAsync(ScheduledExamResults);
+                await dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return newSessionId;
+        }
+
+        public async Task<bool> StartAssessment(long examId)
+        {
+            try
+            {
+                var exam = dbContext.ScheduledExamSessions.Where(x => x.Id == examId).FirstOrDefault();
+                if (exam != null)
+                {
+                    exam.StartTime = DateTime.Now;
+                    await dbContext.SaveChangesAsync();
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return false;
+        }
+
+        public async Task<bool> EndAssessment(long examId)
+        {
+            try
+            {
+                var exam = dbContext.ScheduledExamSessions.Where(x => x.Id == examId).FirstOrDefault();
+                if (exam != null)
+                {
+                    exam.EndTime = DateTime.Now;
+                    await dbContext.SaveChangesAsync();
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return false;
+        }
+
+        public async Task<bool> UpdateQuestionStatus(UpdateScheduledExamQuestionStatusDto request)
+        {
+            try
+            {
+                var examResult = dbContext.ScheduledExamResults.Where(x => x.ScheduledExamSessionId == request.AssessmentId && x.QuestionId == request.QuestionId).FirstOrDefault();
+                if (examResult != null)
+                {
+                    examResult.Result = request.Result;
+
+                    if (!string.IsNullOrEmpty(request.SelectedAnswer))
+                        examResult.SelectedAnswer = request.SelectedAnswer;
+
+                    await dbContext.SaveChangesAsync();
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return false;
+        }
 
     }
 }

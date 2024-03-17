@@ -73,7 +73,7 @@ public partial class Student
 
     public virtual City City { get; set; } = null!;
 
-    public virtual ICollection<ScheduledExamResult> ScheduledExamResults { get; } = new List<ScheduledExamResult>();
+    public virtual ICollection<ScheduledExamSession> ScheduledExamSessions { get; } = new List<ScheduledExamSession>();
 
     public virtual State State { get; set; } = null!;
 }

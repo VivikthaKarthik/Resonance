@@ -56,6 +56,7 @@ namespace Resonance
                 //ScheduledExam Mapper
                 config.CreateMap<ScheduledExam, ScheduledExamResponseDto>(); 
                 config.CreateMap<ScheduledExamQuestion, QuestionsDto>();
+                config.CreateMap<ScheduledExamQuestion, ScheduledExamQuestionData>();
             });
             return mapperConfig;
         }
