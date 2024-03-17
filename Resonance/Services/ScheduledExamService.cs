@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
 using ResoClassAPI.DTOs;
+using ResoClassAPI.Models;
 using ResoClassAPI.Models.Domain;
 using ResoClassAPI.Services.Interfaces;
 using ResoClassAPI.Utilities;
+using System.Threading.Tasks;
 
 namespace ResoClassAPI.Services
 {
@@ -38,6 +40,51 @@ namespace ResoClassAPI.Services
 
                         if (exam.SubjectId > 0)
                             item.Subject = subjects.Where(x => x.Id == exam.SubjectId).FirstOrDefault().Name;
+
+                        list.Add(item);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return list;
+        }
+
+        public async Task<List<ScheduledExamResponseDto>> GetCompletedExams(long courseId, long subjectId)
+        {
+            List<ScheduledExamResponseDto> list = new List<ScheduledExamResponseDto>();
+            var currentUser = authService.GetCurrentUser();
+            try
+            {
+                List<ScheduledExam> examsList = new List<ScheduledExam>();
+                var course = await Task.FromResult(dbContext.Courses.Where(x => x.Id == courseId && x.IsActive).FirstOrDefault());
+                var subject = await Task.FromResult(dbContext.Subjects.Where(x => x.Id == subjectId && x.IsActive).FirstOrDefault());
+
+                if (course != null && subject != null)
+                    examsList = await Task.FromResult(dbContext.ScheduledExams.Where(x => 
+                    x.CourseId == courseId && 
+                    x.SubjectId == subjectId && 
+                    x.EndDate < DateTime.Now &&
+                    x.IsActive).ToList());
+                else if(course != null)
+                    examsList = await Task.FromResult(dbContext.ScheduledExams.Where(x => 
+                    x.CourseId == courseId &&
+                    x.EndDate < DateTime.Now &&
+                    x.IsActive).ToList());
+
+                if (examsList != null)
+                {
+                    foreach (var exam in examsList)
+                    {
+                        var item = mapper.Map<ScheduledExamResponseDto>(exam);
+
+                        if (course != null)
+                            item.Course = course.Name;
+
+                        if (subject != null)
+                            item.Subject = subject.Name;
 
                         list.Add(item);
                     }
@@ -229,6 +276,73 @@ namespace ResoClassAPI.Services
             return response;
         }
 
+        public async Task<List<ScheduledExamResultDto>> GetScheduledExamResults(long id)
+        {
+            List<ScheduledExamResultDto> response = new List<ScheduledExamResultDto>();
+            try
+            {
+                if (id > 0 && dbContext.ScheduledExams.Any(x => x.Id == id))
+                {
+                    var exam = dbContext.ScheduledExams.First(x => x.Id == id);
+                    var courses = await Task.FromResult(dbContext.Courses.Where(x => x.IsActive).ToList());
+                    var subjects = await Task.FromResult(dbContext.Subjects.Where(x => x.IsActive).ToList());
+                    var students = await Task.FromResult(dbContext.Students.Where(x => x.IsActive).ToList());
+
+                    var sessions = dbContext.ScheduledExamSessions.Where(x => x.ScheduledExamId == exam.Id).ToList();
+
+                    if(sessions != null && sessions.Count > 0)
+                    {
+                        foreach (var session in sessions)
+                        {
+                            ScheduledExamResultDto result = new ScheduledExamResultDto();
+                            if (exam.CourseId > 0)
+                                result.Course = courses.First(x => x.Id != exam.CourseId).Name;
+
+                            if (exam.SubjectId > 0)
+                                result.Subject = subjects.First(x => x.Id != exam.SubjectId).Name;
+
+                            if (session.StudentId > 0)
+                                result.StudentName = students.First(x => x.Id == session.StudentId).Name;
+
+                            result.ExamName = exam.Name;
+                            result.StartDate = exam.StartDate;
+
+                            var questions = dbContext.ScheduledExamResults.Where(x => x.ScheduledExamSessionId == session.Id);
+
+                            if (dbContext.ScheduledExamResults.Any(x => x.ScheduledExamSessionId == session.Id))
+                            {
+                                result.TotalQuestions = questions.Count();
+                                result.QuestionsAttempted = questions.Count(x => x.Result != null);
+                                result.CorrectAnswers = questions.Count(x=> x.Result != null && x.Result == true);
+                                result.WrongAnswers = questions.Count(x => x.Result != null && x.Result == false);
+                                result.TotalScore = GetScore(questions.ToList(), exam);
+                            }
+                            response.Add(result);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return response;
+        }
+
+        private int GetScore(List<ScheduledExamResult> results, ScheduledExam exam)
+        {
+            int score = 0;
+            var correctResults = results.Where(x => x.Result != null && x.Result == true);
+            score = correctResults.Count() * exam.MarksPerQuestion;
+
+            if (exam.NegativeMarksPerQuestion > 0)
+            {
+                var wrongResults = results.Where(x => x.Result != null && x.Result == false);
+                int negativeScore = wrongResults.Count() * exam.NegativeMarksPerQuestion;
+                score = score - negativeScore;
+            }
+            return score;
+        }
         private async Task<List<ScheduledExamQuestion>> ReplaceTags(List<ScheduledExamQuestion> questions, clientType clientType)
         {
             foreach (var question in questions)
@@ -328,6 +442,20 @@ namespace ResoClassAPI.Services
                         var exam = dbContext.ScheduledExams.FirstOrDefault(x => x.Id == id);
                         if (exam != null)
                         {
+                            var maxAllowedTime = exam.StartDate;
+                            if (exam.MaxAllowedTime > 0)
+                                maxAllowedTime = maxAllowedTime.AddMinutes(exam.MaxAllowedTime);
+
+                            if (DateTime.Now < exam.StartDate)
+                                throw new Exception("Cannot start the exam before schduled Time");
+
+                            if (DateTime.Now > maxAllowedTime)
+                                throw new Exception("Cannot start the exam after schduled Time");
+
+                            if (dbContext.ScheduledExamSessions.Any(x => x.ScheduledExamId == exam.Id && x.StudentId == authService.GetCurrentUser().UserId
+                            && x.StartTime != null && x.EndTime != null))
+                                throw new Exception("You have already completed the exam");
+
                             response.MarksPerQuestion = exam.MarksPerQuestion;
                             response.NegativeMarksPerQuestion = exam.NegativeMarksPerQuestion;
                             response.HasNegativeMarking = exam.NegativeMarksPerQuestion != 0;
@@ -374,26 +502,33 @@ namespace ResoClassAPI.Services
             long newSessionId = 0;
             try
             {
-                if (questions == null || questions.Count == 0)
-                { return newSessionId; }
-
-                ScheduledExamSession newSession = new ScheduledExamSession();
-                newSession.ScheduledExamId = examId;
-                newSession.StudentId = currentUser.UserId;
-                dbContext.ScheduledExamSessions.Add(newSession);
-                await dbContext.SaveChangesAsync();
-                newSessionId = newSession.Id;
-
-                List<ScheduledExamResult> ScheduledExamResults = new List<ScheduledExamResult>();
-                foreach (var question in questions)
+                if (dbContext.ScheduledExamSessions.Any(x => x.ScheduledExamId == examId && x.StudentId == currentUser.UserId))
                 {
-                    ScheduledExamResult examResult = new ScheduledExamResult();
-                    examResult.ScheduledExamSessionId = newSessionId;
-                    examResult.QuestionId = question.Id;
-                    ScheduledExamResults.Add(examResult);
+                    return dbContext.ScheduledExamSessions.First(x => x.ScheduledExamId == examId && x.StudentId == currentUser.UserId).Id;
                 }
-                await dbContext.ScheduledExamResults.AddRangeAsync(ScheduledExamResults);
-                await dbContext.SaveChangesAsync();
+                else
+                {
+                    if (questions == null || questions.Count == 0)
+                    { return newSessionId; }
+
+                    ScheduledExamSession newSession = new ScheduledExamSession();
+                    newSession.ScheduledExamId = examId;
+                    newSession.StudentId = currentUser.UserId;
+                    dbContext.ScheduledExamSessions.Add(newSession);
+                    await dbContext.SaveChangesAsync();
+                    newSessionId = newSession.Id;
+
+                    List<ScheduledExamResult> ScheduledExamResults = new List<ScheduledExamResult>();
+                    foreach (var question in questions)
+                    {
+                        ScheduledExamResult examResult = new ScheduledExamResult();
+                        examResult.ScheduledExamSessionId = newSessionId;
+                        examResult.QuestionId = question.Id;
+                        ScheduledExamResults.Add(examResult);
+                    }
+                    await dbContext.ScheduledExamResults.AddRangeAsync(ScheduledExamResults);
+                    await dbContext.SaveChangesAsync();
+                }
             }
             catch (Exception ex)
             {

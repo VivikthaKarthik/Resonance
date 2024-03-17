@@ -241,6 +241,24 @@ namespace ResoClassAPI.Services
 
                 report.CorrectAnswersAnalysis = GetChapterAnalysis(questions.Where(x => x.Result.Value).ToList(), chapters, topics);
                 report.WrongAnswersAnalysis = GetChapterAnalysis(questions.Where(x => !x.Result.Value).ToList(), chapters, topics);
+
+                report.Keys = new List<QuestionKeyDto>();
+                foreach(var item in questions)
+                {
+                    var question = dbContext.QuestionBanks.First(x => x.Id == item.QuestionId);
+                    if (question != null)
+                    {
+                        var key = mapper.Map<QuestionKeyDto>(question);
+                        if (key != null)
+                        {
+                            key.SelectedAnswer = item.SelectedAnswer;
+                            report.Keys.Add(key);
+                        }
+
+                    }
+                }
+
+
             }
 
             return report;
