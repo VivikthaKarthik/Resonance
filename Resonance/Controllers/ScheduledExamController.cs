@@ -161,7 +161,7 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
-        [HttpPost]
+        [HttpGet]
         [Authorize(Policy = "Admin")]
         [Route("api/ScheduledExam/GetScheduledExamQuestions")]
         public async Task<ResponseDto> GetScheduledExamQuestions(long id)
