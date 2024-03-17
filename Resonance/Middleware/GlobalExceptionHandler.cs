@@ -8,12 +8,12 @@ namespace ResoClassAPI.Middleware
     public class GlobalExceptionHandler
     {
         private readonly ILogger<GlobalExceptionHandler> _logger;
-        private readonly ICommonService _commonService;
+        private readonly ILoggerService _loggerService;
 
-        public GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger, ICommonService commonService)
+        public GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger, ILoggerService loggerService)
         {
             _logger = logger;
-            _commonService = commonService;
+            _loggerService = loggerService;
         }
 
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
@@ -25,7 +25,7 @@ namespace ResoClassAPI.Middleware
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
-                _commonService.LogError(typeof(GlobalExceptionHandler), ex.Message, ex.StackTrace, ex.GetType().Name);
+                _loggerService.Error(typeof(GlobalExceptionHandler), ex.Message, ex.StackTrace, ex.GetType().Name);
                 ResponseDto response = new ResponseDto()
                 {
                     IsSuccess = false,

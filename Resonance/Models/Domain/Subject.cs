@@ -24,4 +24,6 @@ public partial class Subject
     public DateTime ModifiedOn { get; set; }
 
     public virtual Course Course { get; set; } = null!;
+
+    public virtual ICollection<ScheduledExam> ScheduledExams { get; } = new List<ScheduledExam>();
 }

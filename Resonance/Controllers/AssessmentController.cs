@@ -25,16 +25,16 @@ namespace ResoClassAPI.Controllers
         private readonly IAwsHandler awsHandler;
         private readonly ILogger<AssessmentController> logger;
         private readonly IAssessmentService assessmentService;
-        private readonly ICommonService commonService;
+        private readonly ILoggerService _loggerService;
 
-        public AssessmentController(ICommonService _commonService, IAssessmentService _assessmentService, ILogger<AssessmentController> _logger, IAwsHandler _awsHandler,
+        public AssessmentController(ILoggerService loggerService, IAssessmentService _assessmentService, ILogger<AssessmentController> _logger, IAwsHandler _awsHandler,
             IWordReader _wordReader)
         {
             assessmentService = _assessmentService;
             logger = _logger;
             awsHandler = _awsHandler;
             wordReader = _wordReader;
-            commonService = _commonService;
+            _loggerService = loggerService;
         }
 
         [HttpGet]
@@ -136,7 +136,7 @@ namespace ResoClassAPI.Controllers
                 {
                     if (!string.IsNullOrEmpty(response))
                     {
-                        commonService.LogError(typeof(AssessmentController), response, "", "");
+                        _loggerService.Error(typeof(AssessmentController), response, "", "");
                         responseDto.Message = response;
                     }
                     else
@@ -146,7 +146,7 @@ namespace ResoClassAPI.Controllers
             }
             catch (Exception ex)
             {
-                commonService.LogError(typeof(GlobalExceptionHandler), ex.Message, ex.StackTrace, ex.GetType().Name);
+                _loggerService.Error(typeof(GlobalExceptionHandler), ex.Message, ex.StackTrace, ex.GetType().Name);
                 responseDto.IsSuccess = false;
                 responseDto.Message = ex.Message;
             }

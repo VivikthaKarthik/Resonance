@@ -23,5 +23,7 @@ public partial class Course
 
     public virtual ICollection<AssessmentConfiguration> AssessmentConfigurations { get; } = new List<AssessmentConfiguration>();
 
+    public virtual ICollection<ScheduledExam> ScheduledExams { get; } = new List<ScheduledExam>();
+
     public virtual ICollection<Subject> Subjects { get; } = new List<Subject>();
 }

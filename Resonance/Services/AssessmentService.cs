@@ -546,7 +546,7 @@ namespace ResoClassAPI.Services
                     {
                         if (dbContext.AssessmentSessionQuestions.Any(x => x.QuestionId == id))
                         {
-                            var assessment = dbContext.AssessmentSessionQuestions.FirstOrDefault(x => x.Id == id);
+                            var assessment = dbContext.AssessmentSessionQuestions.FirstOrDefault(x => x.QuestionId == id);
                             dbContext.AssessmentSessionQuestions.Remove(assessment);
                         }
                         var question = dbContext.QuestionBanks.FirstOrDefault(x => x.Id == id);

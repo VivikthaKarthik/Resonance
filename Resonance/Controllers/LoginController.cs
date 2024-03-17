@@ -3,8 +3,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using OfficeOpenXml.FormulaParsing.LexicalAnalysis;
 using ResoClassAPI.DTOs;
+using ResoClassAPI.Middleware;
 using ResoClassAPI.Models.Domain;
 using ResoClassAPI.Services;
 using ResoClassAPI.Services.Interfaces;
@@ -18,12 +20,14 @@ namespace ResoClassAPI.Controllers
         private IAuthService _authService;
         private readonly IMapper _mapper;
         private readonly ILogger<LoginController> _logger;
+        private readonly ILoggerService _loggerService;
 
-        public LoginController(IAuthService authService, IMapper mapper, ILogger<LoginController> logger)
+        public LoginController(IAuthService authService, IMapper mapper, ILogger<LoginController> logger, ILoggerService loggerService)
         {
             _authService = authService;
             _mapper = mapper;
             _logger = logger;
+            _loggerService = loggerService;
         }
 
         [AllowAnonymous]
@@ -35,6 +39,7 @@ namespace ResoClassAPI.Controllers
             ResponseDto responseDto = new ResponseDto();
             try
             {
+                await _loggerService.Info(typeof(LoginController), "User Login Requested", JsonConvert.SerializeObject(user));
                 _logger.LogInformation("Student Login Requested from Web");
 
                 if (user != null && !string.IsNullOrEmpty(user.UserName) && !string.IsNullOrEmpty(user.Password))
@@ -74,6 +79,7 @@ namespace ResoClassAPI.Controllers
             ResponseDto responseDto = new ResponseDto();
             try
             {
+                await _loggerService.Info(typeof(LoginController), "Student Login Requested from Web", JsonConvert.SerializeObject(student));
                 _logger.LogInformation("Student Login Requested from Web");
 
                 if (student != null && !string.IsNullOrEmpty(student.UserName) && !string.IsNullOrEmpty(student.Password))
@@ -113,6 +119,7 @@ namespace ResoClassAPI.Controllers
             ResponseDto responseDto = new ResponseDto();
             try
             {
+                await _loggerService.Info(typeof(LoginController), "Student Login Requested from Mobile", JsonConvert.SerializeObject(student));
                 _logger.LogInformation("Student Login Requested from Mobile");
 
                 if (student == null || string.IsNullOrEmpty(student.UserName) || string.IsNullOrEmpty(student.Password))

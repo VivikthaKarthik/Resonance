@@ -85,7 +85,7 @@ namespace ResoClassAPI.Services
         public async Task<List<VideoResponseDto>> GetAllVideos()
         {
             List<VideoResponseDto> dtoObjects = new List<VideoResponseDto>();
-            var videosList = await Task.FromResult(dbContext.Videos.Where(item => item.IsActive == true).OrderByDescending(x => x.CreatedOn).ToList());
+            var videosList = await Task.FromResult(dbContext.Videos.Where(item => item.IsActive == true).ToList());
             var chapters = await Task.FromResult(dbContext.Chapters.ToList());
             var topics = await Task.FromResult(dbContext.Topics.ToList());
             var subTopics = await Task.FromResult(dbContext.SubTopics.ToList());
