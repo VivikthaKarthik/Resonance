@@ -23,11 +23,15 @@ public partial class ResoClassContext : DbContext
 
     public virtual DbSet<Audit> Audits { get; set; }
 
+    public virtual DbSet<Branch> Branches { get; set; }
+
     public virtual DbSet<Chapter> Chapters { get; set; }
 
     public virtual DbSet<Choice> Choices { get; set; }
 
     public virtual DbSet<City> Cities { get; set; }
+
+    public virtual DbSet<Class> Classes { get; set; }
 
     public virtual DbSet<Course> Courses { get; set; }
 
@@ -126,6 +130,16 @@ public partial class ResoClassContext : DbContext
             entity.Property(e => e.TableName).HasMaxLength(128);
         });
 
+        modelBuilder.Entity<Branch>(entity =>
+        {
+            entity.ToTable("Branch");
+
+            entity.Property(e => e.BranchId).HasMaxLength(250);
+            entity.Property(e => e.LicenceKey).HasMaxLength(250);
+            entity.Property(e => e.Name).HasMaxLength(250);
+            entity.Property(e => e.PhoneNumber).HasMaxLength(10);
+        });
+
         modelBuilder.Entity<Chapter>(entity =>
         {
             entity.ToTable("Chapter");
@@ -160,6 +174,21 @@ public partial class ResoClassContext : DbContext
                 .HasForeignKey(d => d.StateId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_City_State");
+        });
+
+        modelBuilder.Entity<Class>(entity =>
+        {
+            entity.ToTable("Class");
+
+            entity.Property(e => e.CreatedBy).HasMaxLength(128);
+            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.ModifiedBy).HasMaxLength(128);
+            entity.Property(e => e.ModifiedOn).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Course).WithMany(p => p.Classes)
+                .HasForeignKey(d => d.CourseId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Class_Course");
         });
 
         modelBuilder.Entity<Course>(entity =>
@@ -406,9 +435,6 @@ public partial class ResoClassContext : DbContext
             entity.Property(e => e.AdmissionDate).HasColumnType("datetime");
             entity.Property(e => e.AdmissionId).HasMaxLength(128);
             entity.Property(e => e.AlternateMobileNumber).HasMaxLength(15);
-            entity.Property(e => e.BranchId)
-                .HasMaxLength(10)
-                .IsFixedLength();
             entity.Property(e => e.CreatedBy).HasMaxLength(128);
             entity.Property(e => e.CreatedOn).HasColumnType("datetime");
             entity.Property(e => e.DateOfBirth).HasColumnType("date");
@@ -426,10 +452,20 @@ public partial class ResoClassContext : DbContext
             entity.Property(e => e.Name).HasMaxLength(128);
             entity.Property(e => e.PinCode).HasMaxLength(10);
 
+            entity.HasOne(d => d.Branch).WithMany(p => p.Students)
+                .HasForeignKey(d => d.BranchId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Student_Branch");
+
             entity.HasOne(d => d.City).WithMany(p => p.Students)
                 .HasForeignKey(d => d.CityId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Student_City");
+
+            entity.HasOne(d => d.Class).WithMany(p => p.Students)
+                .HasForeignKey(d => d.ClassId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Student_Class");
 
             entity.HasOne(d => d.State).WithMany(p => p.Students)
                 .HasForeignKey(d => d.StateId)
@@ -464,10 +500,10 @@ public partial class ResoClassContext : DbContext
             entity.Property(e => e.ModifiedBy).HasMaxLength(128);
             entity.Property(e => e.ModifiedOn).HasColumnType("datetime");
 
-            entity.HasOne(d => d.Course).WithMany(p => p.Subjects)
-                .HasForeignKey(d => d.CourseId)
+            entity.HasOne(d => d.Class).WithMany(p => p.Subjects)
+                .HasForeignKey(d => d.ClassId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Subject_Course");
+                .HasConstraintName("FK_Subject_Class");
         });
 
         modelBuilder.Entity<Topic>(entity =>
@@ -504,6 +540,11 @@ public partial class ResoClassContext : DbContext
                 .HasMaxLength(128)
                 .HasDefaultValueSql("('Resonance@123')");
             entity.Property(e => e.PhoneNumber).HasMaxLength(20);
+
+            entity.HasOne(d => d.Branch).WithMany(p => p.Users)
+                .HasForeignKey(d => d.BranchId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_User_Branch");
 
             entity.HasOne(d => d.Role).WithMany(p => p.Users)
                 .HasForeignKey(d => d.RoleId)

@@ -175,7 +175,14 @@ namespace ResoClassAPI.Services
                         throw new Exception($"Course '{topicDto.Course}' not found in the database.");
                     }
 
-                    long subjectId = dbContext.Subjects.Where(c => c.Name == topicDto.Subject && c.CourseId == courseId && c.IsActive).Select(c => c.Id).FirstOrDefault();
+                    long classId = dbContext.Courses.Where(c => c.Name == topicDto.Class && c.IsActive).Select(c => c.Id).FirstOrDefault();
+
+                    if (classId == 0)
+                    {
+                        throw new Exception($"Class '{topicDto.Class}' not found in the database.");
+                    }
+
+                    long subjectId = dbContext.Subjects.Where(c => c.Name == topicDto.Subject && c.ClassId == classId && c.IsActive).Select(c => c.Id).FirstOrDefault();
 
                     if (subjectId == 0)
                     {

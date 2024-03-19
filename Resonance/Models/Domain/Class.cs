@@ -3,15 +3,15 @@ using System.Collections.Generic;
 
 namespace ResoClassAPI.Models.Domain;
 
-public partial class Subject
+public partial class Class
 {
     public long Id { get; set; }
 
     public string Name { get; set; } = null!;
 
-    public long ClassId { get; set; }
+    public string Thumbnail { get; set; } = null!;
 
-    public string? ColorCode { get; set; }
+    public long CourseId { get; set; }
 
     public bool IsActive { get; set; }
 
@@ -23,7 +23,9 @@ public partial class Subject
 
     public DateTime ModifiedOn { get; set; }
 
-    public virtual Class Class { get; set; } = null!;
+    public virtual Course Course { get; set; } = null!;
 
-    public virtual ICollection<ScheduledExam> ScheduledExams { get; } = new List<ScheduledExam>();
+    public virtual ICollection<Student> Students { get; } = new List<Student>();
+
+    public virtual ICollection<Subject> Subjects { get; } = new List<Subject>();
 }

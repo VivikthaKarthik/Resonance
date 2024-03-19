@@ -146,9 +146,10 @@ namespace ResoClassAPI.Services
                             response = "Invalid Course";
                     }
 
+                  
                     if (request.SubjectId > 0)
                     {
-                        if (!dbContext.Subjects.Any(x => x.Id == request.SubjectId && x.CourseId == request.CourseId && x.IsActive))
+                        if (!dbContext.Subjects.Any(x => x.Id == request.SubjectId && x.ClassId == request.CourseId && x.IsActive))
                             response = "Invalid Subject";
                     }
 

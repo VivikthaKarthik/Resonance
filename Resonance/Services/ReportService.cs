@@ -32,7 +32,9 @@ namespace ResoClassAPI.Services
 
             var course = dbContext.Courses.Where(x => x.Id == student.CourseId).FirstOrDefault();
 
-            var subjects = dbContext.Subjects.Where(x => x.CourseId == course.Id && x.IsActive).ToList();
+            var classObject = dbContext.Classes.Where(x => x.Id == student.ClassId).FirstOrDefault();
+
+            var subjects = dbContext.Subjects.Where(x => x.ClassId == classObject.Id && x.IsActive).ToList();
 
             if(subjects.Any())
             {

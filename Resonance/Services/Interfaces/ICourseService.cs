@@ -9,5 +9,6 @@ namespace ResoClassAPI.Services.Interfaces
         Task<long> CreateCourse(CourseDto newItem);
         Task<bool> UpdateCourse(CourseDto updatedItem);
         Task<bool> DeleteCourse(long courseId);
+        Task<bool> InsertCourses(List<CourseDto> courses);
     }
 }

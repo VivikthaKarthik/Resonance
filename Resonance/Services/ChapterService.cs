@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using DocumentFormat.OpenXml.VariantTypes;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using ResoClassAPI.DTOs;
@@ -145,10 +146,10 @@ namespace ResoClassAPI.Services
             var currentUser = authService.GetCurrentUser();
             List<RecommendedChapterResponseDto> returnList = new List<RecommendedChapterResponseDto>();
 
-            long courseId = dbContext.Students.Where(x => x.Id == currentUser.UserId).FirstOrDefault().CourseId;
-            if (courseId > 0)
+            long classId = dbContext.Students.Where(x => x.Id == currentUser.UserId).FirstOrDefault().ClassId;
+            if (classId > 0)
             {
-                var subjects = dbContext.Subjects.Where(x => x.CourseId == courseId).ToList();
+                var subjects = dbContext.Subjects.Where(x => x.ClassId == classId).ToList();
 
                 if (subjects != null && subjects.ToList().Count > 0)
                 {
@@ -226,14 +227,18 @@ namespace ResoClassAPI.Services
                 {
                     // Get the course ID based on the course name
                     long courseId = dbContext.Courses.Where(c => c.Name == chapterDto.Course && c.IsActive).Select(c => c.Id).FirstOrDefault();
-
                     if (courseId == 0)
                     {
                         throw new Exception($"Course '{chapterDto.Course}' not found in the database.");
                     }
 
-                    long subjectId = dbContext.Subjects.Where(c => c.Name == chapterDto.Subject && c.CourseId == courseId && c.IsActive).Select(c => c.Id).FirstOrDefault();
+                    long classId = dbContext.Classes.Where(c => c.Name == chapterDto.Class && c.CourseId == courseId && c.IsActive).Select(c => c.Id).FirstOrDefault();
+                    if (classId == 0)
+                    {
+                        throw new Exception($"Class '{chapterDto.Class}' not found in the database.");
+                    }
 
+                    long subjectId = dbContext.Subjects.Where(c => c.Name == chapterDto.Subject && c.ClassId == classId && c.IsActive).Select(c => c.Id).FirstOrDefault();
                     if (subjectId == 0)
                     {
                         throw new Exception($"Course '{chapterDto.Subject}' not found in the database.");
@@ -241,7 +246,6 @@ namespace ResoClassAPI.Services
 
                     // Insert the subject if it doesn't exist
                     Chapter existingChapter = dbContext.Chapters.FirstOrDefault(s => s.Name == chapterDto.Name && s.SubjectId == subjectId && s.IsActive);
-
                     if (existingChapter == null)
                     {
                         existingChapter = new Chapter
@@ -261,19 +265,6 @@ namespace ResoClassAPI.Services
 
                         await dbContext.SaveChangesAsync();
                     }
-
-                    //var linkedItem = new SubjectChapter
-                    //{
-                    //    ChapterId = existingChapter.Id,
-                    //    SubjectId = subjectId,
-                    //    IsActive = true,
-                    //    CreatedBy = currentUser.Name,
-                    //    CreatedOn = DateTime.Now,
-                    //    ModifiedBy = currentUser.Name,
-                    //    ModifiedOn = DateTime.Now
-                    //};
-                    //dbContext.SubjectChapters.Add(linkedItem);
-                    //await dbContext.SaveChangesAsync();
                 }
                 return true;
             }

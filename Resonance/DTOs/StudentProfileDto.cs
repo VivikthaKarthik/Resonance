@@ -17,6 +17,7 @@
         public string Gender { get; set; }
         public long CourseId { get; set; }
         public string CourseName { get; set; }
+        public string ClassName {  get; set; }
         public string MobileNumber { get; set; }
         public string AlternateMobileNumber { get; set; }
         public string EmailAddress { get; set; }

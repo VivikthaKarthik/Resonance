@@ -1,27 +1,25 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ResoClassAPI.DTOs;
-using ResoClassAPI.Models.Domain;
-using ResoClassAPI.Services;
 using ResoClassAPI.Services.Interfaces;
-using ResoClassAPI.Utilities;
 using ResoClassAPI.Utilities.Interfaces;
+using ResoClassAPI.Utilities;
+using ResoClassAPI.Services;
 
 namespace ResoClassAPI.Controllers
 {
     [Authorize]
     [ApiController]
-    public class CourseController : Controller
+    public class ClassController : ControllerBase
     {
-        private readonly ICourseService courseService;
-        private readonly ILogger<CourseController> logger;
+        private readonly IClassService classService;
+        private readonly ILogger<ClassController> logger;
         private readonly IExcelReader excelReader;
 
-        public CourseController(ICourseService _courseService, ILogger<CourseController> _logger, IExcelReader _excelReader)
+        public ClassController(IClassService _classService, ILogger<ClassController> _logger, IExcelReader _excelReader)
         {
-            courseService = _courseService;
+            classService = _classService;
             logger = _logger;
             excelReader = _excelReader;
         }
@@ -29,14 +27,14 @@ namespace ResoClassAPI.Controllers
 
         [HttpGet]
         [Authorize(Policy = "Admin")]
-        [Route("api/Course/Get")]
+        [Route("api/Class/Get")]
         public async Task<ResponseDto> Get(int Id)
         {
             ResponseDto responseDto = new ResponseDto();
             try
             {
                 logger.LogInformation("Requested GetUser");
-                var chapter = await courseService.GetCourse(Id);
+                var chapter = await classService.GetClass(Id);
 
                 if (chapter != null)
                 {
@@ -59,14 +57,14 @@ namespace ResoClassAPI.Controllers
 
         [HttpGet]
         [Authorize(Policy = "Admin")]
-        [Route("api/Course/GetAll")]
+        [Route("api/Class/GetAll")]
         public async Task<ResponseDto> GetAll()
         {
             ResponseDto responseDto = new ResponseDto();
             try
             {
                 logger.LogInformation("Requested GetAllCourses");
-                var users = await courseService.GetAllCourses();
+                var users = await classService.GetAllClasses();
 
                 if (users != null)
                 {
@@ -89,8 +87,8 @@ namespace ResoClassAPI.Controllers
 
         [HttpPost]
         [Authorize(Policy = "Admin")]
-        [Route("api/Course/Create")]
-        public async Task<ResponseDto> Post(CourseDto requestDto)
+        [Route("api/Class/Create")]
+        public async Task<ResponseDto> Post(ClassDto requestDto)
         {
             ResponseDto responseDto = new ResponseDto();
             try
@@ -101,7 +99,7 @@ namespace ResoClassAPI.Controllers
                     responseDto.Message = "Invalid Request";
                     return responseDto;
                 }
-                long newId = await courseService.CreateCourse(requestDto);
+                long newId = await classService.CreateClass(requestDto);
                 if (newId > 0)
                 {
                     requestDto.Id = newId;
@@ -124,7 +122,7 @@ namespace ResoClassAPI.Controllers
 
         [HttpPost]
         [Authorize(Policy = "Admin")]
-        [Route("api/Course/Upload")]
+        [Route("api/Class/Upload")]
         public async Task<ResponseDto> UploadExcel(IFormFile file)
         {
             ResponseDto responseDto = new ResponseDto();
@@ -151,8 +149,8 @@ namespace ResoClassAPI.Controllers
                     await file.CopyToAsync(stream);
                     stream.Position = 0;
 
-                    List<CourseDto> courses = await excelReader.ReadCoursesFromExcel(stream);
-                    isDataUploaded = await courseService.InsertCourses(courses);
+                    List<ClassDto> subjects = await excelReader.ReadClassesFromExcel(stream);
+                    isDataUploaded = await classService.InsertClassesAndLinkToCourses(subjects);
                 }
 
                 if (isDataUploaded)
@@ -176,8 +174,8 @@ namespace ResoClassAPI.Controllers
 
         [HttpPut]
         [Authorize(Policy = "Admin")]
-        [Route("api/Course/Update/{id}")]
-        public async Task<ResponseDto> Put(int id, CourseDto requestDto)
+        [Route("api/Class/Update/{id}")]
+        public async Task<ResponseDto> Put(int id, ClassDto requestDto)
         {
             ResponseDto responseDto = new ResponseDto();
             try
@@ -188,8 +186,8 @@ namespace ResoClassAPI.Controllers
                     responseDto.Message = "Invalid Request";
                     return responseDto;
                 }
-                
-                if (await courseService.UpdateCourse(requestDto))
+
+                if (await classService.UpdateClass(requestDto))
                 {
                     responseDto.Result = requestDto;
                     responseDto.IsSuccess = true;
@@ -210,13 +208,13 @@ namespace ResoClassAPI.Controllers
 
         [HttpDelete]
         [Authorize(Policy = "Admin")]
-        [Route("api/Course/Delete/{id}")]
+        [Route("api/Class/Delete/{id}")]
         public async Task<ResponseDto> Delete(int id)
         {
             ResponseDto responseDto = new ResponseDto();
             try
             {
-                bool result = await courseService.DeleteCourse(id);
+                bool result = await classService.DeleteClass(id);
 
                 if (!result)
                 {

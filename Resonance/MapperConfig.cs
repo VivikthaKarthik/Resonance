@@ -40,6 +40,10 @@ namespace Resonance
                 config.CreateMap<CourseDto, Course>();
                 config.CreateMap<Course, CourseDto>();
 
+                //Class Mapper
+                config.CreateMap<ClassDto, Class>();
+                config.CreateMap<Class, ClassDto>();
+
                 //Student Mapper
                 config.CreateMap<Student, StudentProfileDto>();
                 config.CreateMap<Student, StudentDto>();

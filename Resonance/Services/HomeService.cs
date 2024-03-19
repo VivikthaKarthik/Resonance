@@ -27,13 +27,13 @@ namespace ResoClassAPI.Services
 
             if (!string.IsNullOrEmpty(text))
             {
-                var courseid = dbContext.Students.Where(x => x.Id == currentUser.UserId).FirstOrDefault().CourseId;
+                var student = dbContext.Students.Where(x => x.Id == currentUser.UserId).FirstOrDefault();
 
                 var chapters = from chapter in dbContext.Chapters 
                                where chapter.Name.ToLower().Contains(text)
                             join subject in dbContext.Subjects on chapter.SubjectId equals subject.Id
-                            where subject.CourseId == courseid
-                            select new ListItemDto
+                            where subject.ClassId == student.ClassId
+                               select new ListItemDto
                             {
                                 Id = chapter.Id,
                                 Name = chapter.Name
@@ -44,8 +44,8 @@ namespace ResoClassAPI.Services
                              where topic.Name.ToLower().Contains(text)
                              join chapter in dbContext.Chapters on topic.ChapterId equals chapter.Id
                              join subject in dbContext.Subjects on chapter.SubjectId equals subject.Id
-                               where subject.CourseId == courseid
-                               select new ListItemDto
+                               where subject.ClassId == student.ClassId
+                             select new ListItemDto
                                {
                                    Id = topic.Id,
                                    Name = topic.Name
@@ -57,7 +57,7 @@ namespace ResoClassAPI.Services
                                 join topic in dbContext.Topics on subTopic.TopicId equals topic.Id
                                 join chapter in dbContext.Chapters on topic.ChapterId equals chapter.Id
                                 join subject in dbContext.Subjects on chapter.SubjectId equals subject.Id
-                                where subject.CourseId == courseid
+                                where subject.ClassId == student.ClassId
                                 select new ListItemDto
                                 {
                                     Id = topic.Id,

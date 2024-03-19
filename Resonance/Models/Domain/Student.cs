@@ -31,11 +31,13 @@ public partial class Student
 
     public string PinCode { get; set; } = null!;
 
-    public string? BranchId { get; set; }
+    public long BranchId { get; set; }
 
     public string Gender { get; set; } = null!;
 
     public long CourseId { get; set; }
+
+    public long ClassId { get; set; }
 
     public string MobileNumber { get; set; } = null!;
 
@@ -71,7 +73,11 @@ public partial class Student
 
     public virtual ICollection<AssessmentSession> AssessmentSessions { get; } = new List<AssessmentSession>();
 
+    public virtual Branch Branch { get; set; } = null!;
+
     public virtual City City { get; set; } = null!;
+
+    public virtual Class Class { get; set; } = null!;
 
     public virtual ICollection<ScheduledExamSession> ScheduledExamSessions { get; } = new List<ScheduledExamSession>();
 

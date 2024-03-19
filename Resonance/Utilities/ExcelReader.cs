@@ -103,6 +103,51 @@ namespace ResoClassAPI.Utilities
             }
         }
 
+        public async Task<List<CourseDto>> ReadCoursesFromExcel(Stream stream)
+        {
+            List<CourseDto> courses = new List<CourseDto>();
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            using (ExcelPackage package = new ExcelPackage(stream))
+            {
+                ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
+
+                for (int rowNumber = 2; rowNumber <= worksheet.Dimension.End.Row; rowNumber++)
+                {
+                    string courseName = worksheet.Cells[rowNumber, 1].Text.Trim();
+                    string thumbnail = worksheet.Cells[rowNumber, 2].Text.Trim();
+
+                    if (!string.IsNullOrEmpty(courseName) && !string.IsNullOrEmpty(courseName))
+                        courses.Add(new CourseDto { Name = courseName, Thumbnail = thumbnail });
+                }
+            }
+
+            return courses;
+        }
+
+        public async Task<List<ClassDto>> ReadClassesFromExcel(Stream stream)
+        {
+            List<ClassDto> classes = new List<ClassDto>();
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            using (ExcelPackage package = new ExcelPackage(stream))
+            {
+                ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
+
+                for (int rowNumber = 2; rowNumber <= worksheet.Dimension.End.Row; rowNumber++)
+                {
+                    string className = worksheet.Cells[rowNumber, 1].Text.Trim();
+                    string thumbnail = worksheet.Cells[rowNumber, 2].Text.Trim();
+                    string courseName = worksheet.Cells[rowNumber, 3].Text.Trim();
+
+                    if (!string.IsNullOrEmpty(className) && !string.IsNullOrEmpty(courseName))
+                        classes.Add(new ClassDto { Name = className, Thumbnail = thumbnail, Course = courseName });
+                }
+            }
+
+            return classes;
+        }
+
         public async Task<List<SubjectDto>> ReadSubjectsFromExcel(Stream stream)
         {
             List<SubjectDto> subjects = new List<SubjectDto>();
@@ -117,16 +162,16 @@ namespace ResoClassAPI.Utilities
                     string subjectName = worksheet.Cells[rowNumber, 1].Text.Trim();
                     string thumbnail = worksheet.Cells[rowNumber, 2].Text.Trim();
                     string courseName = worksheet.Cells[rowNumber, 3].Text.Trim();
-                    string colorCode = worksheet.Cells[rowNumber, 4].Text.Trim();
+                    string className = worksheet.Cells[rowNumber, 4].Text.Trim();
+                    string colorCode = worksheet.Cells[rowNumber, 5].Text.Trim();
 
                     if (!string.IsNullOrEmpty(subjectName) && !string.IsNullOrEmpty(courseName))
-                        subjects.Add(new SubjectDto { Name = subjectName, Thumbnail = thumbnail, CourseName = courseName, ColorCode = colorCode });
+                        subjects.Add(new SubjectDto { Name = subjectName, Thumbnail = thumbnail, ClassName = className, CourseName = courseName, ColorCode = colorCode });
                 }
             }
 
             return subjects;
         }
-
 
         public async Task<List<StudentProfileDto>> ReadStudentsFromExcel(Stream stream)
         {
@@ -153,10 +198,11 @@ namespace ResoClassAPI.Utilities
                     string PinCode = worksheet.Cells[rowNumber, 12].Text.Trim();
                     string Gender = worksheet.Cells[rowNumber, 13].Text.Trim();
                     string Course = worksheet.Cells[rowNumber, 14].Text.Trim();
-                    string MobileNumber = worksheet.Cells[rowNumber, 15].Text.Trim();
-                    string AlternateMobileNumber = worksheet.Cells[rowNumber, 16].Text.Trim();
-                    string EmailAddress = worksheet.Cells[rowNumber, 17].Text.Trim();
-                    string ProfilePicture = worksheet.Cells[rowNumber, 18].Text.Trim();
+                    string Class = worksheet.Cells[rowNumber, 15].Text.Trim();
+                    string MobileNumber = worksheet.Cells[rowNumber, 16].Text.Trim();
+                    string AlternateMobileNumber = worksheet.Cells[rowNumber, 17].Text.Trim();
+                    string EmailAddress = worksheet.Cells[rowNumber, 18].Text.Trim();
+                    string ProfilePicture = worksheet.Cells[rowNumber, 19].Text.Trim();
 
                     if (!string.IsNullOrEmpty(AdmissionId))
                     {
@@ -177,6 +223,7 @@ namespace ResoClassAPI.Utilities
                         student.PinCode = PinCode;
                         student.Gender = Gender;
                         student.CourseName = Course;
+                        student.ClassName = Class;
                         student.MobileNumber = MobileNumber;
                         student.AlternateMobileNumber = AlternateMobileNumber;
                         student.EmailAddress = EmailAddress;

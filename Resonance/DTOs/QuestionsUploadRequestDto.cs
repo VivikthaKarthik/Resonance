@@ -3,6 +3,7 @@
     public class QuestionsUploadRequestDto
     {
         public long CourseId { get; set; }
+        public long ClassId { get; set; }
         public long SubjectId { get; set; }
         public long? ChapterId { get; set; }
         public long? TopicId { get; set; }
