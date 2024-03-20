@@ -4,7 +4,7 @@ namespace ResoClassAPI.Services.Interfaces
 {
     public interface ITopicService
     {
-        Task<List<TopicDto>> GetAllTopics();
+        Task<List<TopicsViewDto>> GetAllTopics();
         Task<TopicDto> GetTopic(long topicId);
         Task<long> CreateTopic(TopicDto newItem);
         Task<bool> UpdateTopic(TopicDto updatedItem);

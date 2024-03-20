@@ -279,11 +279,19 @@ namespace ResoClassAPI.Services
                         .Select(c => c.Id)
                         .FirstOrDefault();
 
+                    long classId = dbContext.Classes
+                        .Where(c => c.Name == studentProfile.ClassName && c.CourseId == courseId)
+                        .Select(c => c.Id)
+                        .FirstOrDefault();
+
                     if (stateId == 0)
                         throw new Exception($"State '{studentProfile.State}' not found in the database.");
 
                     if (courseId == 0)
-                        throw new Exception($"City '{studentProfile.CourseName}' not found in the database.");
+                        throw new Exception($"Course '{studentProfile.CourseName}' not found in the database.");
+
+                    if (classId == 0)
+                        throw new Exception($"Class '{studentProfile.ClassName}' not found in the database.");
 
 
                     if (cityId == 0)
@@ -374,6 +382,8 @@ namespace ResoClassAPI.Services
                     existingStudent.PinCode = studentProfile.PinCode;
                     existingStudent.Gender = studentProfile.Gender;
                     existingStudent.CourseId = courseId;
+                    existingStudent.ClassId = classId;
+                    existingStudent.BranchId = 1000001;
                     existingStudent.MobileNumber = studentProfile.MobileNumber;
                     existingStudent.AlternateMobileNumber = studentProfile.AlternateMobileNumber;
                     existingStudent.EmailAddress = studentProfile.EmailAddress;

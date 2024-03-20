@@ -21,24 +21,13 @@ namespace ResoClassAPI.Services
             mapper = _mapper;
         }
 
-        public async Task<List<SubjectDto>> GetAllSubjects()
+        public async Task<List<SubjectsViewDto>> GetAllSubjects()
         {
-            List<SubjectDto> dtoObjects = new List<SubjectDto>();
-            var subjects = await Task.FromResult(dbContext.Subjects.Where(item => item.IsActive == true).ToList());
+            List<SubjectsViewDto> dtoObjects = new List<SubjectsViewDto>();
+            var subjects = await Task.FromResult(dbContext.VwSubjects.ToList());
             if (subjects != null && subjects.Count > 0)
-            {
-
-                foreach (var subject in subjects)
-                {
-                    var dtoObject = mapper.Map<SubjectDto>(subject);
-                    dtoObjects.Add(dtoObject);
-                }
-                return dtoObjects;
-            }
-            else
-                throw new Exception("Not Found");
-           
-           
+                dtoObjects = mapper.Map<List<SubjectsViewDto>>(subjects);
+            return dtoObjects;
         }
 
         public async Task<long> CreateSubject(SubjectDto subject)
@@ -155,8 +144,18 @@ namespace ResoClassAPI.Services
                 foreach (var subjectDto in subjects)
                 {
                     // Get the course ID based on the course name
+                    long courseId = dbContext.Courses
+                       .Where(c => c.Name == subjectDto.CourseName)
+                       .Select(c => c.Id)
+                       .FirstOrDefault();
+
+                    if (courseId == 0)
+                    {
+                        throw new Exception($"Course '{subjectDto.CourseName}' not found in the database.");
+                    }
+
                     long classId = dbContext.Classes
-                        .Where(c => c.Name == subjectDto.ClassName)
+                        .Where(c => c.Name == subjectDto.ClassName && c.CourseId == courseId)
                         .Select(c => c.Id)
                         .FirstOrDefault();
 

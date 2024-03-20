@@ -56,26 +56,13 @@ namespace ResoClassAPI.Services
             return false;
         }
 
-        public async Task<List<ClassDto>> GetAllClasses()
+        public async Task<List<ClassesViewDto>> GetAllClasses()
         {
-            List<ClassDto> dtoObjects = new List<ClassDto>();
-            var classes = await Task.FromResult(dbContext.Classes.Where(item => item.IsActive == true).ToList());
+            List<ClassesViewDto> dtoObjects = new List<ClassesViewDto>();
+            var classes = await Task.FromResult(dbContext.VwClasses.ToList());
             if (classes != null && classes.Count > 0)
-            {
-
-                foreach (var item in classes)
-                {
-                    var dtoObject = mapper.Map<ClassDto>(item);
-
-                    if (item.CourseId > 0)
-                        dtoObject.Course = dbContext.Courses.Where(x => x.Id == item.CourseId).FirstOrDefault().Name;
-                    dtoObjects.Add(dtoObject);
-                }
-                return dtoObjects;
-            }
-            else
-                throw new Exception("Not Found");
-
+                dtoObjects = mapper.Map<List<ClassesViewDto>>(classes);
+            return dtoObjects;
         }
 
         public async Task<ClassDto> GetClass(long classId)

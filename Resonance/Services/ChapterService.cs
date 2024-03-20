@@ -22,21 +22,13 @@ namespace ResoClassAPI.Services
             mapper = _mapper;
         }
 
-        public async Task<List<ChapterResponseDto>> GetAllChapters()
+        public async Task<List<ChaptersViewDto>> GetAllChapters()
         {
-            List<ChapterResponseDto> dtoObjects = new List<ChapterResponseDto>();
-            var chapters =   await Task.FromResult(dbContext.Chapters.Where(item => item.IsActive == true).ToList());
+            List<ChaptersViewDto> dtoObjects = new List<ChaptersViewDto>();
+            var chapters = await Task.FromResult(dbContext.VwChapters.ToList());
             if (chapters != null && chapters.Count > 0)
-            {                
-                //foreach (var chapter in chapters)
-                {
-                    dtoObjects = mapper.Map<List<ChapterResponseDto>>(chapters);
-                    //dtoObjects.Add(dtoObject);
-                }
-                return dtoObjects;
-            }
-            else
-                throw new Exception("Not Found");
+                dtoObjects = mapper.Map<List<ChaptersViewDto>>(chapters);
+            return dtoObjects;
         }
 
         public async Task<long> CreateChapter(ChapterRequestDto chapter)
@@ -241,7 +233,7 @@ namespace ResoClassAPI.Services
                     long subjectId = dbContext.Subjects.Where(c => c.Name == chapterDto.Subject && c.ClassId == classId && c.IsActive).Select(c => c.Id).FirstOrDefault();
                     if (subjectId == 0)
                     {
-                        throw new Exception($"Course '{chapterDto.Subject}' not found in the database.");
+                        throw new Exception($"Subject '{chapterDto.Subject}' not found in the database.");
                     }
 
                     // Insert the subject if it doesn't exist

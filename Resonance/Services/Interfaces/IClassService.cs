@@ -4,7 +4,7 @@ namespace ResoClassAPI.Services.Interfaces
 {
     public interface IClassService
     {
-        Task<List<ClassDto>> GetAllClasses();
+        Task<List<ClassesViewDto>> GetAllClasses();
         Task<ClassDto> GetClass(long classId);
         Task<long> CreateClass(ClassDto newItem);
         Task<bool> UpdateClass(ClassDto updatedItem);

@@ -20,22 +20,13 @@ namespace ResoClassAPI.Services
             mapper = _mapper;
         }
 
-        public async Task<List<SubTopicResponseDto>> GetAllSubTopics()
+        public async Task<List<SubTopicsViewDto>> GetAllSubTopics()
         {
-            List<SubTopicResponseDto> dtoObjects = new List<SubTopicResponseDto>();
-            var topics = await Task.FromResult(dbContext.SubTopics.Where(item => item.IsActive == true).ToList());
-            if (topics != null && topics.Count > 0)
-            {
-
-                foreach (var topic in topics)
-                {
-                    var dtoObject = mapper.Map<SubTopicResponseDto>(topic);
-                    dtoObjects.Add(dtoObject);
-                }
-                return dtoObjects;
-            }
-            else
-                throw new Exception("Not Found");
+            List<SubTopicsViewDto> dtoObjects = new List<SubTopicsViewDto>();
+            var subTopics = await Task.FromResult(dbContext.VwSubTopics.ToList());
+            if (subTopics != null && subTopics.Count > 0)
+                dtoObjects = mapper.Map<List<SubTopicsViewDto>>(subTopics);
+            return dtoObjects;
         }
         public async Task<SubTopicResponseDto> GetSubTopic(long subTopicId)
         {
@@ -164,10 +155,89 @@ namespace ResoClassAPI.Services
             return false;
         }
 
-        
+        public async Task<bool> InsertSubTopics(List<SubTopicExcelRequestDto> subTopics)
+        {
+            try
+            {
+                var currentUser = authService.GetCurrentUser();
+                foreach (var subTopic in subTopics)
+                {
+                    // Get the course ID based on the course name
+                    long courseId = dbContext.Courses.Where(c => c.Name == subTopic.Course && c.IsActive).Select(c => c.Id).FirstOrDefault();
 
-        
+                    if (courseId == 0)
+                    {
+                        throw new Exception($"Course '{subTopic.Course}' not found in the database.");
+                    }
 
-       
+                    long classId = dbContext.Classes.Where(c => c.Name == subTopic.Class && c.CourseId == courseId && c.IsActive).Select(c => c.Id).FirstOrDefault();
+
+                    if (classId == 0)
+                    {
+                        throw new Exception($"Class '{subTopic.Class}' not found in the database.");
+                    }
+
+                    long subjectId = dbContext.Subjects.Where(c => c.Name == subTopic.Subject && c.ClassId == classId && c.IsActive).Select(c => c.Id).FirstOrDefault();
+
+                    if (subjectId == 0)
+                    {
+                        throw new Exception($"Subject '{subTopic.Subject}' not found in the database.");
+                    }
+
+                    long chapterId = dbContext.Chapters.Where(c => c.Name == subTopic.Chapter && c.SubjectId == subjectId && c.IsActive).Select(c => c.Id).FirstOrDefault();
+
+                    if (chapterId == 0)
+                    {
+                        throw new Exception($"Chapter '{subTopic.Chapter}' not found in the database.");
+                    }
+                    long topicId = 0;
+                    if (!string.IsNullOrEmpty(subTopic.Topic))
+                    {
+                        topicId = dbContext.Topics.Where(c => c.Name == subTopic.Topic && c.ChapterId == chapterId && c.IsActive).Select(c => c.Id).FirstOrDefault();
+
+                        if (topicId == 0)
+                        {
+                            throw new Exception($"Topic '{subTopic.Topic}' not found in the database.");
+                        }
+                    }
+
+                    // Insert the subject if it doesn't exist
+                    SubTopic existingTopic = null;
+
+                    if (topicId > 0)
+                        existingTopic = dbContext.SubTopics.FirstOrDefault(s => s.Name == subTopic.Name && s.ChapterId == chapterId && s.TopicId == topicId && s.IsActive);
+                    else 
+                        existingTopic = dbContext.SubTopics.FirstOrDefault(s => s.Name == subTopic.Name && s.ChapterId == chapterId && s.IsActive);
+
+                    if (existingTopic == null)
+                    {
+                        existingTopic = new SubTopic
+                        {
+                            Name = subTopic.Name,
+                            SourceUrl = subTopic.SourceUrl,
+                            HomeDisplay = subTopic.HomeDisplay,
+                            Description = !string.IsNullOrEmpty(subTopic.Description) ? subTopic.Description : string.Empty,
+                            Thumbnail = subTopic.Thumbnail,
+                            ChapterId = chapterId,
+                            TopicId = topicId > 0 ? topicId : null,
+                            IsActive = true,
+                            CreatedBy = currentUser.Name,
+                            CreatedOn = DateTime.Now,
+                            ModifiedBy = currentUser.Name,
+                            ModifiedOn = DateTime.Now
+                        };
+                        dbContext.SubTopics.Add(existingTopic);
+
+                    }
+                }
+                await dbContext.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+        }
     }
 }

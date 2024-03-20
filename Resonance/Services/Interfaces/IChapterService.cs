@@ -4,7 +4,7 @@ namespace ResoClassAPI.Services.Interfaces
 {
     public interface IChapterService
     {
-        Task<List<ChapterResponseDto>> GetAllChapters();
+        Task<List<ChaptersViewDto>> GetAllChapters();
         Task<ChapterResponseDto> GetChapter(long chapterId);
         Task<long> CreateChapter(ChapterRequestDto newItem);
         Task<bool> UpdateChapter(ChapterRequestDto updatedItem);

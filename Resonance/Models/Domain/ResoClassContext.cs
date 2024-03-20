@@ -69,6 +69,16 @@ public partial class ResoClassContext : DbContext
 
     public virtual DbSet<Video> Videos { get; set; }
 
+    public virtual DbSet<VwChapter> VwChapters { get; set; }
+
+    public virtual DbSet<VwClass> VwClasses { get; set; }
+
+    public virtual DbSet<VwSubTopic> VwSubTopics { get; set; }
+
+    public virtual DbSet<VwSubject> VwSubjects { get; set; }
+
+    public virtual DbSet<VwTopic> VwTopics { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlServer("name=SqlConnectionString");
 
@@ -477,16 +487,14 @@ public partial class ResoClassContext : DbContext
         {
             entity.ToTable("SubTopic");
 
-            entity.Property(e => e.Id).ValueGeneratedOnAdd();
             entity.Property(e => e.CreatedBy).HasMaxLength(128);
             entity.Property(e => e.CreatedOn).HasColumnType("datetime");
             entity.Property(e => e.ModifiedBy).HasMaxLength(128);
             entity.Property(e => e.ModifiedOn).HasColumnType("datetime");
             entity.Property(e => e.Name).HasMaxLength(250);
 
-            entity.HasOne(d => d.IdNavigation).WithOne(p => p.SubTopic)
-                .HasForeignKey<SubTopic>(d => d.Id)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+            entity.HasOne(d => d.Topic).WithMany(p => p.SubTopics)
+                .HasForeignKey(d => d.TopicId)
                 .HasConstraintName("FK_SubTopic_Topic");
         });
 
@@ -573,6 +581,55 @@ public partial class ResoClassContext : DbContext
             entity.HasOne(d => d.Topic).WithMany(p => p.Videos)
                 .HasForeignKey(d => d.TopicId)
                 .HasConstraintName("FK_Video_Topic");
+        });
+
+        modelBuilder.Entity<VwChapter>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("vwChapters");
+
+            entity.Property(e => e.Id).HasColumnName("ID");
+        });
+
+        modelBuilder.Entity<VwClass>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("vwClasses");
+
+            entity.Property(e => e.Id).HasColumnName("ID");
+        });
+
+        modelBuilder.Entity<VwSubTopic>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("vwSubTopics");
+
+            entity.Property(e => e.Id).HasColumnName("ID");
+            entity.Property(e => e.Name).HasMaxLength(250);
+            entity.Property(e => e.Topic).HasMaxLength(250);
+        });
+
+        modelBuilder.Entity<VwSubject>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("vwSubjects");
+
+            entity.Property(e => e.ColorCode).HasMaxLength(100);
+            entity.Property(e => e.Id).HasColumnName("ID");
+        });
+
+        modelBuilder.Entity<VwTopic>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("vwTopics");
+
+            entity.Property(e => e.Id).HasColumnName("ID");
+            entity.Property(e => e.Name).HasMaxLength(250);
         });
 
         OnModelCreatingPartial(modelBuilder);

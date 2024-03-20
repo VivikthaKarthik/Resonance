@@ -17,19 +17,23 @@ namespace Resonance
                 //Subject Mapper
                 config.CreateMap<SubjectDto, Subject>();
                 config.CreateMap<Subject, SubjectDto>();
+                config.CreateMap<VwSubject, SubjectsViewDto>();
 
                 //Chapter Mapper
                 config.CreateMap<ChapterRequestDto, Chapter>();
                 config.CreateMap<Chapter, ChapterResponseDto>();
+                config.CreateMap<VwChapter, ChaptersViewDto>();
 
                 //Topic Mapper
                 config.CreateMap<TopicDto, Topic>();
                 config.CreateMap<Topic, TopicDto>();
                 config.CreateMap<Topic, TopicResponseDto>();
+                config.CreateMap<VwTopic, TopicsViewDto>();
 
                 //Sub-Topic Mapper
                 config.CreateMap<SubTopicDto, SubTopic>();
                 config.CreateMap<SubTopic, SubTopicResponseDto>();
+                config.CreateMap<VwSubTopic, SubTopicsViewDto>();
 
                 //Video Mapper
                 config.CreateMap<VideoDto, Video>();
@@ -43,6 +47,7 @@ namespace Resonance
                 //Class Mapper
                 config.CreateMap<ClassDto, Class>();
                 config.CreateMap<Class, ClassDto>();
+                config.CreateMap<VwClass, ClassesViewDto>();
 
                 //Student Mapper
                 config.CreateMap<Student, StudentProfileDto>();

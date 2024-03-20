@@ -9,9 +9,17 @@ public partial class SubTopic
 
     public string Name { get; set; } = null!;
 
-    public long TopicId { get; set; }
-
     public string Thumbnail { get; set; } = null!;
+
+    public string SourceUrl { get; set; } = null!;
+
+    public string Description { get; set; } = null!;
+
+    public bool HomeDisplay { get; set; }
+
+    public long? TopicId { get; set; }
+
+    public long ChapterId { get; set; }
 
     public bool IsActive { get; set; }
 
@@ -23,11 +31,11 @@ public partial class SubTopic
 
     public DateTime ModifiedOn { get; set; }
 
-    public virtual Topic IdNavigation { get; set; } = null!;
-
     public virtual ICollection<MultipleChoiceQuestion> MultipleChoiceQuestions { get; } = new List<MultipleChoiceQuestion>();
 
     public virtual ICollection<QuestionBank> QuestionBanks { get; } = new List<QuestionBank>();
+
+    public virtual Topic? Topic { get; set; }
 
     public virtual ICollection<Video> Videos { get; } = new List<Video>();
 }
