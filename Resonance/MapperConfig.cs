@@ -58,10 +58,12 @@ namespace Resonance
                 config.CreateMap<QuestionBank, QuestionData>();
                 config.CreateMap<QuestionBank, QuestionsDto>();
                 config.CreateMap<QuestionBank, QuestionKeyDto>();
+                config.CreateMap<VwQuestionBank, QuestionData>();
 
                 //Assessment Mapper
                 config.CreateMap<AssessmentConfiguration, AssessmentConfigurationDto>();
                 config.CreateMap<AssessmentSession, AssessmentSessionDto>();
+                config.CreateMap<AssessmentLevel, AssessmentLevelDto>();
 
                 //ScheduledExam Mapper
                 config.CreateMap<ScheduledExam, ScheduledExamResponseDto>(); 

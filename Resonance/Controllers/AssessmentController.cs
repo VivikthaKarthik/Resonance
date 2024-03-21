@@ -153,15 +153,43 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
-        [HttpPost]
-        [Route("api/Assessment/GetQuestions")]
-        public async Task<ResponseDto> GetQuestions(QuestionRequestDto request)
+        //[HttpPost]
+        //[Route("api/Assessment/GetQuestions")]
+        //public async Task<ResponseDto> GetQuestions(QuestionRequestDto request)
+        //{
+        //    ResponseDto responseDto = new ResponseDto();
+        //    try
+        //    {
+        //        logger.LogInformation("Requested GetChapter");
+        //        var questions = await assessmentService.GetQuestions(request);
+
+        //        if (questions != null)
+        //        {
+        //            responseDto.Result = questions;
+        //            responseDto.IsSuccess = true;
+        //        }
+        //        else
+        //        {
+        //            responseDto.IsSuccess = false;
+        //            responseDto.Message = "Not Found";
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        responseDto.IsSuccess = false;
+        //        responseDto.Message = ex.Message;
+        //    }
+        //    return responseDto;
+        //}
+
+        [HttpGet]
+        [Route("api/Assessment/GetAssessmentLevels")]
+        public async Task<ResponseDto> GetAssessmentLevels()
         {
             ResponseDto responseDto = new ResponseDto();
             try
             {
-                logger.LogInformation("Requested GetChapter");
-                var questions = await assessmentService.GetQuestions(request);
+                var questions = await assessmentService.GetAssessmentLevels();
 
                 if (questions != null)
                 {
@@ -182,15 +210,15 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
-        [HttpPost]
+        [HttpGet]
         [Route("api/Assessment/GetQuestionsByChapter")]
-        public async Task<ResponseDto> GetQuestionsByChapter(long id)
+        public async Task<ResponseDto> GetQuestionsByChapter(long id, long levelId)
         {
             ResponseDto responseDto = new ResponseDto();
             try
             {
                 logger.LogInformation("Requested GetChapter");
-                var questions = await assessmentService.GetQuestionsByChapter(id);
+                var questions = await assessmentService.GetQuestionsByChapter(id, levelId);
 
                 if (questions != null)
                 {
@@ -211,15 +239,15 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
         
-        [HttpPost]
+        [HttpGet]
         [Route("api/Assessment/GetQuestionsByTopic")]
-        public async Task<ResponseDto> GetQuestionsByTopic(long id)
+        public async Task<ResponseDto> GetQuestionsByTopic(long id, long levelId)
         {
             ResponseDto responseDto = new ResponseDto();
             try
             {
                 logger.LogInformation("Requested GetChapter");
-                var questions = await assessmentService.GetQuestionsByTopic(id);
+                var questions = await assessmentService.GetQuestionsByTopic(id, levelId);
 
                 if (questions != null)
                 {
@@ -240,15 +268,15 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
         
-        [HttpPost]
+        [HttpGet]
         [Route("api/Assessment/GetQuestionsBySubTopic")]
-        public async Task<ResponseDto> GetQuestionsBySubTopic(long id)
+        public async Task<ResponseDto> GetQuestionsBySubTopic(long id, long levelId)
         {
             ResponseDto responseDto = new ResponseDto();
             try
             {
                 logger.LogInformation("Requested GetChapter");
-                var questions = await assessmentService.GetQuestionsBySubTopic(id);
+                var questions = await assessmentService.GetQuestionsBySubTopic(id, levelId);
 
                 if (questions != null)
                 {

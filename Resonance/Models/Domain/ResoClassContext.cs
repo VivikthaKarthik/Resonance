@@ -17,6 +17,8 @@ public partial class ResoClassContext : DbContext
 
     public virtual DbSet<AssessmentConfiguration> AssessmentConfigurations { get; set; }
 
+    public virtual DbSet<AssessmentLevel> AssessmentLevels { get; set; }
+
     public virtual DbSet<AssessmentSession> AssessmentSessions { get; set; }
 
     public virtual DbSet<AssessmentSessionQuestion> AssessmentSessionQuestions { get; set; }
@@ -73,6 +75,8 @@ public partial class ResoClassContext : DbContext
 
     public virtual DbSet<VwClass> VwClasses { get; set; }
 
+    public virtual DbSet<VwQuestionBank> VwQuestionBanks { get; set; }
+
     public virtual DbSet<VwSubTopic> VwSubTopics { get; set; }
 
     public virtual DbSet<VwSubject> VwSubjects { get; set; }
@@ -99,13 +103,24 @@ public partial class ResoClassContext : DbContext
                 .HasConstraintName("FK_AssessmentConfiguration_Course");
         });
 
+        modelBuilder.Entity<AssessmentLevel>(entity =>
+        {
+            entity.ToTable("AssessmentLevel");
+
+            entity.Property(e => e.Name).HasMaxLength(20);
+        });
+
         modelBuilder.Entity<AssessmentSession>(entity =>
         {
             entity.ToTable("AssessmentSession");
 
-            entity.Property(e => e.AssessmentType).HasMaxLength(50);
             entity.Property(e => e.EndTime).HasColumnType("datetime");
             entity.Property(e => e.StartTime).HasColumnType("datetime");
+
+            entity.HasOne(d => d.AssessmentLevel).WithMany(p => p.AssessmentSessions)
+                .HasForeignKey(d => d.AssessmentLevelId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_AssessmentSession_AssessmentLevel");
 
             entity.HasOne(d => d.Student).WithMany(p => p.AssessmentSessions)
                 .HasForeignKey(d => d.StudentId)
@@ -599,6 +614,15 @@ public partial class ResoClassContext : DbContext
                 .ToView("vwClasses");
 
             entity.Property(e => e.Id).HasColumnName("ID");
+        });
+
+        modelBuilder.Entity<VwQuestionBank>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("vwQuestionBank");
+
+            entity.Property(e => e.DifficultyLevel).HasMaxLength(20);
         });
 
         modelBuilder.Entity<VwSubTopic>(entity =>
