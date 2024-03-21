@@ -232,6 +232,10 @@ namespace ResoClassAPI.Services
 
                 if (student.CourseId > 0)
                     dtoObject.CourseName = dbContext.Courses.Where(x => x.Id == student.CourseId).First().Name;
+
+
+                if (student.ClassId > 0)
+                    dtoObject.ClassName = dbContext.Classes.Where(x => x.Id == student.ClassId).First().Name;
                 return dtoObject;
             }
             else

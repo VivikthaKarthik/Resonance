@@ -123,7 +123,7 @@ namespace ResoClassAPI.Services
                 throw new Exception("Not Found");
         }
 
-        public async Task<List<SubjectDto>> GetSubjectsWithCourseId(long classId)
+        public async Task<List<SubjectDto>> GetSubjectsWithClassId(long classId)
         {
             
             if (dbContext.Subjects.Any(item => item.ClassId == classId && item.IsActive))
