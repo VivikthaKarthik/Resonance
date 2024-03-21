@@ -3,8 +3,11 @@
     public class SubTopicResponseDto
     {
         public long Id { get; set; }
-        public string Name { get; set; } = null!;
-        public string Thumbnail { get; set; } = null!;
+        public string Name { get; set; }
+        public string Thumbnail { get; set; }
+        public string SourceUrl { get; set; }
+        public string Description { get; set; }
+        public bool HomeDisplay { get; set; }
         public long TopicId { get; set; } 
         public string TopicName { get; set; }
         public long ChapterId { get; set; }

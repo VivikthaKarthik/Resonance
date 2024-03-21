@@ -40,6 +40,9 @@ namespace ResoClassAPI.Services
                             Id = subtopic.Id,
                             Name = subtopic.Name,
                             Thumbnail = subtopic.Thumbnail,
+                            SourceUrl = subtopic.SourceUrl,
+                            Description = subtopic.Description,
+                            HomeDisplay = subtopic.HomeDisplay,
                             TopicId = topic.Id,
                             TopicName = topic.Name,
                             ChapterId = chapter.Id,
@@ -66,6 +69,9 @@ namespace ResoClassAPI.Services
                             Id = subtopic.Id,
                             Name = subtopic.Name,
                             Thumbnail = subtopic.Thumbnail,
+                            SourceUrl = subtopic.SourceUrl,
+                            Description = subtopic.Description,
+                            HomeDisplay = subtopic.HomeDisplay,
                             TopicId = topic.Id,
                             TopicName = topic.Name
                         };
