@@ -58,3 +58,24 @@ Inner Join [Course] Co On Co.Id = Cl.CourseId
 Where ST.IsActive = 1 AND ST.TopicId IS NULL
 
 GO
+
+CREATE OR ALTER VIEW [dbo].[vwQuestionBank]
+AS
+
+Select QB.Id,
+        QB.Question,
+        QB.FirstAnswer,
+        QB.SecondAnswer,
+        QB.ThirdAnswer,
+        QB.FourthAnswer,
+        QB.CorrectAnswer,
+        DL.[Name] AS DifficultyLevel,
+		QB.IsPreviousYearQuestion,
+        QB.SubTopicId,
+        QB.TopicId,
+        QB.ChapterId
+from QuestionBank QB
+Inner Join DifficultyLevel DL On DL.Id = QB.DifficultyLevelId
+Where QB.IsActive = 1
+
+GO
