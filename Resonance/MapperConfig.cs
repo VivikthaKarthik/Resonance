@@ -17,19 +17,23 @@ namespace Resonance
                 //Subject Mapper
                 config.CreateMap<SubjectDto, Subject>();
                 config.CreateMap<Subject, SubjectDto>();
+                config.CreateMap<VwSubject, SubjectsViewDto>();
 
                 //Chapter Mapper
                 config.CreateMap<ChapterRequestDto, Chapter>();
                 config.CreateMap<Chapter, ChapterResponseDto>();
+                config.CreateMap<VwChapter, ChaptersViewDto>();
 
                 //Topic Mapper
                 config.CreateMap<TopicDto, Topic>();
                 config.CreateMap<Topic, TopicDto>();
                 config.CreateMap<Topic, TopicResponseDto>();
+                config.CreateMap<VwTopic, TopicsViewDto>();
 
                 //Sub-Topic Mapper
                 config.CreateMap<SubTopicDto, SubTopic>();
                 config.CreateMap<SubTopic, SubTopicResponseDto>();
+                config.CreateMap<VwSubTopic, SubTopicsViewDto>();
 
                 //Video Mapper
                 config.CreateMap<VideoDto, Video>();
@@ -40,6 +44,11 @@ namespace Resonance
                 config.CreateMap<CourseDto, Course>();
                 config.CreateMap<Course, CourseDto>();
 
+                //Class Mapper
+                config.CreateMap<ClassDto, Class>();
+                config.CreateMap<Class, ClassDto>();
+                config.CreateMap<VwClass, ClassesViewDto>();
+
                 //Student Mapper
                 config.CreateMap<Student, StudentProfileDto>();
                 config.CreateMap<Student, StudentDto>();
@@ -48,10 +57,13 @@ namespace Resonance
                 //QuestionBank Mapper
                 config.CreateMap<QuestionBank, QuestionData>();
                 config.CreateMap<QuestionBank, QuestionsDto>();
-                
+                config.CreateMap<QuestionBank, QuestionKeyDto>();
+                config.CreateMap<VwQuestionBank, QuestionData>();
+
                 //Assessment Mapper
                 config.CreateMap<AssessmentConfiguration, AssessmentConfigurationDto>();
                 config.CreateMap<AssessmentSession, AssessmentSessionDto>();
+                config.CreateMap<AssessmentLevel, AssessmentLevelDto>();
 
                 //ScheduledExam Mapper
                 config.CreateMap<ScheduledExam, ScheduledExamResponseDto>(); 

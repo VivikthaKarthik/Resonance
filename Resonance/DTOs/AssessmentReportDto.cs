@@ -11,6 +11,7 @@
         public int WrongAnswers { get; set; }
         public ChapterAnalysisDto CorrectAnswersAnalysis { get; set; }
         public ChapterAnalysisDto WrongAnswersAnalysis { get; set; }
+        public List<QuestionKeyDto> Keys { get; set; }
 
     }
 

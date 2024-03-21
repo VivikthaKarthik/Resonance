@@ -32,7 +32,9 @@ namespace ResoClassAPI.Services
 
             var course = dbContext.Courses.Where(x => x.Id == student.CourseId).FirstOrDefault();
 
-            var subjects = dbContext.Subjects.Where(x => x.CourseId == course.Id && x.IsActive).ToList();
+            var classObject = dbContext.Classes.Where(x => x.Id == student.ClassId).FirstOrDefault();
+
+            var subjects = dbContext.Subjects.Where(x => x.ClassId == classObject.Id && x.IsActive).ToList();
 
             if(subjects.Any())
             {
@@ -241,6 +243,24 @@ namespace ResoClassAPI.Services
 
                 report.CorrectAnswersAnalysis = GetChapterAnalysis(questions.Where(x => x.Result.Value).ToList(), chapters, topics);
                 report.WrongAnswersAnalysis = GetChapterAnalysis(questions.Where(x => !x.Result.Value).ToList(), chapters, topics);
+
+                report.Keys = new List<QuestionKeyDto>();
+                foreach(var item in questions)
+                {
+                    var question = dbContext.QuestionBanks.First(x => x.Id == item.QuestionId);
+                    if (question != null)
+                    {
+                        var key = mapper.Map<QuestionKeyDto>(question);
+                        if (key != null)
+                        {
+                            key.SelectedAnswer = item.SelectedAnswer;
+                            report.Keys.Add(key);
+                        }
+
+                    }
+                }
+
+
             }
 
             return report;

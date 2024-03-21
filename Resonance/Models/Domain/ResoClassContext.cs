@@ -17,17 +17,23 @@ public partial class ResoClassContext : DbContext
 
     public virtual DbSet<AssessmentConfiguration> AssessmentConfigurations { get; set; }
 
+    public virtual DbSet<AssessmentLevel> AssessmentLevels { get; set; }
+
     public virtual DbSet<AssessmentSession> AssessmentSessions { get; set; }
 
     public virtual DbSet<AssessmentSessionQuestion> AssessmentSessionQuestions { get; set; }
 
     public virtual DbSet<Audit> Audits { get; set; }
 
+    public virtual DbSet<Branch> Branches { get; set; }
+
     public virtual DbSet<Chapter> Chapters { get; set; }
 
     public virtual DbSet<Choice> Choices { get; set; }
 
     public virtual DbSet<City> Cities { get; set; }
+
+    public virtual DbSet<Class> Classes { get; set; }
 
     public virtual DbSet<Course> Courses { get; set; }
 
@@ -65,6 +71,18 @@ public partial class ResoClassContext : DbContext
 
     public virtual DbSet<Video> Videos { get; set; }
 
+    public virtual DbSet<VwChapter> VwChapters { get; set; }
+
+    public virtual DbSet<VwClass> VwClasses { get; set; }
+
+    public virtual DbSet<VwQuestionBank> VwQuestionBanks { get; set; }
+
+    public virtual DbSet<VwSubTopic> VwSubTopics { get; set; }
+
+    public virtual DbSet<VwSubject> VwSubjects { get; set; }
+
+    public virtual DbSet<VwTopic> VwTopics { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlServer("name=SqlConnectionString");
 
@@ -85,13 +103,24 @@ public partial class ResoClassContext : DbContext
                 .HasConstraintName("FK_AssessmentConfiguration_Course");
         });
 
+        modelBuilder.Entity<AssessmentLevel>(entity =>
+        {
+            entity.ToTable("AssessmentLevel");
+
+            entity.Property(e => e.Name).HasMaxLength(20);
+        });
+
         modelBuilder.Entity<AssessmentSession>(entity =>
         {
             entity.ToTable("AssessmentSession");
 
-            entity.Property(e => e.AssessmentType).HasMaxLength(50);
             entity.Property(e => e.EndTime).HasColumnType("datetime");
             entity.Property(e => e.StartTime).HasColumnType("datetime");
+
+            entity.HasOne(d => d.AssessmentLevel).WithMany(p => p.AssessmentSessions)
+                .HasForeignKey(d => d.AssessmentLevelId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_AssessmentSession_AssessmentLevel");
 
             entity.HasOne(d => d.Student).WithMany(p => p.AssessmentSessions)
                 .HasForeignKey(d => d.StudentId)
@@ -124,6 +153,16 @@ public partial class ResoClassContext : DbContext
             entity.Property(e => e.CreatedBy).HasMaxLength(256);
             entity.Property(e => e.CreatedOn).HasColumnType("datetime");
             entity.Property(e => e.TableName).HasMaxLength(128);
+        });
+
+        modelBuilder.Entity<Branch>(entity =>
+        {
+            entity.ToTable("Branch");
+
+            entity.Property(e => e.BranchId).HasMaxLength(250);
+            entity.Property(e => e.LicenceKey).HasMaxLength(250);
+            entity.Property(e => e.Name).HasMaxLength(250);
+            entity.Property(e => e.PhoneNumber).HasMaxLength(10);
         });
 
         modelBuilder.Entity<Chapter>(entity =>
@@ -160,6 +199,21 @@ public partial class ResoClassContext : DbContext
                 .HasForeignKey(d => d.StateId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_City_State");
+        });
+
+        modelBuilder.Entity<Class>(entity =>
+        {
+            entity.ToTable("Class");
+
+            entity.Property(e => e.CreatedBy).HasMaxLength(128);
+            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.ModifiedBy).HasMaxLength(128);
+            entity.Property(e => e.ModifiedOn).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Course).WithMany(p => p.Classes)
+                .HasForeignKey(d => d.CourseId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Class_Course");
         });
 
         modelBuilder.Entity<Course>(entity =>
@@ -406,9 +460,6 @@ public partial class ResoClassContext : DbContext
             entity.Property(e => e.AdmissionDate).HasColumnType("datetime");
             entity.Property(e => e.AdmissionId).HasMaxLength(128);
             entity.Property(e => e.AlternateMobileNumber).HasMaxLength(15);
-            entity.Property(e => e.BranchId)
-                .HasMaxLength(10)
-                .IsFixedLength();
             entity.Property(e => e.CreatedBy).HasMaxLength(128);
             entity.Property(e => e.CreatedOn).HasColumnType("datetime");
             entity.Property(e => e.DateOfBirth).HasColumnType("date");
@@ -426,10 +477,20 @@ public partial class ResoClassContext : DbContext
             entity.Property(e => e.Name).HasMaxLength(128);
             entity.Property(e => e.PinCode).HasMaxLength(10);
 
+            entity.HasOne(d => d.Branch).WithMany(p => p.Students)
+                .HasForeignKey(d => d.BranchId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Student_Branch");
+
             entity.HasOne(d => d.City).WithMany(p => p.Students)
                 .HasForeignKey(d => d.CityId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Student_City");
+
+            entity.HasOne(d => d.Class).WithMany(p => p.Students)
+                .HasForeignKey(d => d.ClassId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Student_Class");
 
             entity.HasOne(d => d.State).WithMany(p => p.Students)
                 .HasForeignKey(d => d.StateId)
@@ -441,16 +502,14 @@ public partial class ResoClassContext : DbContext
         {
             entity.ToTable("SubTopic");
 
-            entity.Property(e => e.Id).ValueGeneratedOnAdd();
             entity.Property(e => e.CreatedBy).HasMaxLength(128);
             entity.Property(e => e.CreatedOn).HasColumnType("datetime");
             entity.Property(e => e.ModifiedBy).HasMaxLength(128);
             entity.Property(e => e.ModifiedOn).HasColumnType("datetime");
             entity.Property(e => e.Name).HasMaxLength(250);
 
-            entity.HasOne(d => d.IdNavigation).WithOne(p => p.SubTopic)
-                .HasForeignKey<SubTopic>(d => d.Id)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+            entity.HasOne(d => d.Topic).WithMany(p => p.SubTopics)
+                .HasForeignKey(d => d.TopicId)
                 .HasConstraintName("FK_SubTopic_Topic");
         });
 
@@ -464,10 +523,10 @@ public partial class ResoClassContext : DbContext
             entity.Property(e => e.ModifiedBy).HasMaxLength(128);
             entity.Property(e => e.ModifiedOn).HasColumnType("datetime");
 
-            entity.HasOne(d => d.Course).WithMany(p => p.Subjects)
-                .HasForeignKey(d => d.CourseId)
+            entity.HasOne(d => d.Class).WithMany(p => p.Subjects)
+                .HasForeignKey(d => d.ClassId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Subject_Course");
+                .HasConstraintName("FK_Subject_Class");
         });
 
         modelBuilder.Entity<Topic>(entity =>
@@ -505,6 +564,11 @@ public partial class ResoClassContext : DbContext
                 .HasDefaultValueSql("('Resonance@123')");
             entity.Property(e => e.PhoneNumber).HasMaxLength(20);
 
+            entity.HasOne(d => d.Branch).WithMany(p => p.Users)
+                .HasForeignKey(d => d.BranchId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_User_Branch");
+
             entity.HasOne(d => d.Role).WithMany(p => p.Users)
                 .HasForeignKey(d => d.RoleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -532,6 +596,64 @@ public partial class ResoClassContext : DbContext
             entity.HasOne(d => d.Topic).WithMany(p => p.Videos)
                 .HasForeignKey(d => d.TopicId)
                 .HasConstraintName("FK_Video_Topic");
+        });
+
+        modelBuilder.Entity<VwChapter>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("vwChapters");
+
+            entity.Property(e => e.Id).HasColumnName("ID");
+        });
+
+        modelBuilder.Entity<VwClass>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("vwClasses");
+
+            entity.Property(e => e.Id).HasColumnName("ID");
+        });
+
+        modelBuilder.Entity<VwQuestionBank>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("vwQuestionBank");
+
+            entity.Property(e => e.DifficultyLevel).HasMaxLength(20);
+        });
+
+        modelBuilder.Entity<VwSubTopic>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("vwSubTopics");
+
+            entity.Property(e => e.Id).HasColumnName("ID");
+            entity.Property(e => e.Name).HasMaxLength(250);
+            entity.Property(e => e.Topic).HasMaxLength(250);
+        });
+
+        modelBuilder.Entity<VwSubject>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("vwSubjects");
+
+            entity.Property(e => e.ColorCode).HasMaxLength(100);
+            entity.Property(e => e.Id).HasColumnName("ID");
+        });
+
+        modelBuilder.Entity<VwTopic>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("vwTopics");
+
+            entity.Property(e => e.Id).HasColumnName("ID");
+            entity.Property(e => e.Name).HasMaxLength(250);
         });
 
         OnModelCreatingPartial(modelBuilder);

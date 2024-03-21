@@ -151,6 +151,7 @@ namespace ResoClassAPI.Controllers
         public async Task<ResponseDto> UploadExcel(IFormFile file)
         {
             ResponseDto responseDto = new ResponseDto();
+            bool isDataUploaded = false;
             try
             {
                 if (file == null || file.Length == 0)
@@ -168,7 +169,16 @@ namespace ResoClassAPI.Controllers
                     return responseDto;
                 }
 
-                if (await excelReader.BulkUpload(file, SqlTableName.SubTopic))
+                using (var stream = new MemoryStream())
+                {
+                    await file.CopyToAsync(stream);
+                    stream.Position = 0;
+
+                    List<SubTopicExcelRequestDto> subTopics = await excelReader.ReadSubTopicsFromExcel(stream);
+                    isDataUploaded = await subtopicService.InsertSubTopics(subTopics);
+                }
+
+                if (isDataUploaded)
                 {
                     responseDto.Result = "Data uploaded successfully";
                     responseDto.IsSuccess = true;

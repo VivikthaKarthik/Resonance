@@ -103,6 +103,36 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
+
+        [HttpGet]
+        [Authorize(Policy = "Admin")]
+        [Route("api/ScheduledExam/GetCompletedExams")]
+        public async Task<ResponseDto> GetCompletedExams(long courseId, long subjectId)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                var exams = await scheduledExamService.GetCompletedExams(courseId, subjectId);
+
+                if (exams != null)
+                {
+                    responseDto.Result = exams;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
         [HttpGet]
         [Route("api/ScheduledExam/GetExams")]
         public async Task<ResponseDto> GetExams()
@@ -131,7 +161,7 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
-        [HttpPost]
+        [HttpGet]
         [Authorize(Policy = "Admin")]
         [Route("api/ScheduledExam/GetScheduledExamQuestions")]
         public async Task<ResponseDto> GetScheduledExamQuestions(long id)
@@ -160,6 +190,34 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
+        [HttpPost]
+        [Authorize(Policy = "Admin")]
+        [Route("api/ScheduledExam/GetScheduledExamResults")]
+        public async Task<ResponseDto> GetScheduledExamResults(long id)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                var questions = await scheduledExamService.GetScheduledExamResults(id);
+
+                if (questions != null)
+                {
+                    responseDto.Result = questions;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
 
         [HttpPost]
         [Authorize(Policy = "Admin")]

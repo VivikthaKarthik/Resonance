@@ -108,5 +108,42 @@ namespace ResoClassAPI.Services
             return false;
 
         }
+
+        public async Task<bool> InsertCourses(List<CourseDto> courses)
+        {
+            try
+            {
+                var currentUser = authService.GetCurrentUser();
+                foreach (var course in courses)
+                {
+
+                    // Insert the subject if it doesn't exist
+                    Course existingCourse= dbContext.Courses.FirstOrDefault(s => s.Name == course.Name && s.IsActive);
+
+                    if (existingCourse == null)
+                    {
+                        existingCourse = new Course
+                        {
+                            Name = course.Name,
+                            IsActive = true,
+                            Thumbnail = !string.IsNullOrEmpty(course.Thumbnail)? course.Thumbnail : "NA",
+                            CreatedBy = currentUser.Name,
+                            CreatedOn = DateTime.Now,
+                            ModifiedBy = currentUser.Name,
+                            ModifiedOn = DateTime.Now
+                        };
+                        dbContext.Courses.Add(existingCourse);
+                    }
+                }
+
+                await dbContext.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+        }
     }
 }

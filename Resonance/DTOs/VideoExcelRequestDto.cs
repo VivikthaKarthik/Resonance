@@ -10,6 +10,7 @@
         public string Topic { get; set; }
         public string Chapter { get; set; }
         public string Subject { get; set; }
+        public string Class { get; set; }
         public string Course { get; set; }
         public bool HomeDisplay { get; set; }
     }

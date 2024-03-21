@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using DocumentFormat.OpenXml.VariantTypes;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using ResoClassAPI.DTOs;
@@ -20,24 +21,13 @@ namespace ResoClassAPI.Services
             mapper = _mapper;
         }
 
-        public async Task<List<SubjectDto>> GetAllSubjects()
+        public async Task<List<SubjectsViewDto>> GetAllSubjects()
         {
-            List<SubjectDto> dtoObjects = new List<SubjectDto>();
-            var subjects = await Task.FromResult(dbContext.Subjects.Where(item => item.IsActive == true).ToList());
+            List<SubjectsViewDto> dtoObjects = new List<SubjectsViewDto>();
+            var subjects = await Task.FromResult(dbContext.VwSubjects.ToList());
             if (subjects != null && subjects.Count > 0)
-            {
-
-                foreach (var subject in subjects)
-                {
-                    var dtoObject = mapper.Map<SubjectDto>(subject);
-                    dtoObjects.Add(dtoObject);
-                }
-                return dtoObjects;
-            }
-            else
-                throw new Exception("Not Found");
-           
-           
+                dtoObjects = mapper.Map<List<SubjectsViewDto>>(subjects);
+            return dtoObjects;
         }
 
         public async Task<long> CreateSubject(SubjectDto subject)
@@ -48,15 +38,15 @@ namespace ResoClassAPI.Services
             {
                 Subject newSubject = mapper.Map<Subject>(subject);
 
-                if (subject.CourseId > 0)
+                if (subject.ClassId > 0)
                 {
-                    if (!dbContext.Courses.Any(x => x.Id == subject.CourseId))
-                        throw new Exception("Invalid CourseId");
+                    if (!dbContext.Classes.Any(x => x.Id == subject.ClassId))
+                        throw new Exception("Invalid ClassId");
                 }
                 else
-                    throw new Exception("CourseId is missing");
+                    throw new Exception("ClassId is missing");
 
-                newSubject.CourseId = subject.CourseId;
+                newSubject.ClassId = subject.ClassId;
                 newSubject.IsActive = true;
                 newSubject.CreatedBy = newSubject.ModifiedBy = currentUser.Name;
                 newSubject.CreatedOn = newSubject.ModifiedOn = DateTime.Now;
@@ -85,12 +75,12 @@ namespace ResoClassAPI.Services
 
             if (existingItem != null)
             {
-                if (updatedSubject.CourseId > 0)
+                if (updatedSubject.ClassId > 0)
                 {
-                    if (dbContext.Courses.Any(x => x.Id == updatedSubject.CourseId))
-                        existingItem.CourseId = updatedSubject.CourseId;
+                    if (dbContext.Classes.Any(x => x.Id == updatedSubject.ClassId))
+                        existingItem.ClassId = updatedSubject.ClassId;
                     else
-                        throw new Exception("Invalid CourseId");
+                        throw new Exception("Invalid ClassId");
                 }
 
                 if (!string.IsNullOrEmpty(updatedSubject.Name))
@@ -133,12 +123,12 @@ namespace ResoClassAPI.Services
                 throw new Exception("Not Found");
         }
 
-        public async Task<List<SubjectDto>> GetSubjectsWithCourseId(long courseId)
+        public async Task<List<SubjectDto>> GetSubjectsWithClassId(long classId)
         {
             
-            if (dbContext.Subjects.Any(item => item.CourseId == courseId && item.IsActive))
+            if (dbContext.Subjects.Any(item => item.ClassId == classId && item.IsActive))
             {
-                var subjects = await Task.FromResult(dbContext.Subjects.Where(item => item.CourseId == courseId && item.IsActive).ToList());
+                var subjects = await Task.FromResult(dbContext.Subjects.Where(item => item.ClassId == classId && item.IsActive).ToList());
                 var dtoObject = mapper.Map<List<SubjectDto>>(subjects);
                 return dtoObject;
             }
@@ -155,13 +145,23 @@ namespace ResoClassAPI.Services
                 {
                     // Get the course ID based on the course name
                     long courseId = dbContext.Courses
-                        .Where(c => c.Name == subjectDto.CourseName)
-                        .Select(c => c.Id)
-                        .FirstOrDefault();
+                       .Where(c => c.Name == subjectDto.CourseName)
+                       .Select(c => c.Id)
+                       .FirstOrDefault();
 
                     if (courseId == 0)
                     {
                         throw new Exception($"Course '{subjectDto.CourseName}' not found in the database.");
+                    }
+
+                    long classId = dbContext.Classes
+                        .Where(c => c.Name == subjectDto.ClassName && c.CourseId == courseId)
+                        .Select(c => c.Id)
+                        .FirstOrDefault();
+
+                    if (classId == 0)
+                    {
+                        throw new Exception($"Class '{subjectDto.ClassName}' not found in the database.");
                     }
 
                     // Insert the subject if it doesn't exist
@@ -173,7 +173,7 @@ namespace ResoClassAPI.Services
                         { 
                             Name = subjectDto.Name, 
                             IsActive = true,
-                            CourseId = courseId,
+                            ClassId = classId,
                             ColorCode = subjectDto.ColorCode,                            
                             CreatedBy = currentUser.Name,
                             CreatedOn = DateTime.Now,

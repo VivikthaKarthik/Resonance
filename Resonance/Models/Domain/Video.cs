@@ -15,11 +15,11 @@ public partial class Video
 
     public string SourceUrl { get; set; } = null!;
 
-    public long? SubTopicId { get; set; }
+    public long? ChapterId { get; set; }
 
     public long? TopicId { get; set; }
 
-    public long? ChapterId { get; set; }
+    public long? SubTopicId { get; set; }
 
     public bool? HomeDisplay { get; set; }
 

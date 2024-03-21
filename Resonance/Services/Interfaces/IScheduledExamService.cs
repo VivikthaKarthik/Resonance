@@ -6,8 +6,10 @@ namespace ResoClassAPI.Services.Interfaces
     {
         Task<string> InsertQuestions(List<QuestionsDto> questions, ScheduledExamRequestDto request);
         Task<List<ScheduledExamResponseDto>> GetScheduledExams();
+        Task<List<ScheduledExamResponseDto>> GetCompletedExams(long courseId, long subjectId);
         Task<List<ScheduledExamResponseDto>> GetExams();
         Task<List<QuestionsDto>> GetScheduledExamQuestions(long id);
+        Task<List<ScheduledExamResultDto>> GetScheduledExamResults(long id);
         Task<ScheduledExamQuestionsResponseDto> GetQuestions(long id);
         Task<bool> StartAssessment(long examId);
         Task<bool> EndAssessment(long examId);

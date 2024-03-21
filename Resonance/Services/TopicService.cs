@@ -32,23 +32,14 @@ namespace ResoClassAPI.Services
                 throw new Exception("Not Found");
         }
 
-        public async Task<List<TopicDto>> GetAllTopics()
+        public async Task<List<TopicsViewDto>> GetAllTopics()
         {
-            List<TopicDto> dtoObjects = new List<TopicDto>();
-            var topics = await Task.FromResult(dbContext.Topics.Where(item => item.IsActive == true).ToList());
+            List<TopicsViewDto> dtoObjects = new List<TopicsViewDto>();
+            var topics = await Task.FromResult(dbContext.VwTopics.ToList());
             if (topics != null && topics.Count > 0)
-            {
-
-                //foreach (var topic in topics)
-                //{
-                dtoObjects = mapper.Map<List<TopicDto>>(topics);
-                    //dtoObjects.Add(dtoObject);
-                //}
-                return dtoObjects;
-            }
-            else
-                throw new Exception("Not Found");
-        }      
+                dtoObjects = mapper.Map<List<TopicsViewDto>>(topics);
+            return dtoObjects;
+        }
         public async Task<long> CreateTopic(TopicDto topic)
         {
             var currentUser = authService.GetCurrentUser();
@@ -175,7 +166,14 @@ namespace ResoClassAPI.Services
                         throw new Exception($"Course '{topicDto.Course}' not found in the database.");
                     }
 
-                    long subjectId = dbContext.Subjects.Where(c => c.Name == topicDto.Subject && c.CourseId == courseId && c.IsActive).Select(c => c.Id).FirstOrDefault();
+                    long classId = dbContext.Classes.Where(c => c.Name == topicDto.Class && c.CourseId == courseId && c.IsActive).Select(c => c.Id).FirstOrDefault();
+
+                    if (classId == 0)
+                    {
+                        throw new Exception($"Class '{topicDto.Class}' not found in the database.");
+                    }
+
+                    long subjectId = dbContext.Subjects.Where(c => c.Name == topicDto.Subject && c.ClassId == classId && c.IsActive).Select(c => c.Id).FirstOrDefault();
 
                     if (subjectId == 0)
                     {

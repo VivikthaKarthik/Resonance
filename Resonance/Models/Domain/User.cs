@@ -13,11 +13,13 @@ public partial class User
 
     public string Email { get; set; } = null!;
 
+    public string Password { get; set; } = null!;
+
     public string PhoneNumber { get; set; } = null!;
 
     public long RoleId { get; set; }
 
-    public string Password { get; set; } = null!;
+    public long BranchId { get; set; }
 
     public DateTime? LastLoginDate { get; set; }
 
@@ -30,6 +32,8 @@ public partial class User
     public string ModifiedBy { get; set; } = null!;
 
     public DateTime ModifiedOn { get; set; }
+
+    public virtual Branch Branch { get; set; } = null!;
 
     public virtual Role Role { get; set; } = null!;
 }

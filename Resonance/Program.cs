@@ -62,6 +62,7 @@ builder.Services.AddScoped<ITopicService, TopicService>();
 builder.Services.AddScoped<ISubTopicService, SubTopicService>();
 builder.Services.AddScoped<IVideoService, VideoService>();
 builder.Services.AddScoped<ICourseService, CourseService>();
+builder.Services.AddScoped<IClassService, ClassService>();
 builder.Services.AddScoped<IStudentService, StudentService>();
 builder.Services.AddScoped<IAssessmentService, AssessmentService>();
 builder.Services.AddScoped<IHomeService, HomeService>();

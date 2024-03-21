@@ -9,7 +9,7 @@ public partial class Subject
 
     public string Name { get; set; } = null!;
 
-    public long CourseId { get; set; }
+    public long ClassId { get; set; }
 
     public string? ColorCode { get; set; }
 
@@ -23,7 +23,7 @@ public partial class Subject
 
     public DateTime ModifiedOn { get; set; }
 
-    public virtual Course Course { get; set; } = null!;
+    public virtual Class Class { get; set; } = null!;
 
     public virtual ICollection<ScheduledExam> ScheduledExams { get; } = new List<ScheduledExam>();
 }

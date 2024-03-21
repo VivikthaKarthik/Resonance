@@ -10,5 +10,6 @@
         public string FourthAnswer { get; set; }
         public string CorrectAnswer { get; set; }
         public string DifficultyLevel { get; set; }
+        public string IsPreviousYearQuestion { get; set; }
     }
 }

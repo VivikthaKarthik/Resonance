@@ -23,6 +23,8 @@ public partial class QuestionBank
 
     public long? DifficultyLevelId { get; set; }
 
+    public bool? IsPreviousYearQuestion { get; set; }
+
     public long? SubTopicId { get; set; }
 
     public long? TopicId { get; set; }

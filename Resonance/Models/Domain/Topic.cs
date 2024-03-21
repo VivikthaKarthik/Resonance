@@ -33,7 +33,7 @@ public partial class Topic
 
     public virtual ICollection<Question> Questions { get; } = new List<Question>();
 
-    public virtual SubTopic? SubTopic { get; set; }
+    public virtual ICollection<SubTopic> SubTopics { get; } = new List<SubTopic>();
 
     public virtual ICollection<Video> Videos { get; } = new List<Video>();
 }
