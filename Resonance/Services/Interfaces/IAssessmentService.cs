@@ -8,6 +8,9 @@ namespace ResoClassAPI.Services.Interfaces
         Task<AssessmentConfigurationDto> GetAssessmentConfiguration();
         Task<string> InsertQuestions(List<QuestionsDto> questions, QuestionsUploadRequestDto request);
         Task<QuestionResponseDto> GetQuestions(QuestionRequestDto requestDto);
+        Task<QuestionResponseDto> GetQuestionsByChapter(long id);
+        Task<QuestionResponseDto> GetQuestionsByTopic(long id);
+        Task<QuestionResponseDto> GetQuestionsBySubTopic(long id);
         Task<bool> StartAssessment(long assessmentId);
         Task<bool> EndAssessment(long assessmentId);
         Task<bool> UpdateQuestionStatus(UpdateAssessmentStatusDto request);

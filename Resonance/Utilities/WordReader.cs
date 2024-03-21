@@ -15,6 +15,7 @@ namespace ResoClassAPI.Utilities
         private const string FourthAnswerIndicator = "Option4";
         private const string CorrectAnswerIndicator = "CorrectAnswer";
         private const string DifficultyLevelIndicator = "DifficultyLevel";
+        private const string PYQIndicator = "PYQ";
         private const string ImageNameAppender = "ResoImage_";
         private const string S3BucketFolderName = "QuestionAndAnswerImages";
 
@@ -85,10 +86,15 @@ namespace ResoClassAPI.Utilities
                                 {
                                     currentElement = CurrentElement.DifficultyLevel;
                                 }
+                                else if (text != null && text.Text.TrimStart().StartsWith(PYQIndicator))
+                                {
+                                    currentElement = CurrentElement.PYQ;
+                                }
 
                                 if (text != null && !string.IsNullOrEmpty(text.Text) && text.Text.Trim() != QuestionIndicator &&
                                     text.Text.Trim() != FirstAnswerIndicator && text.Text.Trim() != SecondAnswerIndicator && text.Text.Trim() != ThirdAnswerIndicator
-                                     && text.Text.Trim() != FourthAnswerIndicator && text.Text.Trim() != CorrectAnswerIndicator && text.Text.Trim() != DifficultyLevelIndicator)
+                                     && text.Text.Trim() != FourthAnswerIndicator && text.Text.Trim() != CorrectAnswerIndicator && text.Text.Trim() != DifficultyLevelIndicator
+                                     && text.Text.Trim() != PYQIndicator)
                                 {
                                     // Explicitly set the encoding to UTF-8
                                     string decodedText = System.Text.Encoding.UTF8.GetString(System.Text.Encoding.Default.GetBytes(text.Text));
@@ -137,13 +143,15 @@ namespace ResoClassAPI.Utilities
             {
                 currentQuestion = new QuestionsDto { Question = QuestionAndAnswerTags.QuestionTextOpeningTag + decodedText };
             }
-            else if (!IsAnswer(currentElement) && currentElement != CurrentElement.CorrectAnswer && currentElement != CurrentElement.DifficultyLevel)
+            else if (!IsAnswer(currentElement) && currentElement != CurrentElement.CorrectAnswer && 
+                currentElement != CurrentElement.DifficultyLevel && currentElement != CurrentElement.PYQ)
             {
                 if (currentQuestion.Question.TrimEnd().EndsWith(QuestionAndAnswerTags.ImageClosingTag))
                     currentQuestion.Question += QuestionAndAnswerTags.QuestionTextOpeningTag + decodedText;
                 currentQuestion.Question += decodedText;
             }
-            else if (currentElement != CurrentElement.CorrectAnswer && currentElement != CurrentElement.DifficultyLevel)
+            else if (currentElement != CurrentElement.CorrectAnswer && currentElement != CurrentElement.DifficultyLevel
+                 && currentElement != CurrentElement.PYQ)
             {
                 AddAnswer(currentElement, currentQuestion, decodedText, false);
             }
@@ -154,6 +162,10 @@ namespace ResoClassAPI.Utilities
             else if (currentElement == CurrentElement.DifficultyLevel && decodedText != string.Empty)
             {
                 currentQuestion.DifficultyLevel = decodedText.Trim();
+            }
+            else if (currentElement == CurrentElement.PYQ && decodedText != string.Empty)
+            {
+                currentQuestion.IsPreviousYearQuestion = decodedText.Trim();
             }
         }
 
@@ -214,6 +226,8 @@ namespace ResoClassAPI.Utilities
             if (string.IsNullOrEmpty(currentQuestion.CorrectAnswer))
                 return false;
             if (string.IsNullOrEmpty(currentQuestion.DifficultyLevel))
+                return false;
+            if (string.IsNullOrEmpty(currentQuestion.IsPreviousYearQuestion))
                 return false;
 
             return true;

@@ -8,6 +8,7 @@ using ResoClassAPI.Models;
 using ResoClassAPI.Models.Domain;
 using ResoClassAPI.Services.Interfaces;
 using ResoClassAPI.Utilities;
+using System;
 using System.Linq;
 
 namespace ResoClassAPI.Services
@@ -67,7 +68,7 @@ namespace ResoClassAPI.Services
                     if (request.SubTopicId > 0)
                     {
                         if (!dbContext.SubTopics.Any(x => x.Id == request.SubTopicId && x.TopicId == request.TopicId && x.IsActive))
-                           response = "Invalid SubTopic";
+                            response = "Invalid SubTopic";
                     }
                     var difficultyLevels = dbContext.DifficultyLevels.ToList();
                     if (response == string.Empty)
@@ -85,6 +86,11 @@ namespace ResoClassAPI.Services
                                 questionBank.ThirdAnswer = question.ThirdAnswer;
                                 questionBank.FourthAnswer = question.FourthAnswer;
                                 questionBank.CorrectAnswer = question.CorrectAnswer;
+
+                                if (!string.IsNullOrEmpty(question.IsPreviousYearQuestion))
+                                    questionBank.IsPreviousYearQuestion = question.IsPreviousYearQuestion.ToLower() == "true";
+                                else
+                                    questionBank.IsPreviousYearQuestion = false;
 
                                 var difficultyLevel = difficultyLevels.Where(x => x.Name.ToLower() == question.DifficultyLevel.ToLower()).FirstOrDefault();
                                 questionBank.DifficultyLevelId = difficultyLevel != null ? difficultyLevel.Id : 1000001;
@@ -152,11 +158,160 @@ namespace ResoClassAPI.Services
             return response;
         }
 
+        public List<QuestionBank> GetRandomObjects(List<QuestionBank> list, int count)
+        {
+            Random rand = new Random();
+            List<QuestionBank> randomObjects = new List<QuestionBank>();
+
+            for (int i = 0; i < count && list.Count > 0; i++)
+            {
+                int index = rand.Next(0, list.Count);
+                randomObjects.Add(list[index]);
+                list.RemoveAt(index);
+            }
+
+            return randomObjects;
+        }
+
+        public async Task<QuestionResponseDto> GetQuestionsByChapter(long id)
+        {
+            QuestionResponseDto response = new QuestionResponseDto();
+            try
+            {
+                var config = await GetAssessmentConfig();
+                if (config != null)
+                {
+                    response.TotalQuestions = config.MaximumQuestions;
+                    response.MarksPerQuestion = config.MarksPerQuestion;
+                    response.HasNegativeMarking = config.HasNegativeMarking;
+                    response.NegativeMarksPerQuestion = config.NegativeMarksPerQuestion != null ? config.NegativeMarksPerQuestion.Value : 0;
+
+                    if (id > 0 && dbContext.QuestionBanks.Any(x => x.ChapterId != null && x.ChapterId == id && x.IsActive))
+                    {
+                        var random = new Random();
+                        var dbQuestions = dbContext.QuestionBanks.Where(x => x.ChapterId != null && x.ChapterId == id && x.IsActive).ToList();
+
+                        if (dbQuestions != null && dbQuestions.Count > 0)
+                        {
+                            var randomQuestions = GetRandomObjects(dbQuestions, response.TotalQuestions);
+                            randomQuestions = await ReplaceTags(randomQuestions, clientType.Mobile);
+                            List<QuestionData> finalQuestions = new List<QuestionData>();
+                            foreach (var question in randomQuestions)
+                            {
+                                var finalQuestion = mapper.Map<QuestionData>(question);
+                                if (question.DifficultyLevelId != null)
+                                    finalQuestion.DifficultyLevel = dbContext.DifficultyLevels.First(x => x.Id == question.DifficultyLevelId).Name;
+
+                                finalQuestions.Add(finalQuestion);
+                            }
+                            response.AssessmentId = await CreateNewSession(finalQuestions);
+                            response.Questions = finalQuestions;
+                        }
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return response;
+        }
+
+        public async Task<QuestionResponseDto> GetQuestionsByTopic(long id)
+        {
+            QuestionResponseDto response = new QuestionResponseDto();
+            try
+            {
+                var config = await GetAssessmentConfig();
+                if (config != null)
+                {
+                    response.TotalQuestions = config.MaximumQuestions;
+                    response.MarksPerQuestion = config.MarksPerQuestion;
+                    response.HasNegativeMarking = config.HasNegativeMarking;
+                    response.NegativeMarksPerQuestion = config.NegativeMarksPerQuestion != null ? config.NegativeMarksPerQuestion.Value : 0;
+
+                    if (id > 0 && dbContext.QuestionBanks.Any(x => x.TopicId != null && x.TopicId == id && x.IsActive))
+                    {
+                        var random = new Random();
+                        var dbQuestions = dbContext.QuestionBanks.Where(x => x.TopicId != null && x.TopicId == id && x.IsActive).ToList();
+                        
+                        if (dbQuestions != null && dbQuestions.Count > 0)
+                        {
+                            var randomQuestions = GetRandomObjects(dbQuestions, response.TotalQuestions);
+                            randomQuestions = await ReplaceTags(randomQuestions, clientType.Mobile);
+                            List<QuestionData> finalQuestions = new List<QuestionData>();
+                            foreach (var question in randomQuestions)
+                            {
+                                var finalQuestion = mapper.Map<QuestionData>(question);
+                                if (question.DifficultyLevelId != null)
+                                    finalQuestion.DifficultyLevel = dbContext.DifficultyLevels.First(x => x.Id == question.DifficultyLevelId).Name;
+
+                                finalQuestions.Add(finalQuestion);
+                            }
+                            response.AssessmentId = await CreateNewSession(finalQuestions);
+                            response.Questions = finalQuestions;
+                        }
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return response;
+        }
+
+        public async Task<QuestionResponseDto> GetQuestionsBySubTopic(long id)
+        {
+            QuestionResponseDto response = new QuestionResponseDto();
+            try
+            {
+                var config = await GetAssessmentConfig();
+                if (config != null)
+                {
+                    response.TotalQuestions = config.MaximumQuestions;
+                    response.MarksPerQuestion = config.MarksPerQuestion;
+                    response.HasNegativeMarking = config.HasNegativeMarking;
+                    response.NegativeMarksPerQuestion = config.NegativeMarksPerQuestion != null ? config.NegativeMarksPerQuestion.Value : 0;
+
+                    if (id > 0 && dbContext.QuestionBanks.Any(x => x.SubTopicId != null && x.SubTopicId == id && x.IsActive))
+                    {
+                        var random = new Random();
+                        var dbQuestions = dbContext.QuestionBanks.Where(x => x.SubTopicId != null && x.SubTopicId == id && x.IsActive).ToList();
+
+                        if (dbQuestions != null && dbQuestions.Count > 0)
+                        {
+                            var randomQuestions = GetRandomObjects(dbQuestions, response.TotalQuestions);
+                            randomQuestions = await ReplaceTags(randomQuestions, clientType.Mobile);
+                            List<QuestionData> finalQuestions = new List<QuestionData>();
+                            foreach (var question in randomQuestions)
+                            {
+                                var finalQuestion = mapper.Map<QuestionData>(question);
+                                if (question.DifficultyLevelId != null)
+                                    finalQuestion.DifficultyLevel = dbContext.DifficultyLevels.First(x => x.Id == question.DifficultyLevelId).Name;
+
+                                finalQuestions.Add(finalQuestion);
+                            }
+                            response.AssessmentId = await CreateNewSession(finalQuestions);
+                            response.Questions = finalQuestions;
+                        }
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return response;
+        }
         private async Task<List<QuestionData>> ReplaceTags(List<QuestionData> questions, clientType clientType)
         {
-            foreach(var question in questions)
+            foreach (var question in questions)
             {
-                if(clientType == clientType.WEB)
+                if (clientType == clientType.WEB)
                 {
                     question.Question = ReplaceWebText(question.Question);
                     question.FirstAnswer = ReplaceWebText(question.FirstAnswer);
@@ -164,7 +319,7 @@ namespace ResoClassAPI.Services
                     question.ThirdAnswer = ReplaceWebText(question.ThirdAnswer);
                     question.FourthAnswer = ReplaceWebText(question.FourthAnswer);
                 }
-                else if(clientType == clientType.Mobile)
+                else if (clientType == clientType.Mobile)
                 {
                     question.Question = ReplaceMobileText(question.Question);
                     question.FirstAnswer = ReplaceMobileText(question.FirstAnswer);
@@ -566,7 +721,7 @@ namespace ResoClassAPI.Services
                 await dbContext.SaveChangesAsync();
                 return true;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 throw ex;
             }
@@ -622,13 +777,13 @@ namespace ResoClassAPI.Services
                 }
                 else if (requestDto.ChapterId > 0)
                 {
-                    questions.AddRange(dbContext.QuestionBanks.Where(x => 
-                    x.ChapterId != null && x.ChapterId.Value == requestDto.ChapterId 
+                    questions.AddRange(dbContext.QuestionBanks.Where(x =>
+                    x.ChapterId != null && x.ChapterId.Value == requestDto.ChapterId
                     && x.IsActive));
                 }
 
 
-                if(questions.Count > 0)
+                if (questions.Count > 0)
                 {
                     questions = await ReplaceTags(questions, clientType.WEB);
                     foreach (var question in questions)
@@ -658,7 +813,7 @@ namespace ResoClassAPI.Services
             {
                 var student = dbContext.Students.FirstOrDefault(x => x.Id == id);
                 var sessionsList = await Task.FromResult(dbContext.AssessmentSessions.Where(x => x.StudentId == student.Id && x.StartTime != null));
-                var config = dbContext.AssessmentConfigurations.Where(x=>x.CourseId == student.CourseId).FirstOrDefault();
+                var config = dbContext.AssessmentConfigurations.Where(x => x.CourseId == student.CourseId).FirstOrDefault();
                 if (sessionsList != null)
                 {
                     foreach (var session in sessionsList)

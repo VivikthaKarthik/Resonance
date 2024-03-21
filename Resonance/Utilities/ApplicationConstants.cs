@@ -19,7 +19,8 @@
         ThirdAnswer,
         FourthAnswer,
         CorrectAnswer,
-        DifficultyLevel
+        DifficultyLevel,
+        PYQ
     }
 
     public enum clientType
