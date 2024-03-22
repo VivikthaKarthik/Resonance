@@ -113,7 +113,7 @@ namespace ResoClassAPI.Services
 
         public async Task<SubjectDto> GetSubject(long subjectId)
         {
-            var subject = await Task.FromResult(dbContext.Subjects.FirstOrDefault(item => item.Id == subjectId && item.IsActive == true));
+            var subject = await Task.FromResult(dbContext.VwSubjects.FirstOrDefault(item => item.Id == subjectId));
             if (subject != null)
             {
                 var dtoObject = mapper.Map<SubjectDto>(subject);

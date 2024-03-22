@@ -9,9 +9,11 @@ public partial class Attachment
 
     public string Name { get; set; } = null!;
 
-    public long SubTopicId { get; set; }
+    public string SourceUrl { get; set; } = null!;
 
     public long AttachmentTypeId { get; set; }
+
+    public long SubTopicId { get; set; }
 
     public bool IsActive { get; set; }
 

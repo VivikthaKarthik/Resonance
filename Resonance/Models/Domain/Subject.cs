@@ -11,6 +11,8 @@ public partial class Subject
 
     public long ClassId { get; set; }
 
+    public string? Thumbnail { get; set; }
+
     public string? ColorCode { get; set; }
 
     public bool IsActive { get; set; }
