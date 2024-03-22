@@ -23,6 +23,10 @@ public partial class ResoClassContext : DbContext
 
     public virtual DbSet<AssessmentSessionQuestion> AssessmentSessionQuestions { get; set; }
 
+    public virtual DbSet<Attachment> Attachments { get; set; }
+
+    public virtual DbSet<AttachmentType> AttachmentTypes { get; set; }
+
     public virtual DbSet<Audit> Audits { get; set; }
 
     public virtual DbSet<Branch> Branches { get; set; }
@@ -143,6 +147,34 @@ public partial class ResoClassContext : DbContext
                 .HasForeignKey(d => d.QuestionId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_AssessmentSession_Questions_QuestionBank");
+        });
+
+        modelBuilder.Entity<Attachment>(entity =>
+        {
+            entity.ToTable("Attachment");
+
+            entity.Property(e => e.CreatedBy).HasMaxLength(250);
+            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.Name).HasMaxLength(250);
+            entity.Property(e => e.UpdatedBy).HasMaxLength(250);
+            entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
+
+            entity.HasOne(d => d.AttachmentType).WithMany(p => p.Attachments)
+                .HasForeignKey(d => d.AttachmentTypeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Attachment_AttachmentType");
+
+            entity.HasOne(d => d.SubTopic).WithMany(p => p.Attachments)
+                .HasForeignKey(d => d.SubTopicId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Attachment_SubTopic");
+        });
+
+        modelBuilder.Entity<AttachmentType>(entity =>
+        {
+            entity.ToTable("AttachmentType");
+
+            entity.Property(e => e.Name).HasMaxLength(50);
         });
 
         modelBuilder.Entity<Audit>(entity =>

@@ -17,6 +17,8 @@ public partial class SubTopic
 
     public bool HomeDisplay { get; set; }
 
+    public int? Duration { get; set; }
+
     public long? TopicId { get; set; }
 
     public long ChapterId { get; set; }
@@ -30,6 +32,8 @@ public partial class SubTopic
     public string ModifiedBy { get; set; } = null!;
 
     public DateTime ModifiedOn { get; set; }
+
+    public virtual ICollection<Attachment> Attachments { get; } = new List<Attachment>();
 
     public virtual ICollection<MultipleChoiceQuestion> MultipleChoiceQuestions { get; } = new List<MultipleChoiceQuestion>();
 

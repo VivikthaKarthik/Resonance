@@ -161,6 +161,24 @@ namespace ResoClassAPI.Services
             return false;
         }
 
+
+        public async Task<List<SubTopicsViewDto>> GetVideosWithChapterId(long chapterId)
+        {
+            var subTopics = await Task.FromResult(dbContext.VwSubTopics.Where(item => item.ChapterId == chapterId).ToList());
+            if (subTopics != null && subTopics.Count > 0)
+                return mapper.Map<List<SubTopicsViewDto>>(subTopics);
+            else
+                return new List<SubTopicsViewDto>();
+        }
+
+        public async Task<List<SubTopicsViewDto>> GetVideosWithTopicId(long topicId)
+        {
+            var subTopics = await Task.FromResult(dbContext.VwSubTopics.Where(item => item.TopicId == topicId).ToList());
+            if (subTopics != null && subTopics.Count > 0)
+                return mapper.Map<List<SubTopicsViewDto>>(subTopics);
+            else
+                return new List<SubTopicsViewDto>();
+        }
         public async Task<bool> InsertSubTopics(List<SubTopicExcelRequestDto> subTopics)
         {
             try

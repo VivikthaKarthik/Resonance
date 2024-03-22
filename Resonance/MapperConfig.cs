@@ -18,6 +18,7 @@ namespace Resonance
                 config.CreateMap<SubjectDto, Subject>();
                 config.CreateMap<Subject, SubjectDto>();
                 config.CreateMap<VwSubject, SubjectsViewDto>();
+                config.CreateMap<VwSubject, SubjectDto>();
 
                 //Chapter Mapper
                 config.CreateMap<ChapterRequestDto, Chapter>();
