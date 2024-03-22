@@ -46,6 +46,10 @@ namespace ResoClassAPI.Services
                 else
                     throw new Exception("ClassId is missing");
 
+
+                if (!string.IsNullOrEmpty(subject.Thumbnail))
+                    newSubject.Thumbnail = subject.Thumbnail;
+
                 newSubject.ClassId = subject.ClassId;
                 newSubject.IsActive = true;
                 newSubject.CreatedBy = newSubject.ModifiedBy = currentUser.Name;
@@ -85,6 +89,9 @@ namespace ResoClassAPI.Services
 
                 if (!string.IsNullOrEmpty(updatedSubject.Name))
                     existingItem.Name = updatedSubject.Name;
+
+                if (!string.IsNullOrEmpty(updatedSubject.Thumbnail))
+                    existingItem.Thumbnail = updatedSubject.Thumbnail;
 
                 existingItem.ModifiedBy = currentUser.Name;
                 existingItem.ModifiedOn = DateTime.Now;
