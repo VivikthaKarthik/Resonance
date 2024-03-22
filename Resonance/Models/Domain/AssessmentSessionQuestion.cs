@@ -23,6 +23,8 @@ public partial class AssessmentSessionQuestion
 
     public string? SelectedAnswer { get; set; }
 
+    public int? TimeToComplete { get; set; }
+
     public virtual AssessmentSession AssessmentSession { get; set; } = null!;
 
     public virtual QuestionBank Question { get; set; } = null!;

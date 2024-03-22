@@ -375,6 +375,66 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
+
+        [HttpGet]
+        [Route("api/SubTopic/GetVideosByChapterId")]
+        public async Task<ResponseDto> GetVideosByChapterId(long chapterId)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                logger.LogInformation("Requested GetVideosByChapterId");
+                var videos = await subtopicService.GetVideosWithChapterId(chapterId);
+
+                if (videos != null)
+                {
+                    responseDto.Result = videos;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
+
+        [HttpGet]
+        [Route("api/SubTopic/GetVideosByTopicId")]
+        public async Task<ResponseDto> GetVideosByTopicId(long topicId)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                logger.LogInformation("Requested GetVideosByTopicId");
+                var videos = await subtopicService.GetVideosWithTopicId(topicId);
+
+                if (videos != null)
+                {
+                    responseDto.Result = videos;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
         #endregion
     }
 }

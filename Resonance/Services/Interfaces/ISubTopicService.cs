@@ -10,6 +10,8 @@ namespace ResoClassAPI.Services.Interfaces
         Task<long> CreateSubTopic(SubTopicDto newItem);
         Task<bool> UpdateSubTopic(SubTopicDto updatedItem);
         Task<bool> DeleteSubTopic(long subTopicId);
+        Task<List<SubTopicsViewDto>> GetVideosWithChapterId(long chapterId);
+        Task<List<SubTopicsViewDto>> GetVideosWithTopicId(long topicId);
         Task<bool> InsertSubTopics(List<SubTopicExcelRequestDto> subTopics);
     }
 }
