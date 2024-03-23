@@ -29,7 +29,7 @@ namespace ResoClassAPI.Controllers
         [HttpPost]
         [Authorize(Policy = "Admin")]
         [Route("api/ScheduledExam/CreateExam")]
-        public async Task<ResponseDto> CreateExam([ModelBinder(BinderType = typeof(JsonModelBinder))] ScheduledExamRequestDto request, IFormFile document)
+        public async Task<ResponseDto> CreateExam([ModelBinder(BinderType = typeof(JsonModelBinder))] ScheduledExamRequestDto requestDto, IFormFile document)
         {
             ResponseDto responseDto = new ResponseDto();
             try
@@ -45,7 +45,7 @@ namespace ResoClassAPI.Controllers
                 string response = string.Empty;
                 if (questions != null && questions.Count > 0)
                 {
-                    response = await scheduledExamService.InsertQuestions(questions, request);
+                    response = await scheduledExamService.InsertQuestions(questions, requestDto);
                 }
 
                 if (response == "Success")

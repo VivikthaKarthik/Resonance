@@ -10,5 +10,6 @@
         public string DifficultyLevel { get; set; }
         public string SelectedAnswer { get; set; }
         public bool Result { get; set; }
+        public int TimeToComplete { get; set; }
     }
 }

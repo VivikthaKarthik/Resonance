@@ -80,34 +80,34 @@ namespace ResoClassAPI.Controllers
         //    return responseDto;
         //}
 
-        //[HttpGet]
-        //[Route("api/Report/GetSubjectReport")]
-        //public async Task<ResponseDto> GetSubjectReport(long id)
-        //{
-        //    ResponseDto responseDto = new ResponseDto();
-        //    try
-        //    {
-        //        logger.LogInformation("Requested GetSubjectReport");
-        //        var report = await reportService.GetSubjectReport(id);
+        [HttpGet]
+        [Route("api/Report/GetSubjectReport")]
+        public async Task<ResponseDto> GetSubjectReport(long id)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                logger.LogInformation("Requested GetSubjectReport");
+                var report = await reportService.GetSubjectReport(id);
 
-        //        if (report != null)
-        //        {
-        //            responseDto.Result = report;
-        //            responseDto.IsSuccess = true;
-        //        }
-        //        else
-        //        {
-        //            responseDto.IsSuccess = false;
-        //            responseDto.Message = "Not Found";
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        responseDto.IsSuccess = false;
-        //        responseDto.Message = ex.Message;
-        //    }
-        //    return responseDto;
-        //}
+                if (report != null)
+                {
+                    responseDto.Result = report;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
 
         //[HttpGet]
         //[Route("api/Report/GetChapterReport")]

@@ -3,8 +3,10 @@
     public class AssessmentSessionDto
     {
         public long Id { get; set; }
+        public string Name { get; set; }
 
         public string AssessmentType { get; set; } = null!;
+        public string AssessmentLevel { get; set; }
 
         public DateTime? StartTime { get; set; }
 

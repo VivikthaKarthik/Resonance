@@ -132,35 +132,7 @@ namespace ResoClassAPI.Services
             }
             return response;
         }
-        public async Task<QuestionResponseDto> GetQuestions(QuestionRequestDto requestDto)
-        {
-            QuestionResponseDto response = new QuestionResponseDto();
-            try
-            {
-                var config = await GetAssessmentConfig();
-                if (config != null)
-                {
-                    response.TotalQuestions = config.MaximumQuestions;
-                    response.MarksPerQuestion = config.MarksPerQuestion;
-                    response.HasNegativeMarking = config.HasNegativeMarking;
-                    response.NegativeMarksPerQuestion = config.NegativeMarksPerQuestion != null ? config.NegativeMarksPerQuestion.Value : 0;
-                    var questions = await GetRandomQuestions(requestDto, config.MaximumQuestions);
-
-                    if (questions != null && questions.Count > 0)
-                    {
-                        questions = await ReplaceTags(questions, clientType.Mobile);
-                        response.AssessmentId = await CreateNewSession(questions, 1);
-                        response.Questions = questions;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-
-            }
-            return response;
-        }
-
+        
         public async Task<QuestionResponseDto> GetQuestionsByChapter(long id, long levelId)
         {
             QuestionResponseDto response = new QuestionResponseDto();
@@ -173,11 +145,13 @@ namespace ResoClassAPI.Services
                     response.MarksPerQuestion = config.MarksPerQuestion;
                     response.HasNegativeMarking = config.HasNegativeMarking;
                     response.NegativeMarksPerQuestion = config.NegativeMarksPerQuestion != null ? config.NegativeMarksPerQuestion.Value : 0;
+                    response.MaximumTimeToComplete = 1200;
 
                     if (id > 0)
                     {
+                        var chapter = dbContext.Chapters.First(x=>x.Id == id);
                         response.Questions = await GetRandomQuestions(id, "Chapter", response.TotalQuestions, levelId);
-                        response.AssessmentId = await CreateNewSession(response.Questions, levelId);
+                        response.AssessmentId = await CreateNewSession(response.Questions, levelId, "CWT_" + chapter.Name + "_" + DateTime.Now.ToString("yyyyMMddHHmmssffff"));
                     }
                 }
             }
@@ -212,13 +186,15 @@ namespace ResoClassAPI.Services
                     response.MarksPerQuestion = config.MarksPerQuestion;
                     response.HasNegativeMarking = config.HasNegativeMarking;
                     response.NegativeMarksPerQuestion = config.NegativeMarksPerQuestion != null ? config.NegativeMarksPerQuestion.Value : 0;
+                    response.MaximumTimeToComplete = 1200;
 
                     if (id > 0 && dbContext.QuestionBanks.Any(x => x.TopicId != null && x.TopicId == id && x.IsActive))
                     {
                         if (id > 0)
                         {
+                            var topic = dbContext.Topics.First(x => x.Id == id);
                             response.Questions = await GetRandomQuestions(id, "Topic", response.TotalQuestions, levelId);
-                            response.AssessmentId = await CreateNewSession(response.Questions, levelId);
+                            response.AssessmentId = await CreateNewSession(response.Questions, levelId, "TWT_" + topic.Name + "_" + DateTime.Now.ToString("yyyyMMddHHmmssffff"));
                         }
                     }
 
@@ -243,13 +219,15 @@ namespace ResoClassAPI.Services
                     response.MarksPerQuestion = config.MarksPerQuestion;
                     response.HasNegativeMarking = config.HasNegativeMarking;
                     response.NegativeMarksPerQuestion = config.NegativeMarksPerQuestion != null ? config.NegativeMarksPerQuestion.Value : 0;
+                    response.MaximumTimeToComplete = 1200;
 
                     if (id > 0 && dbContext.QuestionBanks.Any(x => x.SubTopicId != null && x.SubTopicId == id && x.IsActive))
                     {
                         if (id > 0)
                         {
+                            var subTopic = dbContext.SubTopics.First(x => x.Id == id);
                             response.Questions = await GetRandomQuestions(id, "SubTopic", response.TotalQuestions, levelId);
-                            response.AssessmentId = await CreateNewSession(response.Questions, levelId);
+                            response.AssessmentId = await CreateNewSession(response.Questions, levelId, "QPT_" + subTopic.Name + "_" + DateTime.Now.ToString("yyyyMMddHHmmssffff"));
                         }
                     }
                 }
@@ -260,31 +238,8 @@ namespace ResoClassAPI.Services
             }
             return response;
         }
-        private async Task<List<QuestionData>> ReplaceTags(List<QuestionData> questions, clientType clientType)
-        {
-            foreach (var question in questions)
-            {
-                if (clientType == clientType.WEB)
-                {
-                    question.Question = ReplaceWebText(question.Question);
-                    question.FirstAnswer = ReplaceWebText(question.FirstAnswer);
-                    question.SecondAnswer = ReplaceWebText(question.SecondAnswer);
-                    question.ThirdAnswer = ReplaceWebText(question.ThirdAnswer);
-                    question.FourthAnswer = ReplaceWebText(question.FourthAnswer);
-                }
-                else if (clientType == clientType.Mobile)
-                {
-                    question.Question = ReplaceMobileText(question.Question);
-                    question.FirstAnswer = ReplaceMobileText(question.FirstAnswer);
-                    question.SecondAnswer = ReplaceMobileText(question.SecondAnswer);
-                    question.ThirdAnswer = ReplaceMobileText(question.ThirdAnswer);
-                    question.FourthAnswer = ReplaceMobileText(question.FourthAnswer);
-                }
-            }
-            return questions;
-        }
-
-        private async Task<List<QuestionBank>> ReplaceTags(List<QuestionBank> questions, clientType clientType)
+        
+        private List<QuestionBank> ReplaceTags(List<QuestionBank> questions, clientType clientType)
         {
             foreach (var question in questions)
             {
@@ -334,7 +289,7 @@ namespace ResoClassAPI.Services
             return updated;
         }
 
-        private async Task<long> CreateNewSession(List<QuestionData> questions, long assessmentLevelId)
+        private async Task<long> CreateNewSession(List<QuestionData> questions, long assessmentLevelId, string assessmentName)
         {
             var currentUser = authService.GetCurrentUser();
             long newAssessmentId = 0;
@@ -344,9 +299,10 @@ namespace ResoClassAPI.Services
                 { return newAssessmentId; }
 
                 AssessmentSession newSession = new AssessmentSession();
+                newSession.Name = assessmentName;
                 newSession.AssessmentLevelId = assessmentLevelId;
                 newSession.StudentId = currentUser.UserId;
-
+                newSession.StartTime = DateTime.UtcNow;
                 dbContext.AssessmentSessions.Add(newSession);
                 await dbContext.SaveChangesAsync();
                 newAssessmentId = newSession.Id;
@@ -368,75 +324,7 @@ namespace ResoClassAPI.Services
             }
             return newAssessmentId;
         }
-        private async Task<List<QuestionData>> GetRandomQuestions(QuestionRequestDto requestDto, int totalQuestions)
-        {
-            List<QuestionData> finalQuestions = new List<QuestionData>();
-            try
-            {
-                List<QuestionBank> questions = new List<QuestionBank>();
-                int totalIdCount = 0;
 
-                if (requestDto.ChapterIds != null && requestDto.ChapterIds.Count > 0)
-                {
-                    totalIdCount += requestDto.ChapterIds.Where(x => x != 0).Count();
-                    questions.AddRange(await GetQuestionsByChapters(requestDto.ChapterIds));
-                }
-
-                if (requestDto.TopicIds != null && requestDto.TopicIds.Count > 0)
-                {
-                    totalIdCount += requestDto.TopicIds.Where(x => x != 0).Count();
-                    questions.AddRange(await GetQuestionsByTopics(requestDto.TopicIds));
-                }
-
-                if (requestDto.SubTopicIds != null && requestDto.SubTopicIds.Count > 0)
-                {
-                    totalIdCount += requestDto.SubTopicIds.Where(x => x != 0).Count();
-                    questions.AddRange(await GetQuestionsBySubTopics(requestDto.SubTopicIds));
-                }
-
-                var numQuestionsPerId = totalQuestions / totalIdCount;
-
-                var random = new Random();
-
-                var selectedQuestions = questions
-                    .Where(q => requestDto.ChapterIds.Contains(q.ChapterId.Value) ||
-                                requestDto.TopicIds.Contains(q.TopicId.Value) ||
-                                requestDto.SubTopicIds.Contains(q.SubTopicId.Value))
-                    .OrderBy(q => random.Next())
-                    .GroupBy(q => new { q.ChapterId, q.TopicId, q.SubTopicId })
-                    .SelectMany(group => group.Take(numQuestionsPerId))
-                    .Take(totalQuestions)
-                    .ToList();
-
-                if (selectedQuestions != null && selectedQuestions.ToList().Count > 0)
-                {
-                    if (selectedQuestions.Count < totalQuestions)
-                    {
-                        var additionalQuestions = questions
-                            .Where(q => !selectedQuestions.Contains(q))
-                            .OrderBy(q => random.Next())
-                            .Take(totalQuestions - selectedQuestions.Count)
-                            .ToList();
-
-                        selectedQuestions.AddRange(additionalQuestions);
-                    }
-                    foreach (var question in selectedQuestions)
-                    {
-                        var finalQuestion = mapper.Map<QuestionData>(question);
-                        if (question.DifficultyLevelId != null)
-                            finalQuestion.DifficultyLevel = dbContext.DifficultyLevels.First(x => x.Id == question.DifficultyLevelId).Name;
-
-                        finalQuestions.Add(finalQuestion);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-
-            }
-
-            return finalQuestions;
-        }
         private async Task<AssessmentConfiguration> GetAssessmentConfig()
         {
             var currentUser = authService.GetCurrentUser();
@@ -467,111 +355,234 @@ namespace ResoClassAPI.Services
             }
             return config;
         }
-        private async Task<List<QuestionBank>> GetQuestionsByChapters(List<long> ids)
-        {
-            List<QuestionBank> response = new List<QuestionBank>();
-            try
-            {
-                var questions = dbContext.QuestionBanks.Where(x => x.ChapterId != null && ids.Contains(x.ChapterId.Value) && x.IsActive);
 
-                if (questions != null && questions.ToList().Count > 0)
-                {
-                    response = questions.ToList();
-                }
-            }
-            catch (Exception ex)
-            {
+        //public async Task<QuestionResponseDto> GetQuestions(QuestionRequestDto requestDto)
+        //{
+        //    QuestionResponseDto response = new QuestionResponseDto();
+        //    try
+        //    {
+        //        var config = await GetAssessmentConfig();
+        //        if (config != null)
+        //        {
+        //            response.TotalQuestions = config.MaximumQuestions;
+        //            response.MarksPerQuestion = config.MarksPerQuestion;
+        //            response.HasNegativeMarking = config.HasNegativeMarking;
+        //            response.NegativeMarksPerQuestion = config.NegativeMarksPerQuestion != null ? config.NegativeMarksPerQuestion.Value : 0;
+        //            var questions = await GetRandomQuestions(requestDto, config.MaximumQuestions);
 
-            }
+        //            if (questions != null && questions.Count > 0)
+        //            {
+        //                questions = await ReplaceTags(questions, clientType.Mobile);
+        //                response.AssessmentId = await CreateNewSession(questions, 1);
+        //                response.Questions = questions;
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
 
-            return response;
-        }
-        private async Task<List<QuestionBank>> GetQuestionsByTopics(List<long> ids)
-        {
-            List<QuestionBank> response = new List<QuestionBank>();
+        //    }
+        //    return response;
+        //}
 
-            try
-            {
-                var questions = dbContext.QuestionBanks.Where(x => x.ChapterId != null && ids.Contains(x.TopicId.Value) && x.IsActive);
+        //private async Task<List<QuestionData>> GetRandomQuestions(QuestionRequestDto requestDto, int totalQuestions)
+        //{
+        //    List<QuestionData> finalQuestions = new List<QuestionData>();
+        //    try
+        //    {
+        //        List<QuestionBank> questions = new List<QuestionBank>();
+        //        int totalIdCount = 0;
 
-                if (questions != null && questions.ToList().Count > 0)
-                {
-                    response = questions.ToList();
-                }
-            }
-            catch (Exception ex)
-            {
+        //        if (requestDto.ChapterIds != null && requestDto.ChapterIds.Count > 0)
+        //        {
+        //            totalIdCount += requestDto.ChapterIds.Where(x => x != 0).Count();
+        //            questions.AddRange(await GetQuestionsByChapters(requestDto.ChapterIds));
+        //        }
 
-            }
+        //        if (requestDto.TopicIds != null && requestDto.TopicIds.Count > 0)
+        //        {
+        //            totalIdCount += requestDto.TopicIds.Where(x => x != 0).Count();
+        //            questions.AddRange(await GetQuestionsByTopics(requestDto.TopicIds));
+        //        }
 
-            return response;
-        }
-        private async Task<List<QuestionBank>> GetQuestionsBySubTopics(List<long> ids)
-        {
-            List<QuestionBank> response = new List<QuestionBank>();
+        //        if (requestDto.SubTopicIds != null && requestDto.SubTopicIds.Count > 0)
+        //        {
+        //            totalIdCount += requestDto.SubTopicIds.Where(x => x != 0).Count();
+        //            questions.AddRange(await GetQuestionsBySubTopics(requestDto.SubTopicIds));
+        //        }
 
-            try
-            {
-                var questions = dbContext.QuestionBanks.Where(x => x.ChapterId != null && ids.Contains(x.SubTopicId.Value) && x.IsActive);
+        //        var numQuestionsPerId = totalQuestions / totalIdCount;
 
-                if (questions != null && questions.ToList().Count > 0)
-                {
-                    response = questions.ToList();
-                }
-            }
-            catch (Exception ex)
-            {
+        //        var random = new Random();
 
-            }
+        //        var selectedQuestions = questions
+        //            .Where(q => requestDto.ChapterIds.Contains(q.ChapterId.Value) ||
+        //                        requestDto.TopicIds.Contains(q.TopicId.Value) ||
+        //                        requestDto.SubTopicIds.Contains(q.SubTopicId.Value))
+        //            .OrderBy(q => random.Next())
+        //            .GroupBy(q => new { q.ChapterId, q.TopicId, q.SubTopicId })
+        //            .SelectMany(group => group.Take(numQuestionsPerId))
+        //            .Take(totalQuestions)
+        //            .ToList();
 
-            return response;
-        }
+        //        if (selectedQuestions != null && selectedQuestions.ToList().Count > 0)
+        //        {
+        //            if (selectedQuestions.Count < totalQuestions)
+        //            {
+        //                var additionalQuestions = questions
+        //                    .Where(q => !selectedQuestions.Contains(q))
+        //                    .OrderBy(q => random.Next())
+        //                    .Take(totalQuestions - selectedQuestions.Count)
+        //                    .ToList();
 
-        public async Task<bool> StartAssessment(long assessmentId)
-        {
-            try
-            {
-                var assessment = dbContext.AssessmentSessions.Where(x => x.Id == assessmentId).FirstOrDefault();
-                if (assessment != null)
-                {
-                    assessment.StartTime = DateTime.Now;
-                    await dbContext.SaveChangesAsync();
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-            catch (Exception ex)
-            {
+        //                selectedQuestions.AddRange(additionalQuestions);
+        //            }
+        //            foreach (var question in selectedQuestions)
+        //            {
+        //                var finalQuestion = mapper.Map<QuestionData>(question);
+        //                if (question.DifficultyLevelId != null)
+        //                    finalQuestion.DifficultyLevel = dbContext.DifficultyLevels.First(x => x.Id == question.DifficultyLevelId).Name;
 
-            }
-            return false;
-        }
+        //                finalQuestions.Add(finalQuestion);
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
 
-        public async Task<bool> EndAssessment(long assessmentId)
-        {
-            try
-            {
-                var assessment = dbContext.AssessmentSessions.Where(x => x.Id == assessmentId).FirstOrDefault();
-                if (assessment != null)
-                {
-                    assessment.EndTime = DateTime.Now;
-                    await dbContext.SaveChangesAsync();
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-            catch (Exception ex)
-            {
+        //    }
 
-            }
-            return false;
-        }
+        //    return finalQuestions;
+        //}
+
+        //private async Task<List<QuestionBank>> GetQuestionsByChapters(List<long> ids)
+        //{
+        //    List<QuestionBank> response = new List<QuestionBank>();
+        //    try
+        //    {
+        //        var questions = dbContext.QuestionBanks.Where(x => x.ChapterId != null && ids.Contains(x.ChapterId.Value) && x.IsActive);
+
+        //        if (questions != null && questions.ToList().Count > 0)
+        //        {
+        //            response = questions.ToList();
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+
+        //    }
+
+        //    return response;
+        //}
+        //private async Task<List<QuestionBank>> GetQuestionsByTopics(List<long> ids)
+        //{
+        //    List<QuestionBank> response = new List<QuestionBank>();
+
+        //    try
+        //    {
+        //        var questions = dbContext.QuestionBanks.Where(x => x.ChapterId != null && ids.Contains(x.TopicId.Value) && x.IsActive);
+
+        //        if (questions != null && questions.ToList().Count > 0)
+        //        {
+        //            response = questions.ToList();
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+
+        //    }
+
+        //    return response;
+        //}
+        //private async Task<List<QuestionBank>> GetQuestionsBySubTopics(List<long> ids)
+        //{
+        //    List<QuestionBank> response = new List<QuestionBank>();
+
+        //    try
+        //    {
+        //        var questions = dbContext.QuestionBanks.Where(x => x.ChapterId != null && ids.Contains(x.SubTopicId.Value) && x.IsActive);
+
+        //        if (questions != null && questions.ToList().Count > 0)
+        //        {
+        //            response = questions.ToList();
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+
+        //    }
+
+        //    return response;
+        //}
+
+        //public async Task<bool> StartAssessment(long assessmentId)
+        //{
+        //    try
+        //    {
+        //        var assessment = dbContext.AssessmentSessions.Where(x => x.Id == assessmentId).FirstOrDefault();
+        //        if (assessment != null)
+        //        {
+        //            assessment.StartTime = DateTime.Now;
+        //            await dbContext.SaveChangesAsync();
+        //            return true;
+        //        }
+        //        else
+        //        {
+        //            return false;
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+
+        //    }
+        //    return false;
+        //}
+        //private async Task<List<QuestionData>> ReplaceTags(List<QuestionData> questions, clientType clientType)
+        //{
+        //    foreach (var question in questions)
+        //    {
+        //        if (clientType == clientType.WEB)
+        //        {
+        //            question.Question = ReplaceWebText(question.Question);
+        //            question.FirstAnswer = ReplaceWebText(question.FirstAnswer);
+        //            question.SecondAnswer = ReplaceWebText(question.SecondAnswer);
+        //            question.ThirdAnswer = ReplaceWebText(question.ThirdAnswer);
+        //            question.FourthAnswer = ReplaceWebText(question.FourthAnswer);
+        //        }
+        //        else if (clientType == clientType.Mobile)
+        //        {
+        //            question.Question = ReplaceMobileText(question.Question);
+        //            question.FirstAnswer = ReplaceMobileText(question.FirstAnswer);
+        //            question.SecondAnswer = ReplaceMobileText(question.SecondAnswer);
+        //            question.ThirdAnswer = ReplaceMobileText(question.ThirdAnswer);
+        //            question.FourthAnswer = ReplaceMobileText(question.FourthAnswer);
+        //        }
+        //    }
+        //    return questions;
+        //}
+
+        //public async Task<bool> EndAssessment(long assessmentId)
+        //{
+        //    try
+        //    {
+        //        var assessment = dbContext.AssessmentSessions.Where(x => x.Id == assessmentId).FirstOrDefault();
+        //        if (assessment != null)
+        //        {
+        //            assessment.EndTime = DateTime.Now;
+        //            await dbContext.SaveChangesAsync();
+        //            return true;
+        //        }
+        //        else
+        //        {
+        //            return false;
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+
+        //    }
+        //    return false;
+        //}
 
         public async Task<bool> UpdateQuestionStatus(UpdateAssessmentStatusDto request)
         {
@@ -581,6 +592,7 @@ namespace ResoClassAPI.Services
                 if (assessment != null)
                 {
                     assessment.Result = request.Result;
+                    assessment.TimeToComplete = request.TimeToComplete;
 
                     if (!string.IsNullOrEmpty(request.SelectedAnswer))
                         assessment.SelectedAnswer = request.SelectedAnswer;
@@ -596,12 +608,16 @@ namespace ResoClassAPI.Services
 
                     if (!string.IsNullOrEmpty(request.DifficultyLevel))
                         assessment.DifficultyLevelId = dbContext.DifficultyLevels.First(x => x.Name.ToLower() == request.DifficultyLevel.ToLower()).Id;
+
                     await dbContext.SaveChangesAsync();
+
+                    if (!dbContext.AssessmentSessionQuestions.Any(x => x.AssessmentSessionId == request.AssessmentId && x.Result != null))
+                    {
+                        var session = dbContext.AssessmentSessions.Where(x => x.Id == request.AssessmentId).FirstOrDefault();
+                        session.EndTime = DateTime.UtcNow;
+                        await dbContext.SaveChangesAsync();
+                    }
                     return true;
-                }
-                else
-                {
-                    return false;
                 }
             }
             catch (Exception ex)
@@ -639,8 +655,15 @@ namespace ResoClassAPI.Services
 
                 if (sessionsList != null)
                 {
+                    var assessmentLevels = dbContext.AssessmentLevels.ToList();
                     foreach (var session in sessionsList)
-                        sessions.Add(mapper.Map<AssessmentSessionDto>(session));
+                    {
+                        var sessionDto = mapper.Map<AssessmentSessionDto>(session);
+
+                        if (session.AssessmentLevelId > 0)
+                            sessionDto.AssessmentLevel = assessmentLevels.First(x => x.Id == session.AssessmentLevelId).Name;
+                        sessions.Add(sessionDto);
+                    }
                 }
             }
             catch (Exception ex)
@@ -679,7 +702,6 @@ namespace ResoClassAPI.Services
                 throw ex;
             }
         }
-
 
         public async Task<List<QuestionsDto>> GetQuestions(QuestionsUploadRequestDto requestDto)
         {
@@ -738,7 +760,7 @@ namespace ResoClassAPI.Services
 
                 if (questions.Count > 0)
                 {
-                    questions = await ReplaceTags(questions, clientType.WEB);
+                    questions = ReplaceTags(questions, clientType.WEB);
                     foreach (var question in questions)
                     {
                         var mappedItem = mapper.Map<QuestionsDto>(question);

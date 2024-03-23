@@ -7,6 +7,8 @@ public partial class AssessmentSession
 {
     public long Id { get; set; }
 
+    public string Name { get; set; } = null!;
+
     public long StudentId { get; set; }
 
     public long AssessmentLevelId { get; set; }
@@ -14,8 +16,6 @@ public partial class AssessmentSession
     public DateTime? StartTime { get; set; }
 
     public DateTime? EndTime { get; set; }
-
-    public bool? Result { get; set; }
 
     public virtual AssessmentLevel AssessmentLevel { get; set; } = null!;
 
