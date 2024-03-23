@@ -31,6 +31,7 @@ namespace Resonance
                 config.CreateMap<Topic, TopicDto>();
                 config.CreateMap<Topic, TopicResponseDto>();
                 config.CreateMap<VwTopic, TopicsViewDto>();
+                config.CreateMap<VwTopic, TopicResponseDto>();
 
                 //Sub-Topic Mapper
                 config.CreateMap<SubTopicDto, SubTopic>();

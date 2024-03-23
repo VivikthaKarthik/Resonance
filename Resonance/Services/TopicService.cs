@@ -20,12 +20,12 @@ namespace ResoClassAPI.Services
             mapper = _mapper;
         }
 
-        public async Task<TopicDto> GetTopic(long topicId)
+        public async Task<TopicResponseDto> GetTopic(long topicId)
         {
-            var topic = await Task.FromResult(dbContext.Topics.FirstOrDefault(item => item.Id == topicId && item.IsActive == true));
+            var topic = await Task.FromResult(dbContext.VwTopics.FirstOrDefault(item => item.Id == topicId));
             if (topic != null)
             {
-                var dtoObject = mapper.Map<TopicDto>(topic);
+                var dtoObject = mapper.Map<TopicResponseDto>(topic);
                 return dtoObject;
             }
             else
@@ -132,9 +132,9 @@ namespace ResoClassAPI.Services
                             Description = !string.IsNullOrEmpty(topic.Description) ? topic.Description : string.Empty,
                             Thumbnail = topic.Thumbnail,
                             SubjectId = subject.Id,
-                            SubjectName = subject.Name,
+                            Subject = subject.Name,
                             ChapterId = chapter.Id,
-                            ChapterName = chapter.Name
+                            Chapter = chapter.Name
                         };
 
             var result = query.ToList();
