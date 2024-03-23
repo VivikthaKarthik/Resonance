@@ -96,12 +96,12 @@ namespace ResoClassAPI.Controllers
         [HttpPost]
         [Authorize(Policy = "Admin")]
         [Route("api/Chapter/Create")]
-        public async Task<ResponseDto> Post([ModelBinder(BinderType = typeof(JsonModelBinder))]ChapterRequestDto request, IFormFile thumbnail)
+        public async Task<ResponseDto> Post([ModelBinder(BinderType = typeof(JsonModelBinder))]ChapterRequestDto requestDto, IFormFile thumbnail)
         {
             ResponseDto responseDto = new ResponseDto();
             try
             {
-                if (request == null)
+                if (requestDto == null)
                 {
                     responseDto.IsSuccess = false;
                     responseDto.Message = "Invalid Request";
@@ -122,15 +122,15 @@ namespace ResoClassAPI.Controllers
                         await thumbnail.CopyToAsync(stream);
                         stream.Position = 0;
                         string thumbnailUrl = await awsHandler.UploadImage(stream.ToArray(), "chapters", thumbnail.FileName);
-                        request.Thumbnail = thumbnailUrl;
+                        requestDto.Thumbnail = thumbnailUrl;
                     }
                 }
 
-                long newId = await chapterService.CreateChapter(request);
+                long newId = await chapterService.CreateChapter(requestDto);
                 if (newId > 0)
                 {
-                    request.Id = newId;
-                    responseDto.Result = request;
+                    requestDto.Id = newId;
+                    responseDto.Result = requestDto;
                     responseDto.IsSuccess = true;
                 }
                 else

@@ -7,6 +7,7 @@
         public int TotalQuestions { get; set; }
         public bool HasNegativeMarking { get; set; }
         public int NegativeMarksPerQuestion { get; set; }
+        public int MaximumTimeToComplete { get; set; }
         public List<QuestionData> Questions { get; set; }
 
     }

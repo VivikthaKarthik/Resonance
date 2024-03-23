@@ -20,6 +20,27 @@ namespace ResoClassAPI.Services
             mapper = _mapper;
             this.commonService = commonService;
         }
+
+        public async Task<CurriculumCountResponseDto> GetCurriculumCount()
+        {
+            CurriculumCountResponseDto response = new CurriculumCountResponseDto();
+            try
+            {
+                response.TotalCourses = dbContext.Courses.Count();
+                response.TotalClasses = dbContext.Classes.Count();
+                response.TotalSubjects = dbContext.Subjects.Count();
+                response.TotalChapters = dbContext.Chapters.Count();
+                response.TotalTopics = dbContext.Topics.Count();
+                response.TotalSubTopics = dbContext.SubTopics.Count();
+
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
+            return response;
+        }
+
         public async Task<SearchResponseDto> SearchItems(string text)
         {
             var currentUser = authService.GetCurrentUser();

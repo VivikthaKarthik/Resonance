@@ -14,7 +14,6 @@ namespace ResoClassAPI.Controllers
     {
         private readonly IHomeService homeService;
         private readonly ILogger<HomeController> logger;
-        private readonly IExcelReader excelReader;
 
         public HomeController(IHomeService _homeService, ILogger<HomeController> _logger)
         {
@@ -35,6 +34,36 @@ namespace ResoClassAPI.Controllers
                 if (searchItems != null)
                 {
                     responseDto.Result = searchItems;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
+
+        [HttpGet]
+        [Route("api/Home/GetCurriculumCount")]
+        public async Task<ResponseDto> GetCurriculumCount()
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                logger.LogInformation("Requested SearchItems");
+                var result = await homeService.GetCurriculumCount();
+
+                if (result != null)
+                {
+                    responseDto.Result = result;
                     responseDto.IsSuccess = true;
                 }
                 else

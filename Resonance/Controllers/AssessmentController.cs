@@ -66,7 +66,6 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
-
         [HttpGet]
         [Route("api/Assessment/GetAssessmentSessions")]
         public async Task<ResponseDto> GetAssessmentSessions()
@@ -96,11 +95,10 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
-
         [HttpPost]
         [Authorize(Policy = "Admin")]
         [Route("api/QuestionBank/UploadQuestions")]
-        public async Task<ResponseDto> UploadQuestions([ModelBinder(BinderType = typeof(JsonModelBinder))] QuestionsUploadRequestDto request, IFormFile document)
+        public async Task<ResponseDto> UploadQuestions([ModelBinder(BinderType = typeof(JsonModelBinder))] QuestionsUploadRequestDto requestDto, IFormFile document)
         {
             ResponseDto responseDto = new ResponseDto();
             try
@@ -112,7 +110,7 @@ namespace ResoClassAPI.Controllers
                     return responseDto;
                 }
                 
-                if(request.CourseId <= 0 && request.TopicId <= 0 && request.SubTopicId <= 0)
+                if(requestDto.CourseId <= 0 && requestDto.TopicId <= 0 && requestDto.SubTopicId <= 0)
                 {
                     responseDto.IsSuccess = false;
                     responseDto.Message = "Questions should be linked to atleast one master data(Chapter / Topic / SubTopic)";
@@ -124,7 +122,7 @@ namespace ResoClassAPI.Controllers
                 string response = string.Empty;
                 if (questions != null && questions.Count > 0)
                 {
-                    response = await assessmentService.InsertQuestions(questions, request);
+                    response = await assessmentService.InsertQuestions(questions, requestDto);
                 }
 
                 if (response == "Success")
@@ -152,35 +150,6 @@ namespace ResoClassAPI.Controllers
             }
             return responseDto;
         }
-
-        //[HttpPost]
-        //[Route("api/Assessment/GetQuestions")]
-        //public async Task<ResponseDto> GetQuestions(QuestionRequestDto request)
-        //{
-        //    ResponseDto responseDto = new ResponseDto();
-        //    try
-        //    {
-        //        logger.LogInformation("Requested GetChapter");
-        //        var questions = await assessmentService.GetQuestions(request);
-
-        //        if (questions != null)
-        //        {
-        //            responseDto.Result = questions;
-        //            responseDto.IsSuccess = true;
-        //        }
-        //        else
-        //        {
-        //            responseDto.IsSuccess = false;
-        //            responseDto.Message = "Not Found";
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        responseDto.IsSuccess = false;
-        //        responseDto.Message = ex.Message;
-        //    }
-        //    return responseDto;
-        //}
 
         [HttpGet]
         [Route("api/Assessment/GetAssessmentLevels")]
@@ -297,63 +266,93 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
-        [HttpPost]
-        [Route("api/Assessment/StartAssessment")]
-        public async Task<ResponseDto> StartAssessment(long assessmentId)
-        {
-            ResponseDto responseDto = new ResponseDto();
-            try
-            {
-                logger.LogInformation("Requested GetChapter");
-                var isStarted = await assessmentService.StartAssessment(assessmentId);
 
-                if (isStarted)
-                {
-                    responseDto.Result = "Assessment Started Successfully";
-                    responseDto.IsSuccess = true;
-                }
-                else
-                {
-                    responseDto.IsSuccess = false;
-                    responseDto.Message = "Not Found";
-                }
-            }
-            catch (Exception ex)
-            {
-                responseDto.IsSuccess = false;
-                responseDto.Message = ex.Message;
-            }
-            return responseDto;
-        }
+        //[HttpPost]
+        //[Route("api/Assessment/GetQuestions")]
+        //public async Task<ResponseDto> GetQuestions(QuestionRequestDto request)
+        //{
+        //    ResponseDto responseDto = new ResponseDto();
+        //    try
+        //    {
+        //        logger.LogInformation("Requested GetChapter");
+        //        var questions = await assessmentService.GetQuestions(request);
 
-        [HttpPost]
-        [Route("api/Assessment/EndAssessment")]
-        public async Task<ResponseDto> EndAssessment(long assessmentId)
-        {
-            ResponseDto responseDto = new ResponseDto();
-            try
-            {
-                logger.LogInformation("Requested GetChapter");
-                var isCompleted = await assessmentService.EndAssessment(assessmentId);
+        //        if (questions != null)
+        //        {
+        //            responseDto.Result = questions;
+        //            responseDto.IsSuccess = true;
+        //        }
+        //        else
+        //        {
+        //            responseDto.IsSuccess = false;
+        //            responseDto.Message = "Not Found";
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        responseDto.IsSuccess = false;
+        //        responseDto.Message = ex.Message;
+        //    }
+        //    return responseDto;
+        //}
 
-                if (isCompleted)
-                {
-                    responseDto.Result = "Assessment Completed Successfully";
-                    responseDto.IsSuccess = true;
-                }
-                else
-                {
-                    responseDto.IsSuccess = false;
-                    responseDto.Message = "Not Found";
-                }
-            }
-            catch (Exception ex)
-            {
-                responseDto.IsSuccess = false;
-                responseDto.Message = ex.Message;
-            }
-            return responseDto;
-        }
+        //[HttpPost]
+        //[Route("api/Assessment/StartAssessment")]
+        //public async Task<ResponseDto> StartAssessment(long assessmentId)
+        //{
+        //    ResponseDto responseDto = new ResponseDto();
+        //    try
+        //    {
+        //        logger.LogInformation("Requested GetChapter");
+        //        var isStarted = await assessmentService.StartAssessment(assessmentId);
+
+        //        if (isStarted)
+        //        {
+        //            responseDto.Result = "Assessment Started Successfully";
+        //            responseDto.IsSuccess = true;
+        //        }
+        //        else
+        //        {
+        //            responseDto.IsSuccess = false;
+        //            responseDto.Message = "Not Found";
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        responseDto.IsSuccess = false;
+        //        responseDto.Message = ex.Message;
+        //    }
+        //    return responseDto;
+        //}
+
+        //[HttpPost]
+        //[Route("api/Assessment/EndAssessment")]
+        //public async Task<ResponseDto> EndAssessment(long assessmentId)
+        //{
+        //    ResponseDto responseDto = new ResponseDto();
+        //    try
+        //    {
+        //        logger.LogInformation("Requested GetChapter");
+        //        var isCompleted = await assessmentService.EndAssessment(assessmentId);
+
+        //        if (isCompleted)
+        //        {
+        //            responseDto.Result = "Assessment Completed Successfully";
+        //            responseDto.IsSuccess = true;
+        //        }
+        //        else
+        //        {
+        //            responseDto.IsSuccess = false;
+        //            responseDto.Message = "Not Found";
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        responseDto.IsSuccess = false;
+        //        responseDto.Message = ex.Message;
+        //    }
+        //    return responseDto;
+        //}
 
         [HttpPost]
         [Route("api/Assessment/UpdateQuestionStatus")]
