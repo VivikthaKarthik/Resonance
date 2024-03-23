@@ -9,5 +9,7 @@ public partial class VwClass
 
     public string Name { get; set; } = null!;
 
+    public long CourseId { get; set; }
+
     public string Course { get; set; } = null!;
 }
