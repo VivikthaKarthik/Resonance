@@ -5,7 +5,7 @@ namespace ResoClassAPI.Services.Interfaces
     public interface ISubjectService
     {
         Task<List<SubjectsViewDto>> GetAllSubjects();
-        Task<SubjectDto> GetSubject(long subjectId);
+        Task<SubjectsViewDto> GetSubject(long subjectId);
         Task<long> CreateSubject(SubjectDto newItem);
         Task<bool> UpdateSubject(SubjectDto updatedItem);
         Task<bool> DeleteSubject(long subjectId);
