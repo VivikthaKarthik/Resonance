@@ -9,9 +9,15 @@ public partial class VwChapter
 
     public string Name { get; set; } = null!;
 
+    public long SubjectId { get; set; }
+
     public string Subject { get; set; } = null!;
 
+    public long ClassId { get; set; }
+
     public string Class { get; set; } = null!;
+
+    public long CourseId { get; set; }
 
     public string Course { get; set; } = null!;
 

@@ -118,15 +118,11 @@ namespace ResoClassAPI.Services
 
         public async  Task<ChapterResponseDto> GetChapter(long chapterId)
         {
-            var chapter = await Task.FromResult(dbContext.Chapters.FirstOrDefault(item => item.Id == chapterId && item.IsActive == true));
+            var chapter = await Task.FromResult(dbContext.VwChapters.FirstOrDefault(item => item.Id == chapterId));
             if (chapter != null)
             {
                 var dtoObject = mapper.Map<ChapterResponseDto>(chapter);
 
-                if (dbContext.Subjects.Any(x => x.Id == chapter.SubjectId))
-                {
-                    dtoObject.SubjectName = dbContext.Subjects.FirstOrDefault(x => x.Id == chapter.SubjectId).Name;
-                }
                 return dtoObject;
             }
             else
@@ -197,7 +193,7 @@ namespace ResoClassAPI.Services
                         Thumbnail = chapter.Thumbnail,
                         Description = !string.IsNullOrEmpty(chapter.Description) ? chapter.Description : string.Empty,
                         SubjectId = chapter.SubjectId,
-                        SubjectName = dbContext.Subjects.Where(x => x.Id == chapter.SubjectId).First().Name,
+                        Subject = dbContext.Subjects.Where(x => x.Id == chapter.SubjectId).First().Name,
                         IsRecommended = chapter.IsRecommended,
                     });
 
