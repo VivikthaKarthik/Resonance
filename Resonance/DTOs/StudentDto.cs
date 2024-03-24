@@ -34,6 +34,8 @@
 
         public long CourseId { get; set; }
 
+        public long ClassId { get; set; }
+
         public string MobileNumber { get; set; } = null!;
 
         public string AlternateMobileNumber { get; set; } = null!;
