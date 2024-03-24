@@ -299,14 +299,21 @@ namespace ResoClassAPI.Services
                 if (questions == null || questions.Count == 0)
                 { return newAssessmentId; }
 
-                AssessmentSession newSession = new AssessmentSession();
-                newSession.Name = assessmentName;
-                newSession.AssessmentLevelId = assessmentLevelId;
-                newSession.StudentId = currentUser.UserId;
-                newSession.StartTime = DateTime.UtcNow;
-                dbContext.AssessmentSessions.Add(newSession);
-                await dbContext.SaveChangesAsync();
-                newAssessmentId = newSession.Id;
+                if (dbContext.AssessmentSessions.Any(x => x.AssessmentLevelId == assessmentLevelId && x.StudentId == currentUser.UserId))
+                {
+                    newAssessmentId = dbContext.AssessmentSessions.First(x => x.AssessmentLevelId == assessmentLevelId && x.StudentId == currentUser.UserId).Id;
+                }
+                else
+                {
+                    AssessmentSession newSession = new AssessmentSession();
+                    newSession.Name = assessmentName;
+                    newSession.AssessmentLevelId = assessmentLevelId;
+                    newSession.StudentId = currentUser.UserId;
+                    newSession.StartTime = DateTime.UtcNow;
+                    dbContext.AssessmentSessions.Add(newSession);
+                    await dbContext.SaveChangesAsync();
+                    newAssessmentId = newSession.Id;
+                }
 
                 List<AssessmentSessionQuestion> assessmentSessionQuestions = new List<AssessmentSessionQuestion>();
                 foreach (var question in questions)
