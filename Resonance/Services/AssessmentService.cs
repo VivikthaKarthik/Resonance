@@ -165,7 +165,8 @@ namespace ResoClassAPI.Services
         private async Task<List<QuestionData>> GetRandomQuestions(long id, string type, int count, long levelId)
         {
             var questions = dbContext.VwQuestionBanks.FromSqlRaw("EXEC GetRandomQuestions {0}, {1}, {2}, {3}", id, type, count, levelId).ToList();
-            return mapper.Map<List<QuestionData>>(questions);
+            var updatedQuestions = mapper.Map<List<QuestionData>>(questions);
+            return await ReplaceTags(updatedQuestions, clientType.Mobile); 
         }
 
         public async Task<List<AssessmentLevelDto>> GetAssessmentLevels()
@@ -356,6 +357,30 @@ namespace ResoClassAPI.Services
             return config;
         }
 
+        private async Task<List<QuestionData>> ReplaceTags(List<QuestionData> questions, clientType clientType)
+        {
+            foreach (var question in questions)
+            {
+                if (clientType == clientType.WEB)
+                {
+                    question.Question = ReplaceWebText(question.Question);
+                    question.FirstAnswer = ReplaceWebText(question.FirstAnswer);
+                    question.SecondAnswer = ReplaceWebText(question.SecondAnswer);
+                    question.ThirdAnswer = ReplaceWebText(question.ThirdAnswer);
+                    question.FourthAnswer = ReplaceWebText(question.FourthAnswer);
+                }
+                else if (clientType == clientType.Mobile)
+                {
+                    question.Question = ReplaceMobileText(question.Question);
+                    question.FirstAnswer = ReplaceMobileText(question.FirstAnswer);
+                    question.SecondAnswer = ReplaceMobileText(question.SecondAnswer);
+                    question.ThirdAnswer = ReplaceMobileText(question.ThirdAnswer);
+                    question.FourthAnswer = ReplaceMobileText(question.FourthAnswer);
+                }
+            }
+            return questions;
+        }
+
         //public async Task<QuestionResponseDto> GetQuestions(QuestionRequestDto requestDto)
         //{
         //    QuestionResponseDto response = new QuestionResponseDto();
@@ -536,29 +561,6 @@ namespace ResoClassAPI.Services
 
         //    }
         //    return false;
-        //}
-        //private async Task<List<QuestionData>> ReplaceTags(List<QuestionData> questions, clientType clientType)
-        //{
-        //    foreach (var question in questions)
-        //    {
-        //        if (clientType == clientType.WEB)
-        //        {
-        //            question.Question = ReplaceWebText(question.Question);
-        //            question.FirstAnswer = ReplaceWebText(question.FirstAnswer);
-        //            question.SecondAnswer = ReplaceWebText(question.SecondAnswer);
-        //            question.ThirdAnswer = ReplaceWebText(question.ThirdAnswer);
-        //            question.FourthAnswer = ReplaceWebText(question.FourthAnswer);
-        //        }
-        //        else if (clientType == clientType.Mobile)
-        //        {
-        //            question.Question = ReplaceMobileText(question.Question);
-        //            question.FirstAnswer = ReplaceMobileText(question.FirstAnswer);
-        //            question.SecondAnswer = ReplaceMobileText(question.SecondAnswer);
-        //            question.ThirdAnswer = ReplaceMobileText(question.ThirdAnswer);
-        //            question.FourthAnswer = ReplaceMobileText(question.FourthAnswer);
-        //        }
-        //    }
-        //    return questions;
         //}
 
         //public async Task<bool> EndAssessment(long assessmentId)
