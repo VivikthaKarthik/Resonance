@@ -32,6 +32,7 @@ namespace ResoClassAPI.Services
                 response.TotalChapters = dbContext.Chapters.Count();
                 response.TotalTopics = dbContext.Topics.Count();
                 response.TotalSubTopics = dbContext.SubTopics.Count();
+                response.TotalStudents = dbContext.Students.Count();
 
             }
             catch(Exception ex)

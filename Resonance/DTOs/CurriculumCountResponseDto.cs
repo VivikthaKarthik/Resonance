@@ -8,5 +8,6 @@
         public int TotalChapters { get; set; }
         public int TotalTopics { get; set; }
         public int TotalSubTopics { get; set; }
+        public int TotalStudents { get; set; }
     }
 }
