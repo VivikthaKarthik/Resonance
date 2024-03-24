@@ -167,5 +167,88 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
+        [HttpGet]
+        [Route("api/Report/GetTrackYourProgressReport")]
+        public async Task<ResponseDto> GetTrackYourProgressReport(long subjectId)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                var report = await reportService.GetTrackYourProgressReport(subjectId);
+
+                if (report != null)
+                {
+                    responseDto.Result = report;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
+        [HttpGet]
+        [Route("api/Report/GetTimeSpentAnalysisReport")]
+        public async Task<ResponseDto> GetTimeSpentAnalysisReport(long subjectId)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                var report = await reportService.GetTimeSpentAnalysisReport(subjectId);
+
+                if (report != null)
+                {
+                    responseDto.Result = report;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
+        [HttpGet]
+        [Route("api/Report/GetDifficultyLevelAnalysisReport")]
+        public async Task<ResponseDto> GetDifficultyLevelAnalysisReport(long subjectId)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                var report = await reportService.GetDifficultyLevelAnalysisReport(subjectId);
+
+                if (report != null)
+                {
+                    responseDto.Result = report;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
     }
 }

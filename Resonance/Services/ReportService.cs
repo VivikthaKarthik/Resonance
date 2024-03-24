@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using ResoClassAPI.DTOs;
 using ResoClassAPI.Models.Domain;
 using ResoClassAPI.Services.Interfaces;
+using ResoClassAPI.Utilities;
 using System.Collections.Generic;
 
 namespace ResoClassAPI.Services
@@ -214,6 +215,7 @@ namespace ResoClassAPI.Services
                 var allQuestions = dbContext.AssessmentSessionQuestions.Where(x => x.AssessmentSessionId == id && x.Result != null).ToList();
                 var questions = RemoveDuplicateQuestions(allQuestions);
                 report.AssessmentId = assessmentSession.Id;
+                report.AssessmentName = assessmentSession.Name;
                 report.PracticedOn = assessmentSession.StartTime.Value;
                 report.TotalAttempted = questions.Count;
                 report.CorrectAnswers = questions.Where(x => x.Result.Value).Count();
@@ -248,6 +250,11 @@ namespace ResoClassAPI.Services
                 foreach(var item in questions)
                 {
                     var question = dbContext.QuestionBanks.First(x => x.Id == item.QuestionId);
+                    question.Question = ReplaceMobileText(question.Question);
+                    question.FirstAnswer = ReplaceMobileText(question.FirstAnswer);
+                    question.SecondAnswer = ReplaceMobileText(question.SecondAnswer);
+                    question.ThirdAnswer = ReplaceMobileText(question.ThirdAnswer);
+                    question.FourthAnswer = ReplaceMobileText(question.FourthAnswer);
                     if (question != null)
                     {
                         var key = mapper.Map<QuestionKeyDto>(question);
@@ -264,6 +271,18 @@ namespace ResoClassAPI.Services
             }
 
             return report;
+        }
+        private string ReplaceMobileText(string source)
+        {
+            string updated = source.
+                Replace(QuestionAndAnswerTags.QuestionImageOpeningTag, "<Image style={styles.questionImage} source={{ uri: ").
+                Replace(QuestionAndAnswerTags.ImageClosingTag, "}} />").
+                Replace(QuestionAndAnswerTags.QuestionTextOpeningTag, "<Text style={styles.questionText}>").
+                Replace(QuestionAndAnswerTags.AnswerImageOpeningTag, "<Image style={styles.answerImage} source={{ uri: ").
+                Replace(QuestionAndAnswerTags.AnswerTextOpeningTag, "<Text>").
+                Replace(QuestionAndAnswerTags.TextClosingTag, "</Text>").
+                Replace(QuestionAndAnswerTags.NewLineTag, "\n");
+            return updated;
         }
 
         private SubjectAnalysisDto GetSubjectAnalysis(List<AssessmentSessionQuestion> questions, List<Chapter> chapters, List<Subject> subjects, List<Topic> topics)
@@ -572,6 +591,349 @@ namespace ResoClassAPI.Services
             }
 
             return difficultyLevelAnalysis;
+        }
+
+        public async Task<TrackYourProgressReportDto> GetTrackYourProgressReport(long id)
+        {
+            TrackYourProgressReportDto report = new TrackYourProgressReportDto();
+
+            report.ChapterWiseTest = new ChapterWiseTestDto();
+            report.ChapterWiseTest.Title = "CWT";
+            report.ChapterWiseTest.Course = "NEET";
+            report.ChapterWiseTest.Class = "Class 11";
+            report.ChapterWiseTest.Subject = "Botany";
+            report.ChapterWiseTest.TotalQuestions = 400;
+            report.ChapterWiseTest.TotalQuestionsAttempted = 350;
+            report.ChapterWiseTest.TotalCorrect = 280;
+            report.ChapterWiseTest.TotalWrong = 120;
+            report.ChapterWiseTest.CorrectAnswersPercentage = 70;
+            report.ChapterWiseTest.WrongAnswersPercentage = 30;
+
+            report.ChapterWiseTest.ChapterReports = new List<ItemWiseReportDto>();
+            ItemWiseReportDto chapterWiseReport1 = new ItemWiseReportDto();
+            chapterWiseReport1.Name = "Chapter 1";
+            chapterWiseReport1.LevelReports = new List<AssessmnetLevelReportDto>()
+            {
+                new AssessmnetLevelReportDto()
+                {
+                    Name = "Level 1",
+                    Status = "Completed",
+                    TotalQuestions = 20,
+                    TotalCorrect = 14,
+                    TotalWrong = 6,
+                },
+                new AssessmnetLevelReportDto()
+                {
+                    Name = "Level 2",
+                    Status = "Completed",
+                    TotalQuestions = 20,
+                    TotalCorrect = 13,
+                    TotalWrong = 7,
+                },
+                new AssessmnetLevelReportDto()
+                {
+                    Name = "Level 3",
+                    Status = "Completed",
+                    TotalQuestions = 20,
+                    TotalCorrect = 19,
+                    TotalWrong = 1,
+                },
+                new AssessmnetLevelReportDto()
+                {
+                    Name = "PYQ 1",
+                    Status = "Pending",
+                    TotalQuestions = 0,
+                    TotalCorrect = 0,
+                    TotalWrong = 0,
+                },
+                new AssessmnetLevelReportDto()
+                {
+                    Name = "PYQ 2",
+                    Status = "Pending",
+                    TotalQuestions = 0,
+                    TotalCorrect = 0,
+                    TotalWrong = 0,
+                }
+            };
+
+            report.ChapterWiseTest.ChapterReports.Add(chapterWiseReport1);
+
+            ItemWiseReportDto chapterWiseReport2 = new ItemWiseReportDto();
+            chapterWiseReport2.Name = "Chapter 2";
+            chapterWiseReport2.LevelReports = new List<AssessmnetLevelReportDto>()
+            {
+                new AssessmnetLevelReportDto()
+                {
+                    Name = "Level 1",
+                    Status = "Completed",
+                    TotalQuestions = 20,
+                    TotalCorrect = 14,
+                    TotalWrong = 6,
+                },
+                new AssessmnetLevelReportDto()
+                {
+                    Name = "Level 2",
+                    Status = "Completed",
+                    TotalQuestions = 20,
+                    TotalCorrect = 13,
+                    TotalWrong = 7,
+                },
+                new AssessmnetLevelReportDto()
+                {
+                    Name = "Level 3",
+                    Status = "Completed",
+                    TotalQuestions = 20,
+                    TotalCorrect = 19,
+                    TotalWrong = 1,
+                },
+                new AssessmnetLevelReportDto()
+                {
+                    Name = "PYQ 1",
+                    Status = "Completed",
+                    TotalQuestions = 20,
+                    TotalCorrect = 16,
+                    TotalWrong = 4,
+                },
+                new AssessmnetLevelReportDto()
+                {
+                    Name = "PYQ 2",
+                    Status = "Pending",
+                    TotalQuestions = 0,
+                    TotalCorrect = 0,
+                    TotalWrong = 0,
+                }
+            };
+
+            report.ChapterWiseTest.ChapterReports.Add(chapterWiseReport2);
+
+            report.TopicWiseTest = new TopicWiseTestDto();
+            report.TopicWiseTest.Title = "TWT";
+            report.TopicWiseTest.Course = "NEET";
+            report.TopicWiseTest.Class = "Class 11";
+            report.TopicWiseTest.Subject = "Botany";
+            report.TopicWiseTest.Chapter = "Chapter 1";
+            report.TopicWiseTest.TotalQuestions = 400;
+            report.TopicWiseTest.TotalQuestionsAttempted = 350;
+            report.TopicWiseTest.TotalCorrect = 280;
+            report.TopicWiseTest.TotalWrong = 120;
+            report.TopicWiseTest.CorrectAnswersPercentage = 70;
+            report.TopicWiseTest.WrongAnswersPercentage = 30;
+
+            report.TopicWiseTest.ChapterReports = new List<ItemWiseReportDto>();
+            ItemWiseReportDto topicWiseReport1 = new ItemWiseReportDto();
+            topicWiseReport1.Name = "Topic 1";
+            topicWiseReport1.LevelReports = new List<AssessmnetLevelReportDto>()
+            {
+                new AssessmnetLevelReportDto()
+                {
+                    Name = "Level 1",
+                    Status = "Completed",
+                    TotalQuestions = 20,
+                    TotalCorrect = 14,
+                    TotalWrong = 6,
+                },
+                new AssessmnetLevelReportDto()
+                {
+                    Name = "Level 2",
+                    Status = "Completed",
+                    TotalQuestions = 20,
+                    TotalCorrect = 13,
+                    TotalWrong = 7,
+                },
+                new AssessmnetLevelReportDto()
+                {
+                    Name = "Level 3",
+                    Status = "Completed",
+                    TotalQuestions = 20,
+                    TotalCorrect = 19,
+                    TotalWrong = 1,
+                },
+                new AssessmnetLevelReportDto()
+                {
+                    Name = "PYQ 1",
+                    Status = "Pending",
+                    TotalQuestions = 0,
+                    TotalCorrect = 0,
+                    TotalWrong = 0,
+                },
+                new AssessmnetLevelReportDto()
+                {
+                    Name = "PYQ 2",
+                    Status = "Pending",
+                    TotalQuestions = 0,
+                    TotalCorrect = 0,
+                    TotalWrong = 0,
+                }
+            };
+
+            report.ChapterWiseTest.ChapterReports.Add(chapterWiseReport1);
+
+            ItemWiseReportDto topicWiseReport2 = new ItemWiseReportDto();
+            topicWiseReport2.Name = "Topic 2";
+            chapterWiseReport2.LevelReports = new List<AssessmnetLevelReportDto>()
+            {
+                new AssessmnetLevelReportDto()
+                {
+                    Name = "Level 1",
+                    Status = "Completed",
+                    TotalQuestions = 20,
+                    TotalCorrect = 14,
+                    TotalWrong = 6,
+                },
+                new AssessmnetLevelReportDto()
+                {
+                    Name = "Level 2",
+                    Status = "Completed",
+                    TotalQuestions = 20,
+                    TotalCorrect = 13,
+                    TotalWrong = 7,
+                },
+                new AssessmnetLevelReportDto()
+                {
+                    Name = "Level 3",
+                    Status = "Completed",
+                    TotalQuestions = 20,
+                    TotalCorrect = 19,
+                    TotalWrong = 1,
+                },
+                new AssessmnetLevelReportDto()
+                {
+                    Name = "PYQ 1",
+                    Status = "Completed",
+                    TotalQuestions = 20,
+                    TotalCorrect = 16,
+                    TotalWrong = 4,
+                },
+                new AssessmnetLevelReportDto()
+                {
+                    Name = "PYQ 2",
+                    Status = "Pending",
+                    TotalQuestions = 0,
+                    TotalCorrect = 0,
+                    TotalWrong = 0,
+                }
+            };
+
+            report.QuickPracticeTest = new QuickPracticeTestDto();
+            report.QuickPracticeTest.Title = "QPT";
+            report.QuickPracticeTest.Course = "NEET";
+            report.QuickPracticeTest.Class = "Class 11";
+            report.QuickPracticeTest.Subject = "Botany";
+            report.QuickPracticeTest.Chapter = "Chapter 1";
+            report.QuickPracticeTest.Topic = "Topic 1";
+            report.QuickPracticeTest.TotalQuestions = 400;
+            report.QuickPracticeTest.TotalQuestionsAttempted = 350;
+            report.QuickPracticeTest.TotalCorrect = 280;
+            report.QuickPracticeTest.TotalWrong = 120;
+            report.QuickPracticeTest.CorrectAnswersPercentage = 70;
+            report.QuickPracticeTest.WrongAnswersPercentage = 30;
+
+            report.QuickPracticeTest.ChapterReports = new List<ItemWiseReportDto>();
+            ItemWiseReportDto quickPracticeTestReport1 = new ItemWiseReportDto();
+            quickPracticeTestReport1.Name = "Sub-Topic 1";
+            quickPracticeTestReport1.LevelReports = new List<AssessmnetLevelReportDto>()
+            {
+                new AssessmnetLevelReportDto()
+                {
+                    Name = "Level 1",
+                    Status = "Completed",
+                    TotalQuestions = 20,
+                    TotalCorrect = 14,
+                    TotalWrong = 6,
+                },
+                new AssessmnetLevelReportDto()
+                {
+                    Name = "Level 2",
+                    Status = "Completed",
+                    TotalQuestions = 20,
+                    TotalCorrect = 13,
+                    TotalWrong = 7,
+                },
+                new AssessmnetLevelReportDto()
+                {
+                    Name = "Level 3",
+                    Status = "Completed",
+                    TotalQuestions = 20,
+                    TotalCorrect = 19,
+                    TotalWrong = 1,
+                },
+                new AssessmnetLevelReportDto()
+                {
+                    Name = "PYQ 1",
+                    Status = "Pending",
+                    TotalQuestions = 0,
+                    TotalCorrect = 0,
+                    TotalWrong = 0,
+                },
+                new AssessmnetLevelReportDto()
+                {
+                    Name = "PYQ 2",
+                    Status = "Pending",
+                    TotalQuestions = 0,
+                    TotalCorrect = 0,
+                    TotalWrong = 0,
+                }
+            };
+
+            report.QuickPracticeTest.ChapterReports.Add(chapterWiseReport1);
+
+            ItemWiseReportDto quickPracticeTestReport2 = new ItemWiseReportDto();
+            quickPracticeTestReport2.Name = "Sub-Topic 2";
+            quickPracticeTestReport2.LevelReports = new List<AssessmnetLevelReportDto>()
+            {
+                new AssessmnetLevelReportDto()
+                {
+                    Name = "Level 1",
+                    Status = "Completed",
+                    TotalQuestions = 20,
+                    TotalCorrect = 14,
+                    TotalWrong = 6,
+                },
+                new AssessmnetLevelReportDto()
+                {
+                    Name = "Level 2",
+                    Status = "Completed",
+                    TotalQuestions = 20,
+                    TotalCorrect = 13,
+                    TotalWrong = 7,
+                },
+                new AssessmnetLevelReportDto()
+                {
+                    Name = "Level 3",
+                    Status = "Completed",
+                    TotalQuestions = 20,
+                    TotalCorrect = 19,
+                    TotalWrong = 1,
+                },
+                new AssessmnetLevelReportDto()
+                {
+                    Name = "PYQ 1",
+                    Status = "Completed",
+                    TotalQuestions = 20,
+                    TotalCorrect = 16,
+                    TotalWrong = 4,
+                },
+                new AssessmnetLevelReportDto()
+                {
+                    Name = "PYQ 2",
+                    Status = "Pending",
+                    TotalQuestions = 0,
+                    TotalCorrect = 0,
+                    TotalWrong = 0,
+                }
+            };
+
+            return report;
+        }
+
+        public async Task<TrackYourProgressReportDto> GetTimeSpentAnalysisReport(long id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<TrackYourProgressReportDto> GetDifficultyLevelAnalysisReport(long id)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -3,6 +3,7 @@
     public class AssessmentReportDto
     {
         public long AssessmentId { get; set; }
+        public string AssessmentName { get; set; }
         public DateTime PracticedOn { get; set; }
         public List<ListItemDto> PracticedFromChapters { get; set; }
         public List<ListItemDto> PracticedFromTopics { get; set; }
