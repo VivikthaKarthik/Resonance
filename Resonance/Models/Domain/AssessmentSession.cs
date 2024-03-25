@@ -13,6 +13,12 @@ public partial class AssessmentSession
 
     public long AssessmentLevelId { get; set; }
 
+    public long? ChapterId { get; set; }
+
+    public long? TopicId { get; set; }
+
+    public long? SubTopicId { get; set; }
+
     public DateTime? StartTime { get; set; }
 
     public DateTime? EndTime { get; set; }

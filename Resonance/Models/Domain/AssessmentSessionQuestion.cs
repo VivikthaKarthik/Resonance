@@ -11,19 +11,13 @@ public partial class AssessmentSessionQuestion
 
     public long QuestionId { get; set; }
 
-    public bool? Result { get; set; }
-
-    public long? ChapterId { get; set; }
-
-    public long? TopicId { get; set; }
-
-    public long? SubTopicId { get; set; }
-
-    public long? DifficultyLevelId { get; set; }
+    public long DifficultyLevelId { get; set; }
 
     public string? SelectedAnswer { get; set; }
 
-    public int? TimeToComplete { get; set; }
+    public bool? Result { get; set; }
+
+    public int TimeToComplete { get; set; }
 
     public virtual AssessmentSession AssessmentSession { get; set; } = null!;
 

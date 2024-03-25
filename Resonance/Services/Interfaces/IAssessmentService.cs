@@ -8,7 +8,7 @@ namespace ResoClassAPI.Services.Interfaces
         Task<AssessmentConfigurationDto> GetAssessmentConfiguration();
         Task<string> InsertQuestions(List<QuestionsDto> questions, QuestionsUploadRequestDto request);
         //Task<QuestionResponseDto> GetQuestions(QuestionRequestDto requestDto);
-        Task<List<AssessmentLevelDto>> GetAssessmentLevels();
+        Task<List<AssessmentLevelDto>> GetAssessmentLevels(string type, long id);
         Task<QuestionResponseDto> GetQuestionsByChapter(long id, long levelId);
         Task<QuestionResponseDto> GetQuestionsByTopic(long id, long levelId);
         Task<QuestionResponseDto> GetQuestionsBySubTopic(long id, long levelId);

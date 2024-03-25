@@ -75,6 +75,8 @@ public partial class ResoClassContext : DbContext
 
     public virtual DbSet<Video> Videos { get; set; }
 
+    public virtual DbSet<VwAssessmentQuestion> VwAssessmentQuestions { get; set; }
+
     public virtual DbSet<VwChapter> VwChapters { get; set; }
 
     public virtual DbSet<VwClass> VwClasses { get; set; }
@@ -628,6 +630,15 @@ public partial class ResoClassContext : DbContext
             entity.HasOne(d => d.Topic).WithMany(p => p.Videos)
                 .HasForeignKey(d => d.TopicId)
                 .HasConstraintName("FK_Video_Topic");
+        });
+
+        modelBuilder.Entity<VwAssessmentQuestion>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("vwAssessmentQuestions");
+
+            entity.Property(e => e.DifficultyLevel).HasMaxLength(20);
         });
 
         modelBuilder.Entity<VwChapter>(entity =>

@@ -153,12 +153,12 @@ namespace ResoClassAPI.Controllers
 
         [HttpGet]
         [Route("api/Assessment/GetAssessmentLevels")]
-        public async Task<ResponseDto> GetAssessmentLevels()
+        public async Task<ResponseDto> GetAssessmentLevels(string type, long id)
         {
             ResponseDto responseDto = new ResponseDto();
             try
             {
-                var questions = await assessmentService.GetAssessmentLevels();
+                var questions = await assessmentService.GetAssessmentLevels(type, id);
 
                 if (questions != null)
                 {

@@ -3,6 +3,7 @@
     public class QuestionResponseDto
     {
         public long AssessmentId { get; set; }
+        public string AssessmentName { get; set; }
         public int MarksPerQuestion { get; set; }
         public int TotalQuestions { get; set; }
         public bool HasNegativeMarking { get; set; }
