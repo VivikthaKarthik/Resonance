@@ -29,10 +29,10 @@ namespace ResoClassAPI.Services
             mapper = _mapper;
             commonService = _commonService;
         }
-        private async Task<List<VwSessionResult>> GetSessionQuestions(long id, string type)
+        private async Task<List<VwSessionResult>> GetSessionQuestions(long id, string type, string assessmentType)
         {
             var currentUser = authService.GetCurrentUser();
-            return dbContext.VwSessionResults.FromSqlRaw("EXEC GetSessionResultQuestions {0}, {1}, {2}", id, type, currentUser.UserId).ToList();
+            return dbContext.VwSessionResults.FromSqlRaw("EXEC GetSessionResultQuestions {0}, {1}, {2}, {3}", id, type, currentUser.UserId, assessmentType).ToList();
         }
 
         public async Task<SubjectWiseTestDto> TrackYourProgressBySubject(long subjectId)
@@ -52,7 +52,7 @@ namespace ResoClassAPI.Services
                     var chapters = dbContext.Chapters.Any(x => x.SubjectId == subjectId) ? dbContext.Chapters.Where(x => x.SubjectId == subjectId).ToList() : null;
                     if (chapters != null && chapters.Count > 0)
                     {
-                        var chapterQuestions = await GetSessionQuestions(subjectId, "Subject");
+                        var chapterQuestions = await GetSessionQuestions(subjectId, "Subject", "CWT");
                         if (chapterQuestions != null && chapterQuestions.Count > 0)
                         {
                             report.TotalQuestions = chapterQuestions.Count;
@@ -125,7 +125,7 @@ namespace ResoClassAPI.Services
                     report.Class = chapter.Class;
                     report.Chapter = chapter.Name;
 
-                    var chapterQuestions = await GetSessionQuestions(chapterId, "Chapter");
+                    var chapterQuestions = await GetSessionQuestions(chapterId, "Chapter", "TWT");
                     if (chapterQuestions != null && chapterQuestions.Count > 0)
                     {
                         report.TotalQuestions = chapterQuestions.Count;
@@ -203,7 +203,7 @@ namespace ResoClassAPI.Services
                     report.Chapter = topic.Chapter;
                     report.Topic = topic.Name;
 
-                    var topicQuestions = await GetSessionQuestions(topicId, "Topic");
+                    var topicQuestions = await GetSessionQuestions(topicId, "Topic", "QPT");
 
                     if (topicQuestions != null && topicQuestions.Count > 0)
                     {
@@ -360,7 +360,7 @@ namespace ResoClassAPI.Services
                     var chapters = dbContext.Chapters.Any(x => x.SubjectId == subjectId) ? dbContext.Chapters.Where(x => x.SubjectId == subjectId).ToList() : null;
                     if (chapters != null && chapters.Count > 0)
                     {
-                        var chapterQuestions = await GetSessionQuestions(subjectId, "Subject");
+                        var chapterQuestions = await GetSessionQuestions(subjectId, "Subject", "CWT");
                         if (chapterQuestions != null && chapterQuestions.Count > 0)
                         {
                             report.AverageTimeSpentOnEachQuestion = chapterQuestions.Sum(x => x.TimeToComplete) / chapterQuestions.Count;
@@ -426,7 +426,7 @@ namespace ResoClassAPI.Services
                     var topics = dbContext.Topics.Any(x => x.ChapterId == chapterId) ? dbContext.Topics.Where(x => x.ChapterId == chapterId).ToList() : null;
                     if (topics != null && topics.Count > 0)
                     {
-                        var chapterQuestions = await GetSessionQuestions(chapterId, "Chapter");
+                        var chapterQuestions = await GetSessionQuestions(chapterId, "Chapter", "TWT");
                         if (chapterQuestions != null && chapterQuestions.Count > 0)
                         {
                             report.AverageTimeSpentOnEachQuestion = chapterQuestions.Sum(x => x.TimeToComplete) / chapterQuestions.Count;
@@ -492,7 +492,7 @@ namespace ResoClassAPI.Services
                     var subTopics = dbContext.VwSubTopics.Any(x => x.TopicId == topicId) ? dbContext.VwSubTopics.Where(x => x.TopicId == topicId).ToList() : null;
                     if (subTopics != null && subTopics.Count > 0)
                     {
-                        var topicQuestions = await GetSessionQuestions(topicId, "Topic");
+                        var topicQuestions = await GetSessionQuestions(topicId, "Topic", "QPT");
 
                         if (topicQuestions != null && topicQuestions.Count > 0)
                         {
@@ -558,7 +558,7 @@ namespace ResoClassAPI.Services
 
                     if (chapters != null && chapters.Count > 0)
                     {
-                        var chapterQuestions = await GetSessionQuestions(subjectId, "Subject");
+                        var chapterQuestions = await GetSessionQuestions(subjectId, "Subject", "CWT");
                         var assessmentSessions = dbContext.AssessmentSessions.Where(x => x.StudentId == currentUser.UserId).ToList();
                         var levels = dbContext.DifficultyLevels.ToList();
 
@@ -648,7 +648,7 @@ namespace ResoClassAPI.Services
 
                     if (topics != null && topics.Count > 0)
                     {
-                        var chapterQuestions = await GetSessionQuestions(chapterId, "Chapter");
+                        var chapterQuestions = await GetSessionQuestions(chapterId, "Chapter", "TWT");
                         var levels = dbContext.AssessmentLevels.ToList();
 
                         if (levels != null && levels.Count > 0)
@@ -738,7 +738,7 @@ namespace ResoClassAPI.Services
 
                     if (subTopics != null && subTopics.Count > 0)
                     {
-                        var topicQuestions = await GetSessionQuestions(topicId, "Topic");
+                        var topicQuestions = await GetSessionQuestions(topicId, "Topic", "QPT");
                         var levels = dbContext.AssessmentLevels.ToList();
 
                         if (levels != null && levels.Count > 0)
