@@ -150,7 +150,7 @@ namespace ResoClassAPI.Services
 
                     if (id > 0)
                     {
-                        var session = dbContext.AssessmentSessions.Where(x => x.AssessmentLevelId == levelId && x.StudentId == currentUser.UserId).FirstOrDefault();
+                        var session = dbContext.AssessmentSessions.Where(x => x.AssessmentLevelId == levelId && x.ChapterId == id && x.StudentId == currentUser.UserId).FirstOrDefault();
 
                         if(session == null)
                         {
@@ -262,7 +262,7 @@ namespace ResoClassAPI.Services
 
                     if (id > 0)
                     {
-                        var session = dbContext.AssessmentSessions.Where(x => x.AssessmentLevelId == levelId && x.StudentId == currentUser.UserId).FirstOrDefault();
+                        var session = dbContext.AssessmentSessions.Where(x => x.AssessmentLevelId == levelId && x.TopicId == id && x.StudentId == currentUser.UserId).FirstOrDefault();
 
                         if (session == null)
                         {
@@ -310,7 +310,7 @@ namespace ResoClassAPI.Services
 
                     if (id > 0)
                     {
-                        var session = dbContext.AssessmentSessions.Where(x => x.AssessmentLevelId == levelId && x.StudentId == currentUser.UserId).FirstOrDefault();
+                        var session = dbContext.AssessmentSessions.Where(x => x.AssessmentLevelId == levelId && x.SubTopicId == id && x.StudentId == currentUser.UserId).FirstOrDefault();
 
                         if (session == null)
                         {

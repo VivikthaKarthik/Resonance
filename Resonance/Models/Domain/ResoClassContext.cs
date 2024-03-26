@@ -83,6 +83,8 @@ public partial class ResoClassContext : DbContext
 
     public virtual DbSet<VwQuestionBank> VwQuestionBanks { get; set; }
 
+    public virtual DbSet<VwSessionResult> VwSessionResults { get; set; }
+
     public virtual DbSet<VwSubTopic> VwSubTopics { get; set; }
 
     public virtual DbSet<VwSubject> VwSubjects { get; set; }
@@ -160,11 +162,6 @@ public partial class ResoClassContext : DbContext
             entity.Property(e => e.Name).HasMaxLength(250);
             entity.Property(e => e.UpdatedBy).HasMaxLength(250);
             entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
-
-            entity.HasOne(d => d.AttachmentType).WithMany(p => p.Attachments)
-                .HasForeignKey(d => d.AttachmentTypeId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Attachment_AttachmentType");
 
             entity.HasOne(d => d.SubTopic).WithMany(p => p.Attachments)
                 .HasForeignKey(d => d.SubTopicId)
@@ -666,6 +663,19 @@ public partial class ResoClassContext : DbContext
                 .ToView("vwQuestionBank");
 
             entity.Property(e => e.DifficultyLevel).HasMaxLength(20);
+        });
+
+        modelBuilder.Entity<VwSessionResult>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("vwSessionResults");
+
+            entity.Property(e => e.AssessmentLevel).HasMaxLength(20);
+            entity.Property(e => e.DifficultyLevel).HasMaxLength(20);
+            entity.Property(e => e.EndTime).HasColumnType("datetime");
+            entity.Property(e => e.SelectedAnswer).HasMaxLength(10);
+            entity.Property(e => e.StartTime).HasColumnType("datetime");
         });
 
         modelBuilder.Entity<VwSubTopic>(entity =>

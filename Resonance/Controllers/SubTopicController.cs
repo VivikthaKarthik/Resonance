@@ -435,6 +435,36 @@ namespace ResoClassAPI.Controllers
             return responseDto;
         }
 
+
+        [HttpGet]
+        [Route("api/SubTopic/GetAttachments")]
+        public async Task<ResponseDto> GetAttachments(long id)
+        {
+            ResponseDto responseDto = new ResponseDto();
+            try
+            {
+                logger.LogInformation("Requested GetVideosByTopicId");
+                var videos = await subtopicService.GetVideosWithTopicId(id);
+
+                if (videos != null)
+                {
+                    responseDto.Result = videos;
+                    responseDto.IsSuccess = true;
+                }
+                else
+                {
+                    responseDto.IsSuccess = false;
+                    responseDto.Message = "Not Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                responseDto.IsSuccess = false;
+                responseDto.Message = ex.Message;
+            }
+            return responseDto;
+        }
+
         #endregion
     }
 }

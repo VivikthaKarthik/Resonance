@@ -13,5 +13,7 @@ namespace ResoClassAPI.Services.Interfaces
         Task<List<SubTopicsViewDto>> GetVideosWithChapterId(long chapterId);
         Task<List<SubTopicsViewDto>> GetVideosWithTopicId(long topicId);
         Task<bool> InsertSubTopics(List<SubTopicExcelRequestDto> subTopics);
+
+        Task<AttachmentsDto> GetAttachments(long id);
     }
 }

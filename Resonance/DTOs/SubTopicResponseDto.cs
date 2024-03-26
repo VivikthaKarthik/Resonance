@@ -8,6 +8,8 @@
         public string SourceUrl { get; set; }
         public string Description { get; set; }
         public bool HomeDisplay { get; set; }
+        public string ClassNotesUrl { get; set; }
+        public string ExtractUrl { get; set; }
         public long TopicId { get; set; } 
         public string TopicName { get; set; }
         public long ChapterId { get; set; }

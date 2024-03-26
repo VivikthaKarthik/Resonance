@@ -11,8 +11,6 @@ public partial class Attachment
 
     public string SourceUrl { get; set; } = null!;
 
-    public long AttachmentTypeId { get; set; }
-
     public long SubTopicId { get; set; }
 
     public bool IsActive { get; set; }
@@ -24,8 +22,6 @@ public partial class Attachment
     public string UpdatedBy { get; set; } = null!;
 
     public DateTime UpdatedOn { get; set; }
-
-    public virtual AttachmentType AttachmentType { get; set; } = null!;
 
     public virtual SubTopic SubTopic { get; set; } = null!;
 }

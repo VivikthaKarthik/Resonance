@@ -43,6 +43,8 @@ namespace ResoClassAPI.Services
                             SourceUrl = subtopic.SourceUrl,
                             Description = subtopic.Description,
                             HomeDisplay = subtopic.HomeDisplay,
+                            ClassNotesUrl = subtopic.ClassNotesUrl,
+                            ExtractUrl = subtopic.ExtractUrl,
                             TopicId = topic.Id,
                             TopicName = topic.Name,
                             ChapterId = chapter.Id,
@@ -72,6 +74,8 @@ namespace ResoClassAPI.Services
                             SourceUrl = subtopic.SourceUrl,
                             Description = subtopic.Description,
                             HomeDisplay = subtopic.HomeDisplay,
+                            ClassNotesUrl = subtopic.ClassNotesUrl,
+                            ExtractUrl = subtopic.ExtractUrl,
                             TopicId = topic.Id,
                             TopicName = topic.Name
                         };
@@ -262,6 +266,11 @@ namespace ResoClassAPI.Services
                 throw ex;
             }
 
+        }
+
+        public async Task<AttachmentsDto> GetAttachments(long id)
+        {
+            return new AttachmentsDto();
         }
     }
 }

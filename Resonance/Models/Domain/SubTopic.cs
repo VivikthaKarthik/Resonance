@@ -23,6 +23,10 @@ public partial class SubTopic
 
     public long ChapterId { get; set; }
 
+    public string? ClassNotesUrl { get; set; }
+
+    public string? ExtractUrl { get; set; }
+
     public bool IsActive { get; set; }
 
     public string CreatedBy { get; set; } = null!;

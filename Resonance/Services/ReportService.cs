@@ -27,7 +27,12 @@ namespace ResoClassAPI.Services
             mapper = _mapper;
             commonService = _commonService;
         }
-                
+        private async Task<List<VwSessionResult>> GetSessionQuestions(long id, string type)
+        {
+            var currentUser = authService.GetCurrentUser();
+            return dbContext.VwSessionResults.FromSqlRaw("EXEC GetSessionResultQuestions {0}, {1}, {2}", id, type, currentUser.UserId).ToList();
+        }
+
         public async Task<SubjectWiseTestDto> TrackYourProgressBySubject(long subjectId)
         {
             var currentUser = authService.GetCurrentUser();
@@ -42,23 +47,10 @@ namespace ResoClassAPI.Services
                     report.Subject = subject.Name;
                     report.Class = subject.Class;
 
-                    var chapters = dbContext.VwChapters.Any(x => x.SubjectId == subjectId) ? dbContext.VwChapters.Where(x => x.SubjectId == subjectId).ToList() : null;
+                    var chapters = dbContext.Chapters.Any(x => x.SubjectId == subjectId) ? dbContext.Chapters.Where(x => x.SubjectId == subjectId).ToList() : null;
                     if (chapters != null && chapters.Count > 0)
                     {
-                        var chapterIds = chapters.Select(x => x.Id).ToList();
-                        var questionsQuery = from question in dbContext.AssessmentSessionQuestions
-                                             join session in dbContext.AssessmentSessions on question.AssessmentSessionId equals session.Id
-                                             where session.ChapterId != null && chapterIds.Contains(session.ChapterId.Value) && session.StudentId == currentUser.UserId
-                                             select new AssessmentSessionQuestion
-                                             {
-                                                 Id = question.Id,
-                                                 AssessmentSessionId = question.AssessmentSessionId,
-                                                 TimeToComplete = question.TimeToComplete,
-                                                 DifficultyLevelId = question.DifficultyLevelId,
-                                                 Result = question.Result
-                                             };
-                        var chapterQuestions = questionsQuery.ToList();
-
+                        var chapterQuestions = await GetSessionQuestions(subjectId, "Subject");
                         if (chapterQuestions != null && chapterQuestions.Count > 0)
                         {
                             report.TotalQuestions = chapterQuestions.Count;
@@ -68,15 +60,7 @@ namespace ResoClassAPI.Services
                             report.CorrectAnswersPercentage = ((double)report.TotalCorrect / report.TotalQuestions) * 100;
                             report.WrongAnswersPercentage = ((double)report.TotalWrong / report.TotalQuestions) * 100;
                         }
-                        else
-                        {
-                            report.TotalQuestions = 0;
-                            report.TotalQuestionsAttempted = 0;
-                            report.TotalCorrect = 0;
-                            report.TotalWrong = 0;
-                            report.CorrectAnswersPercentage = 0;
-                            report.WrongAnswersPercentage = 0;
-                        }
+
                         report.Reports = new List<ItemWiseReportDto>();
                         var assessmentSessions = dbContext.AssessmentSessions.Where(x => x.StudentId == currentUser.UserId).ToList();
                         foreach (var chapter in chapters)
@@ -94,15 +78,14 @@ namespace ResoClassAPI.Services
                                     AssessmentLevelReportDto item = new AssessmentLevelReportDto();
                                     item.Id = level.Id;
                                     item.Name = level.Name;
-                                    if (chapterQuestions != null && chapterQuestions.Count > 0 && assessmentSessions.Any(x => x.AssessmentLevelId == level.Id && x.ChapterId == chapter.Id && x.EndTime != null))
+                                    if (chapterQuestions != null && chapterQuestions.Count > 0)
                                     {
                                         item.Status = "Completed";
-                                        var session = assessmentSessions.First(x => x.AssessmentLevelId == level.Id && x.ChapterId == chapter.Id && x.EndTime != null);
-                                        var questions = chapterQuestions.Where(x => x.AssessmentSessionId == session.Id).ToList();
-                                        item.AssessmentId = session.Id;
+                                        var questions = chapterQuestions.Where(x => x.ChapterId == chapter.Id && x.AssessmentLevelId == level.Id).ToList();
                                         if (questions != null && questions.Count > 0)
                                         {
                                             item.TotalQuestions = questions.Count;
+                                            item.TotalQuestionsAttempted = questions.Count(x => x.Result != null);
                                             item.TotalCorrect = questions.Count(x => x.Result != null && x.Result == true);
                                             item.TotalWrong = questions.Count(x => x.Result != null && x.Result == false);
                                         }
@@ -110,9 +93,6 @@ namespace ResoClassAPI.Services
                                     else
                                     {
                                         item.Status = "Pending";
-                                        item.TotalQuestions = 0;
-                                        item.TotalCorrect = 0;
-                                        item.TotalWrong = 0;
                                     }
                                     itemWiseReportDto.LevelReports.Add(item);
                                 }
@@ -144,41 +124,20 @@ namespace ResoClassAPI.Services
                     report.Class = chapter.Class;
                     report.Chapter = chapter.Name;
 
-                    var topics = dbContext.VwTopics.Any(x => x.ChapterId == chapterId) ? dbContext.VwTopics.Where(x => x.ChapterId == chapterId).ToList() : null;
-                    if (topics != null && topics.Count > 0)
+                    var chapterQuestions = await GetSessionQuestions(chapterId, "Chapter");
+                    if (chapterQuestions != null && chapterQuestions.Count > 0)
                     {
-                        var topicIds = topics.Select(x => x.Id).ToList();
-                        var questionsQuery = from question in dbContext.AssessmentSessionQuestions
-                                             join session in dbContext.AssessmentSessions on question.AssessmentSessionId equals session.Id
-                                             where session.TopicId != null && topicIds.Contains(session.TopicId.Value) && session.StudentId == currentUser.UserId
-                                             select new AssessmentSessionQuestion
-                                             {
-                                                 Id = question.Id,
-                                                 AssessmentSessionId = question.AssessmentSessionId,
-                                                 TimeToComplete = question.TimeToComplete,
-                                                 DifficultyLevelId = question.DifficultyLevelId,
-                                                 Result = question.Result
-                                             };
-                        var topicQuestions = questionsQuery.ToList();
+                        report.TotalQuestions = chapterQuestions.Count;
+                        report.TotalQuestionsAttempted = chapterQuestions.Count(x => x.Result != null);
+                        report.TotalCorrect = chapterQuestions.Count(x => x.Result != null && x.Result == true);
+                        report.TotalWrong = chapterQuestions.Count(x => x.Result != null && x.Result == false);
+                        report.CorrectAnswersPercentage = ((double)report.TotalCorrect / report.TotalQuestions) * 100;
+                        report.WrongAnswersPercentage = ((double)report.TotalWrong / report.TotalQuestions) * 100;
+                    }
 
-                        if (topicQuestions != null && topicQuestions.Count > 0)
-                        {
-                            report.TotalQuestions = topicQuestions.Count;
-                            report.TotalQuestionsAttempted = topicQuestions.Count(x => x.Result != null);
-                            report.TotalCorrect = topicQuestions.Count(x => x.Result != null && x.Result == true);
-                            report.TotalWrong = topicQuestions.Count(x => x.Result != null && x.Result == false);
-                            report.CorrectAnswersPercentage = ((double)report.TotalCorrect / report.TotalQuestions) * 100;
-                            report.WrongAnswersPercentage = ((double)report.TotalWrong / report.TotalQuestions) * 100;
-                        }
-                        else
-                        {
-                            report.TotalQuestions = 0;
-                            report.TotalQuestionsAttempted = 0;
-                            report.TotalCorrect = 0;
-                            report.TotalWrong = 0;
-                            report.CorrectAnswersPercentage = 0;
-                            report.WrongAnswersPercentage = 0;
-                        }
+                    var topics = dbContext.Topics.Any(x => x.ChapterId == chapterId) ? dbContext.Topics.Where(x => x.ChapterId == chapterId).ToList() : null;
+                    if (topics != null && topics.Count > 0)
+                    {                      
                         report.Reports = new List<ItemWiseReportDto>();
                         var assessmentSessions = dbContext.AssessmentSessions.Where(x => x.StudentId == currentUser.UserId).ToList();
                         foreach (var topic in topics)
@@ -196,15 +155,14 @@ namespace ResoClassAPI.Services
                                     AssessmentLevelReportDto item = new AssessmentLevelReportDto();
                                     item.Id = level.Id;
                                     item.Name = level.Name;
-                                    if (topicQuestions != null && topicQuestions.Count > 0 && assessmentSessions.Any(x => x.AssessmentLevelId == level.Id && x.TopicId == topic.Id && x.EndTime != null))
+                                    if (chapterQuestions != null && chapterQuestions.Count > 0)
                                     {
                                         item.Status = "Completed";
-                                        var session = assessmentSessions.First(x => x.AssessmentLevelId == level.Id && x.TopicId == topic.Id && x.EndTime != null);
-                                        var questions = topicQuestions.Where(x => x.AssessmentSessionId == session.Id).ToList();
-                                        item.AssessmentId = session.Id;
+                                        var questions = chapterQuestions.Where(x => x.TopicId == topic.Id && x.DifficultyLevelId == level.Id).ToList();
                                         if (questions != null && questions.Count > 0)
                                         {
                                             item.TotalQuestions = questions.Count;
+                                            item.TotalQuestionsAttempted = questions.Count(x => x.Result != null);
                                             item.TotalCorrect = questions.Count(x => x.Result != null && x.Result == true);
                                             item.TotalWrong = questions.Count(x => x.Result != null && x.Result == false);
                                         }
@@ -212,9 +170,6 @@ namespace ResoClassAPI.Services
                                     else
                                     {
                                         item.Status = "Pending";
-                                        item.TotalQuestions = 0;
-                                        item.TotalCorrect = 0;
-                                        item.TotalWrong = 0;
                                     }
                                     itemWiseReportDto.LevelReports.Add(item);
                                 }
@@ -241,48 +196,28 @@ namespace ResoClassAPI.Services
                 if (topicId > 0 && dbContext.Topics.Any(x => x.Id == topicId))
                 {
                     var topic = dbContext.VwTopics.First(x => x.Id == topicId);
-                    report.Title = "TWT";
+                    report.Title = "QPT";
                     report.Course = topic.Course;
                     report.Subject = topic.Subject;
                     report.Class = topic.Class;
                     report.Chapter = topic.Chapter;
                     report.Topic = topic.Name;
 
-                    var subTopics = dbContext.VwSubTopics.Any(x => x.TopicId == topicId) ? dbContext.VwSubTopics.Where(x => x.TopicId == topicId).ToList() : null;
+                    var topicQuestions = await GetSessionQuestions(topicId, "Topic");
+
+                    if (topicQuestions != null && topicQuestions.Count > 0)
+                    {
+                        report.TotalQuestions = topicQuestions.Count;
+                        report.TotalQuestionsAttempted = topicQuestions.Count(x => x.Result != null);
+                        report.TotalCorrect = topicQuestions.Count(x => x.Result != null && x.Result == true);
+                        report.TotalWrong = topicQuestions.Count(x => x.Result != null && x.Result == false);
+                        report.CorrectAnswersPercentage = ((double)report.TotalCorrect / report.TotalQuestions) * 100;
+                        report.WrongAnswersPercentage = ((double)report.TotalWrong / report.TotalQuestions) * 100;
+                    }
+
+                    var subTopics = dbContext.SubTopics.Any(x => x.TopicId == topicId) ? dbContext.SubTopics.Where(x => x.TopicId == topicId).ToList() : null;
                     if (subTopics != null && subTopics.Count > 0)
                     {
-                        var subTopicIds = subTopics.Select(x => x.Id).ToList();
-                        var questionsQuery = from question in dbContext.AssessmentSessionQuestions
-                                             join session in dbContext.AssessmentSessions on question.AssessmentSessionId equals session.Id
-                                             where session.SubTopicId != null && subTopicIds.Contains(session.SubTopicId.Value) && session.StudentId == currentUser.UserId
-                                             select new AssessmentSessionQuestion
-                                             {
-                                                 Id = question.Id,
-                                                 AssessmentSessionId = question.AssessmentSessionId,
-                                                 TimeToComplete = question.TimeToComplete,
-                                                 DifficultyLevelId = question.DifficultyLevelId,
-                                                 Result = question.Result
-                                             };
-                        var subTopicQuestions = questionsQuery.ToList();
-
-                        if (subTopicQuestions != null && subTopicQuestions.Count > 0)
-                        {
-                            report.TotalQuestions = subTopicQuestions.Count;
-                            report.TotalQuestionsAttempted = subTopicQuestions.Count(x => x.Result != null);
-                            report.TotalCorrect = subTopicQuestions.Count(x => x.Result != null && x.Result == true);
-                            report.TotalWrong = subTopicQuestions.Count(x => x.Result != null && x.Result == false);
-                            report.CorrectAnswersPercentage = ((double)report.TotalCorrect / report.TotalQuestions) * 100;
-                            report.WrongAnswersPercentage = ((double)report.TotalWrong / report.TotalQuestions) * 100;
-                        }
-                        else
-                        {
-                            report.TotalQuestions = 0;
-                            report.TotalQuestionsAttempted = 0;
-                            report.TotalCorrect = 0;
-                            report.TotalWrong = 0;
-                            report.CorrectAnswersPercentage = 0;
-                            report.WrongAnswersPercentage = 0;
-                        }
                         report.Reports = new List<ItemWiseReportDto>();
                         var assessmentSessions = dbContext.AssessmentSessions.Where(x => x.StudentId == currentUser.UserId).ToList();
                         foreach (var subTopic in subTopics)
@@ -300,15 +235,14 @@ namespace ResoClassAPI.Services
                                     AssessmentLevelReportDto item = new AssessmentLevelReportDto();
                                     item.Id = level.Id;
                                     item.Name = level.Name;
-                                    if (subTopicQuestions != null && subTopicQuestions.Count > 0 && assessmentSessions.Any(x => x.AssessmentLevelId == level.Id && x.SubTopicId == subTopic.Id && x.EndTime != null))
+                                    if (topicQuestions != null && topicQuestions.Count > 0)
                                     {
                                         item.Status = "Completed";
-                                        var session = assessmentSessions.First(x => x.AssessmentLevelId == level.Id && x.SubTopicId == subTopic.Id && x.EndTime != null);
-                                        var questions = subTopicQuestions.Where(x => x.AssessmentSessionId == session.Id).ToList();
-                                        item.AssessmentId = session.Id;
+                                        var questions = topicQuestions.Where(x => x.SubTopicId == subTopic.Id && x.DifficultyLevelId == level.Id).ToList();
                                         if (questions != null && questions.Count > 0)
                                         {
                                             item.TotalQuestions = questions.Count;
+                                            item.TotalQuestionsAttempted = questions.Count(x => x.Result != null);
                                             item.TotalCorrect = questions.Count(x => x.Result != null && x.Result == true);
                                             item.TotalWrong = questions.Count(x => x.Result != null && x.Result == false);
                                         }
@@ -316,9 +250,6 @@ namespace ResoClassAPI.Services
                                     else
                                     {
                                         item.Status = "Pending";
-                                        item.TotalQuestions = 0;
-                                        item.TotalCorrect = 0;
-                                        item.TotalWrong = 0;
                                     }
                                     itemWiseReportDto.LevelReports.Add(item);
                                 }
@@ -427,23 +358,10 @@ namespace ResoClassAPI.Services
                     report.Subject = subject.Name;
                     report.Class = subject.Class;
 
-                    var chapters = dbContext.VwChapters.Any(x => x.SubjectId == subjectId) ? dbContext.VwChapters.Where(x => x.SubjectId == subjectId).ToList() : null;
+                    var chapters = dbContext.Chapters.Any(x => x.SubjectId == subjectId) ? dbContext.Chapters.Where(x => x.SubjectId == subjectId).ToList() : null;
                     if (chapters != null && chapters.Count > 0)
                     {
-                        var chapterIds = chapters.Select(x => x.Id).ToList();
-                        var questionsQuery = from question in dbContext.AssessmentSessionQuestions
-                                             join session in dbContext.AssessmentSessions on question.AssessmentSessionId equals session.Id
-                                             where session.ChapterId != null && chapterIds.Contains(session.ChapterId.Value) && session.StudentId == currentUser.UserId
-                                             select new AssessmentSessionQuestion
-                                             {
-                                                 Id = question.Id,
-                                                 AssessmentSessionId = question.AssessmentSessionId,
-                                                 TimeToComplete = question.TimeToComplete,
-                                                 DifficultyLevelId = question.DifficultyLevelId,
-                                                 Result = question.Result
-                                             };
-                        var chapterQuestions = questionsQuery.ToList();
-
+                        var chapterQuestions = await GetSessionQuestions(subjectId, "Subject");
                         if (chapterQuestions != null && chapterQuestions.Count > 0)
                         {
                             report.AverageTimeSpentOnEachQuestion = chapterQuestions.Sum(x => x.TimeToComplete) / chapterQuestions.Count;
@@ -451,13 +369,7 @@ namespace ResoClassAPI.Services
                             report.AverageTimeSpentOnMediumQuestions = chapterQuestions.Where(x => x.DifficultyLevelId == 1000002).Sum(x => x.TimeToComplete) / chapterQuestions.Count;
                             report.AverageTimeSpentOnDifficultQuestions = chapterQuestions.Where(x => x.DifficultyLevelId == 1000003).Sum(x => x.TimeToComplete) / chapterQuestions.Count;
                         }
-                        else
-                        {
-                            report.AverageTimeSpentOnEachQuestion = 0;
-                            report.AverageTimeSpentOnEasyQuestions = 0;
-                            report.AverageTimeSpentOnMediumQuestions = 0;
-                            report.AverageTimeSpentOnDifficultQuestions = 0;
-                        }
+
                         report.Reports = new List<ItemWiseTimeAnalysisReportDto>();
                         var assessmentSessions = dbContext.AssessmentSessions.Where(x => x.StudentId == currentUser.UserId).ToList();
                         foreach (var chapter in chapters)
@@ -477,16 +389,9 @@ namespace ResoClassAPI.Services
                                     item.Name = level.Name;
                                     if (chapterQuestions != null && chapterQuestions.Count > 0)
                                     {
-                                        var sessionIds = assessmentSessions.Where(x => x.ChapterId == chapter.Id && x.EndTime != null).ToList().Select(x => x.Id);
-                                        var questions = chapterQuestions.Where(x => sessionIds.Contains(x.AssessmentSessionId) && x.DifficultyLevelId == level.Id).ToList();
+                                        var questions = chapterQuestions.Where(x => x.ChapterId == chapter.Id && x.DifficultyLevelId == level.Id).ToList();
                                         if (questions != null && questions.Count > 0)
                                             item.AverageTime = questions.Sum(x => x.TimeToComplete) / questions.Count;
-                                        else
-                                            item.AverageTime = 0;
-                                    }
-                                    else
-                                    {
-                                        item.AverageTime = 0;
                                     }
                                     itemWiseReportDto.LevelReports.Add(item);
                                 }
@@ -519,37 +424,18 @@ namespace ResoClassAPI.Services
                     report.Class = chapter.Class;
                     report.Subject = chapter.Subject;
 
-                    var topics = dbContext.VwTopics.Any(x => x.ChapterId == chapterId) ? dbContext.VwTopics.Where(x => x.ChapterId == chapterId).ToList() : null;
+                    var topics = dbContext.Topics.Any(x => x.ChapterId == chapterId) ? dbContext.Topics.Where(x => x.ChapterId == chapterId).ToList() : null;
                     if (topics != null && topics.Count > 0)
                     {
-                        var topicIds = topics.Select(x => x.Id).ToList();
-                        var questionsQuery = from question in dbContext.AssessmentSessionQuestions
-                                             join session in dbContext.AssessmentSessions on question.AssessmentSessionId equals session.Id
-                                             where session.TopicId != null && topicIds.Contains(session.TopicId.Value) && session.StudentId == currentUser.UserId
-                                             select new AssessmentSessionQuestion
-                                             {
-                                                 Id = question.Id,
-                                                 AssessmentSessionId = question.AssessmentSessionId,
-                                                 TimeToComplete = question.TimeToComplete,
-                                                 DifficultyLevelId = question.DifficultyLevelId,
-                                                 Result = question.Result
-                                             };
-                        var topicQuestions = questionsQuery.ToList();
+                        var chapterQuestions = await GetSessionQuestions(chapterId, "Chapter");
+                        if (chapterQuestions != null && chapterQuestions.Count > 0)
+                        {
+                            report.AverageTimeSpentOnEachQuestion = chapterQuestions.Sum(x => x.TimeToComplete) / chapterQuestions.Count;
+                            report.AverageTimeSpentOnEasyQuestions = chapterQuestions.Where(x => x.DifficultyLevelId == 1000001).Sum(x => x.TimeToComplete) / chapterQuestions.Count;
+                            report.AverageTimeSpentOnMediumQuestions = chapterQuestions.Where(x => x.DifficultyLevelId == 1000002).Sum(x => x.TimeToComplete) / chapterQuestions.Count;
+                            report.AverageTimeSpentOnDifficultQuestions = chapterQuestions.Where(x => x.DifficultyLevelId == 1000003).Sum(x => x.TimeToComplete) / chapterQuestions.Count;
+                        }
 
-                        if (topicQuestions != null && topicQuestions.Count > 0)
-                        {
-                            report.AverageTimeSpentOnEachQuestion = topicQuestions.Sum(x => x.TimeToComplete) / topicQuestions.Count;
-                            report.AverageTimeSpentOnEasyQuestions = topicQuestions.Where(x => x.DifficultyLevelId == 1000001).Sum(x => x.TimeToComplete) / topicQuestions.Count;
-                            report.AverageTimeSpentOnMediumQuestions = topicQuestions.Where(x => x.DifficultyLevelId == 1000002).Sum(x => x.TimeToComplete) / topicQuestions.Count;
-                            report.AverageTimeSpentOnDifficultQuestions = topicQuestions.Where(x => x.DifficultyLevelId == 1000003).Sum(x => x.TimeToComplete) / topicQuestions.Count;
-                        }
-                        else
-                        {
-                            report.AverageTimeSpentOnEachQuestion = 0;
-                            report.AverageTimeSpentOnEasyQuestions = 0;
-                            report.AverageTimeSpentOnMediumQuestions = 0;
-                            report.AverageTimeSpentOnDifficultQuestions = 0;
-                        }
                         report.Reports = new List<ItemWiseTimeAnalysisReportDto>();
                         var assessmentSessions = dbContext.AssessmentSessions.Where(x => x.StudentId == currentUser.UserId).ToList();
                         foreach (var topic in topics)
@@ -567,18 +453,11 @@ namespace ResoClassAPI.Services
                                     AssessmentLevelTimeAnalysisReportDto item = new AssessmentLevelTimeAnalysisReportDto();
                                     item.Id = level.Id;
                                     item.Name = level.Name;
-                                    if (topicQuestions != null && topicQuestions.Count > 0)
+                                    if (chapterQuestions != null && chapterQuestions.Count > 0)
                                     {
-                                        var sessionIds = assessmentSessions.Where(x => x.TopicId == topic.Id && x.EndTime != null).ToList().Select(x => x.Id);
-                                        var questions = topicQuestions.Where(x => sessionIds.Contains(x.AssessmentSessionId) && x.DifficultyLevelId == level.Id).ToList();
+                                        var questions = chapterQuestions.Where(x => x.TopicId == topic.Id && x.DifficultyLevelId == level.Id).ToList();
                                         if (questions != null && questions.Count > 0)
                                             item.AverageTime = questions.Sum(x => x.TimeToComplete) / questions.Count;
-                                        else
-                                            item.AverageTime = 0;
-                                    }
-                                    else
-                                    {
-                                        item.AverageTime = 0;
                                     }
                                     itemWiseReportDto.LevelReports.Add(item);
                                 }
@@ -605,7 +484,7 @@ namespace ResoClassAPI.Services
                 if (topicId > 0 && dbContext.Topics.Any(x => x.Id == topicId))
                 {
                     var topic = dbContext.VwTopics.First(x => x.Id == topicId);
-                    report.Title = "TWT";
+                    report.Title = "QPT";
                     report.Course = topic.Course;
                     report.Chapter = topic.Name;
                     report.Class = topic.Class;
@@ -614,34 +493,16 @@ namespace ResoClassAPI.Services
                     var subTopics = dbContext.VwSubTopics.Any(x => x.TopicId == topicId) ? dbContext.VwSubTopics.Where(x => x.TopicId == topicId).ToList() : null;
                     if (subTopics != null && subTopics.Count > 0)
                     {
-                        var subTopicIds = subTopics.Select(x => x.Id).ToList();
-                        var questionsQuery = from question in dbContext.AssessmentSessionQuestions
-                                             join session in dbContext.AssessmentSessions on question.AssessmentSessionId equals session.Id
-                                             where session.SubTopicId != null && subTopicIds.Contains(session.SubTopicId.Value) && session.StudentId == currentUser.UserId
-                                             select new AssessmentSessionQuestion
-                                             {
-                                                 Id = question.Id,
-                                                 AssessmentSessionId = question.AssessmentSessionId,
-                                                 TimeToComplete = question.TimeToComplete,
-                                                 DifficultyLevelId = question.DifficultyLevelId,
-                                                 Result = question.Result
-                                             };
-                        var subTopicQuestions = questionsQuery.ToList();
+                        var topicQuestions = await GetSessionQuestions(topicId, "Topic");
 
-                        if (subTopicQuestions != null && subTopicQuestions.Count > 0)
+                        if (topicQuestions != null && topicQuestions.Count > 0)
                         {
-                            report.AverageTimeSpentOnEachQuestion = subTopicQuestions.Sum(x => x.TimeToComplete) / subTopicQuestions.Count;
-                            report.AverageTimeSpentOnEasyQuestions = subTopicQuestions.Where(x => x.DifficultyLevelId == 1000001).Sum(x => x.TimeToComplete) / subTopicQuestions.Count;
-                            report.AverageTimeSpentOnMediumQuestions = subTopicQuestions.Where(x => x.DifficultyLevelId == 1000002).Sum(x => x.TimeToComplete) / subTopicQuestions.Count;
-                            report.AverageTimeSpentOnDifficultQuestions = subTopicQuestions.Where(x => x.DifficultyLevelId == 1000003).Sum(x => x.TimeToComplete) / subTopicQuestions.Count;
+                            report.AverageTimeSpentOnEachQuestion = topicQuestions.Sum(x => x.TimeToComplete) / topicQuestions.Count;
+                            report.AverageTimeSpentOnEasyQuestions = topicQuestions.Where(x => x.DifficultyLevelId == 1000001).Sum(x => x.TimeToComplete) / topicQuestions.Count;
+                            report.AverageTimeSpentOnMediumQuestions = topicQuestions.Where(x => x.DifficultyLevelId == 1000002).Sum(x => x.TimeToComplete) / topicQuestions.Count;
+                            report.AverageTimeSpentOnDifficultQuestions = topicQuestions.Where(x => x.DifficultyLevelId == 1000003).Sum(x => x.TimeToComplete) / topicQuestions.Count;
                         }
-                        else
-                        {
-                            report.AverageTimeSpentOnEachQuestion = 0;
-                            report.AverageTimeSpentOnEasyQuestions = 0;
-                            report.AverageTimeSpentOnMediumQuestions = 0;
-                            report.AverageTimeSpentOnDifficultQuestions = 0;
-                        }
+
                         report.Reports = new List<ItemWiseTimeAnalysisReportDto>();
                         var assessmentSessions = dbContext.AssessmentSessions.Where(x => x.StudentId == currentUser.UserId).ToList();
                         foreach (var subTopic in subTopics)
@@ -659,23 +520,15 @@ namespace ResoClassAPI.Services
                                     AssessmentLevelTimeAnalysisReportDto item = new AssessmentLevelTimeAnalysisReportDto();
                                     item.Id = level.Id;
                                     item.Name = level.Name;
-                                    if (subTopicQuestions != null && subTopicQuestions.Count > 0)
+                                    if (topicQuestions != null && topicQuestions.Count > 0)
                                     {
-                                        var sessionIds = assessmentSessions.Where(x => x.SubTopicId == subTopic.Id && x.EndTime != null).ToList().Select(x => x.Id);
-                                        var questions = subTopicQuestions.Where(x => sessionIds.Contains(x.AssessmentSessionId) && x.DifficultyLevelId == level.Id).ToList();
+                                        var questions = topicQuestions.Where(x => x.SubTopicId == subTopic.Id && x.DifficultyLevelId == level.Id).ToList();
                                         if (questions != null && questions.Count > 0)
                                             item.AverageTime = questions.Sum(x => x.TimeToComplete) / questions.Count;
-                                        else
-                                            item.AverageTime = 0;
-                                    }
-                                    else
-                                    {
-                                        item.AverageTime = 0;
                                     }
                                     itemWiseReportDto.LevelReports.Add(item);
                                 }
                             }
-
                             report.Reports.Add(itemWiseReportDto);
                         }
                     }
@@ -702,25 +555,11 @@ namespace ResoClassAPI.Services
                     report.Subject = subject.Name;
                     report.Class = subject.Class;
 
-                    var chapters = dbContext.VwChapters.Any(x => x.SubjectId == subjectId) ? dbContext.VwChapters.Where(x => x.SubjectId == subjectId).ToList() : null;
+                    var chapters = dbContext.Chapters.Any(x => x.SubjectId == subjectId) ? dbContext.Chapters.Where(x => x.SubjectId == subjectId).ToList() : null;
 
                     if (chapters != null && chapters.Count > 0)
                     {
-                        var chapterIds = chapters.Select(x => x.Id).ToList();
-                        var questionsQuery = from question in dbContext.AssessmentSessionQuestions
-                                             join session in dbContext.AssessmentSessions on question.AssessmentSessionId equals session.Id
-                                             where session.ChapterId != null && chapterIds.Contains(session.ChapterId.Value) && session.StudentId == currentUser.UserId
-                                             select new AssessmentSessionQuestion
-                                             {
-                                                 Id = question.Id,
-                                                 AssessmentSessionId = question.AssessmentSessionId,
-                                                 TimeToComplete = question.TimeToComplete,
-                                                 DifficultyLevelId = question.DifficultyLevelId,
-                                                 Result = question.Result
-                                             };
-                        var chapterQuestions =  questionsQuery.ToList();
-
-
+                        var chapterQuestions = await GetSessionQuestions(subjectId, "Subject");
                         var assessmentSessions = dbContext.AssessmentSessions.Where(x => x.StudentId == currentUser.UserId).ToList();
                         var levels = dbContext.DifficultyLevels.ToList();
 
@@ -743,20 +582,6 @@ namespace ResoClassAPI.Services
                                         item.TotalCorrect = questions.Count(x => x.Result != null && x.Result == true);
                                         item.TotalWrong = questions.Count(x => x.Result != null && x.Result == false);
                                     }
-                                    else
-                                    {
-                                        item.TotalQuestions = 0;
-                                        item.TotalQuestionsAttempted = 0;
-                                        item.TotalCorrect = 0;
-                                        item.TotalWrong = 0;
-                                    }
-                                }
-                                else
-                                {
-                                    item.TotalQuestions = 0;
-                                    item.TotalQuestionsAttempted = 0;
-                                    item.TotalCorrect = 0;
-                                    item.TotalWrong = 0;
                                 }
                                 report.TotalQuestionAnalysis.Add(item);
                             }
@@ -777,10 +602,9 @@ namespace ResoClassAPI.Services
                                     AssessmentLevelDifficultyLevelAnalysisDto item = new AssessmentLevelDifficultyLevelAnalysisDto();
                                     item.Id = level.Id;
                                     item.Name = level.Name;
-                                    if (chapterQuestions != null && chapterQuestions.Count > 0 && assessmentSessions.Any(x => x.ChapterId == chapter.Id && x.EndTime != null))
+                                    if (chapterQuestions != null && chapterQuestions.Count > 0)
                                     {
-                                        var sessionIds = assessmentSessions.Where(x => x.ChapterId == chapter.Id && x.EndTime != null).ToList().Select(x => x.Id);
-                                        var questions = chapterQuestions.Where(x => sessionIds.Contains(x.AssessmentSessionId) && x.DifficultyLevelId == level.Id).ToList();
+                                        var questions = chapterQuestions.Where(x => x.ChapterId == chapter.Id && x.DifficultyLevelId == level.Id).ToList();
 
                                         if (questions != null && questions.Count > 0)
                                         {
@@ -789,20 +613,6 @@ namespace ResoClassAPI.Services
                                             item.TotalCorrect = questions.Count(x => x.Result != null && x.Result == true);
                                             item.TotalWrong = questions.Count(x => x.Result != null && x.Result == false);
                                         }
-                                        else
-                                        {
-                                            item.TotalQuestions = 0;
-                                            item.TotalQuestionsAttempted = 0;
-                                            item.TotalCorrect = 0;
-                                            item.TotalWrong = 0;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        item.TotalQuestions = 0;
-                                        item.TotalQuestionsAttempted = 0;
-                                        item.TotalCorrect = 0;
-                                        item.TotalWrong = 0;
                                     }
                                     itemWiseReportDto.LevelReports.Add(item);
                                 }
@@ -839,22 +649,7 @@ namespace ResoClassAPI.Services
 
                     if (topics != null && topics.Count > 0)
                     {
-                        var topicIds = topics.Select(x => x.Id).ToList();
-                        var questionsQuery = from question in dbContext.AssessmentSessionQuestions
-                                             join session in dbContext.AssessmentSessions on question.AssessmentSessionId equals session.Id
-                                             where session.TopicId != null && topicIds.Contains(session.TopicId.Value) && session.StudentId == currentUser.UserId
-                                             select new AssessmentSessionQuestion
-                                             {
-                                                 Id = question.Id,
-                                                 AssessmentSessionId = question.AssessmentSessionId,
-                                                 TimeToComplete = question.TimeToComplete,
-                                                 DifficultyLevelId = question.DifficultyLevelId,
-                                                 Result = question.Result
-                                             };
-                        var topicQuestions = questionsQuery.ToList();
-
-
-                        var assessmentSessions = dbContext.AssessmentSessions.Where(x => x.StudentId == currentUser.UserId).ToList();
+                        var chapterQuestions = await GetSessionQuestions(chapterId, "Chapter");
                         var levels = dbContext.AssessmentLevels.ToList();
 
                         if (levels != null && levels.Count > 0)
@@ -865,9 +660,9 @@ namespace ResoClassAPI.Services
                                 AssessmentLevelDifficultyLevelAnalysisDto item = new AssessmentLevelDifficultyLevelAnalysisDto();
                                 item.Id = level.Id;
                                 item.Name = level.Name;
-                                if (topicQuestions != null && topicQuestions.Count > 0)
+                                if (chapterQuestions != null && chapterQuestions.Count > 0)
                                 {
-                                    var questions = topicQuestions.Where(x => x.DifficultyLevelId == level.Id).ToList();
+                                    var questions = chapterQuestions.Where(x => x.DifficultyLevelId == level.Id).ToList();
 
                                     if (questions != null && questions.Count > 0)
                                     {
@@ -876,20 +671,6 @@ namespace ResoClassAPI.Services
                                         item.TotalCorrect = questions.Count(x => x.Result != null && x.Result == true);
                                         item.TotalWrong = questions.Count(x => x.Result != null && x.Result == false);
                                     }
-                                    else
-                                    {
-                                        item.TotalQuestions = 0;
-                                        item.TotalQuestionsAttempted = 0;
-                                        item.TotalCorrect = 0;
-                                        item.TotalWrong = 0;
-                                    }
-                                }
-                                else
-                                {
-                                    item.TotalQuestions = 0;
-                                    item.TotalQuestionsAttempted = 0;
-                                    item.TotalCorrect = 0;
-                                    item.TotalWrong = 0;
                                 }
                                 report.TotalQuestionAnalysis.Add(item);
                             }
@@ -910,10 +691,9 @@ namespace ResoClassAPI.Services
                                     AssessmentLevelDifficultyLevelAnalysisDto item = new AssessmentLevelDifficultyLevelAnalysisDto();
                                     item.Id = level.Id;
                                     item.Name = level.Name;
-                                    if (topicQuestions != null && topicQuestions.Count > 0 && assessmentSessions.Any(x => x.TopicId == topic.Id && x.EndTime != null))
+                                    if (chapterQuestions != null && chapterQuestions.Count > 0)
                                     {
-                                        var sessionIds = assessmentSessions.Where(x => x.TopicId == topic.Id && x.EndTime != null).ToList().Select(x => x.Id);
-                                        var questions = topicQuestions.Where(x => sessionIds.Contains(x.AssessmentSessionId) && x.DifficultyLevelId == level.Id).ToList();
+                                        var questions = chapterQuestions.Where(x => x.TopicId == topic.Id && x.DifficultyLevelId == level.Id).ToList();
 
                                         if (questions != null && questions.Count > 0)
                                         {
@@ -922,20 +702,6 @@ namespace ResoClassAPI.Services
                                             item.TotalCorrect = questions.Count(x => x.Result != null && x.Result == true);
                                             item.TotalWrong = questions.Count(x => x.Result != null && x.Result == false);
                                         }
-                                        else
-                                        {
-                                            item.TotalQuestions = 0;
-                                            item.TotalQuestionsAttempted = 0;
-                                            item.TotalCorrect = 0;
-                                            item.TotalWrong = 0;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        item.TotalQuestions = 0;
-                                        item.TotalQuestionsAttempted = 0;
-                                        item.TotalCorrect = 0;
-                                        item.TotalWrong = 0;
                                     }
                                     itemWiseReportDto.LevelReports.Add(item);
                                 }
@@ -973,22 +739,7 @@ namespace ResoClassAPI.Services
 
                     if (subTopics != null && subTopics.Count > 0)
                     {
-                        var subTopicIds = subTopics.Select(x => x.Id).ToList();
-                        var questionsQuery = from question in dbContext.AssessmentSessionQuestions
-                                             join session in dbContext.AssessmentSessions on question.AssessmentSessionId equals session.Id
-                                             where session.SubTopicId != null && subTopicIds.Contains(session.SubTopicId.Value) && session.StudentId == currentUser.UserId
-                                             select new AssessmentSessionQuestion
-                                             {
-                                                 Id = question.Id,
-                                                 AssessmentSessionId = question.AssessmentSessionId,
-                                                 TimeToComplete = question.TimeToComplete,
-                                                 DifficultyLevelId = question.DifficultyLevelId,
-                                                 Result = question.Result
-                                             };
-                        var subTopicQuestions = questionsQuery.ToList();
-
-
-                        var assessmentSessions = dbContext.AssessmentSessions.Where(x => x.StudentId == currentUser.UserId).ToList();
+                        var topicQuestions = await GetSessionQuestions(topicId, "Topic");
                         var levels = dbContext.AssessmentLevels.ToList();
 
                         if (levels != null && levels.Count > 0)
@@ -999,9 +750,9 @@ namespace ResoClassAPI.Services
                                 AssessmentLevelDifficultyLevelAnalysisDto item = new AssessmentLevelDifficultyLevelAnalysisDto();
                                 item.Id = level.Id;
                                 item.Name = level.Name;
-                                if (subTopicQuestions != null && subTopicQuestions.Count > 0)
+                                if (topicQuestions != null && topicQuestions.Count > 0)
                                 {
-                                    var questions = subTopicQuestions.Where(x => x.DifficultyLevelId == level.Id).ToList();
+                                    var questions = topicQuestions.Where(x => x.DifficultyLevelId == level.Id).ToList();
 
                                     if (questions != null && questions.Count > 0)
                                     {
@@ -1010,20 +761,6 @@ namespace ResoClassAPI.Services
                                         item.TotalCorrect = questions.Count(x => x.Result != null && x.Result == true);
                                         item.TotalWrong = questions.Count(x => x.Result != null && x.Result == false);
                                     }
-                                    else
-                                    {
-                                        item.TotalQuestions = 0;
-                                        item.TotalQuestionsAttempted = 0;
-                                        item.TotalCorrect = 0;
-                                        item.TotalWrong = 0;
-                                    }
-                                }
-                                else
-                                {
-                                    item.TotalQuestions = 0;
-                                    item.TotalQuestionsAttempted = 0;
-                                    item.TotalCorrect = 0;
-                                    item.TotalWrong = 0;
                                 }
                                 report.TotalQuestionAnalysis.Add(item);
                             }
@@ -1044,10 +781,9 @@ namespace ResoClassAPI.Services
                                     AssessmentLevelDifficultyLevelAnalysisDto item = new AssessmentLevelDifficultyLevelAnalysisDto();
                                     item.Id = level.Id;
                                     item.Name = level.Name;
-                                    if (subTopicQuestions != null && subTopicQuestions.Count > 0 && assessmentSessions.Any(x => x.SubTopicId == subTopic.Id && x.EndTime != null))
+                                    if (topicQuestions != null && topicQuestions.Count > 0)
                                     {
-                                        var sessionIds = assessmentSessions.Where(x => x.SubTopicId == subTopic.Id && x.EndTime != null).ToList().Select(x => x.Id);
-                                        var questions = subTopicQuestions.Where(x => sessionIds.Contains(x.AssessmentSessionId) && x.DifficultyLevelId == level.Id).ToList();
+                                        var questions = topicQuestions.Where(x => x.SubTopicId == subTopic.Id && x.DifficultyLevelId == level.Id).ToList();
 
                                         if (questions != null && questions.Count > 0)
                                         {

@@ -17,6 +17,10 @@ public partial class VwSubTopic
 
     public bool HomeDisplay { get; set; }
 
+    public string? ClassNotesUrl { get; set; }
+
+    public string? ExtractUrl { get; set; }
+
     public long? TopicId { get; set; }
 
     public string? Topic { get; set; }
