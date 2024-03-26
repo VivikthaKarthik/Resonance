@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Azure;
 using DocumentFormat.OpenXml.Bibliography;
+using DocumentFormat.OpenXml.Drawing.Charts;
 using DocumentFormat.OpenXml.Office2010.Excel;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Http;
@@ -82,7 +83,8 @@ namespace ResoClassAPI.Services
                                     var questions = chapterQuestions.Where(x => x.ChapterId == chapter.Id && x.AssessmentLevelId == level.Id).ToList();
                                     if (questions != null && questions.Count > 0)
                                     {
-                                        item.AssessmentId = assessmentSessions.First(x => x.ChapterId == chapter.Id && x.AssessmentLevelId == level.Id && x.EndTime != null).Id;
+                                        if (assessmentSessions.Any(x => x.ChapterId == chapter.Id && x.AssessmentLevelId == level.Id && x.EndTime != null))
+                                            item.AssessmentId = assessmentSessions.First(x => x.ChapterId == chapter.Id && x.AssessmentLevelId == level.Id && x.EndTime != null).Id;
                                         item.Status = questions.Count(x => x.Result == null) > 0 ? "Pending" : "Completed";
                                         item.TotalQuestions = questions.Count;
                                         item.TotalQuestionsAttempted = questions.Count(x => x.Result != null);
@@ -157,7 +159,8 @@ namespace ResoClassAPI.Services
                                     var questions = chapterQuestions.Where(x => x.TopicId == topic.Id && x.DifficultyLevelId == level.Id).ToList();
                                     if (questions != null && questions.Count > 0)
                                     {
-                                        item.AssessmentId = assessmentSessions.First(x => x.TopicId == topic.Id && x.AssessmentLevelId == level.Id && x.EndTime != null).Id;
+                                        if (assessmentSessions.Any(x => x.TopicId == topic.Id && x.AssessmentLevelId == level.Id && x.EndTime != null))
+                                            item.AssessmentId = assessmentSessions.First(x => x.TopicId == topic.Id && x.AssessmentLevelId == level.Id && x.EndTime != null).Id;
                                         item.Status = questions.Count(x => x.Result == null) > 0 ? "Pending" : "Completed";
                                         item.TotalQuestions = questions.Count;
                                         item.TotalQuestionsAttempted = questions.Count(x => x.Result != null);
@@ -235,7 +238,8 @@ namespace ResoClassAPI.Services
                                     var questions = topicQuestions.Where(x => x.SubTopicId == subTopic.Id && x.DifficultyLevelId == level.Id).ToList();
                                     if (questions != null && questions.Count > 0)
                                     {
-                                        item.AssessmentId = assessmentSessions.First(x => x.SubTopicId == subTopic.Id && x.AssessmentLevelId == level.Id && x.EndTime != null).Id;
+                                        if (assessmentSessions.Any(x => x.SubTopicId == subTopic.Id && x.AssessmentLevelId == level.Id && x.EndTime != null))
+                                            item.AssessmentId = assessmentSessions.First(x => x.SubTopicId == subTopic.Id && x.AssessmentLevelId == level.Id && x.EndTime != null).Id;
                                         item.Status = questions.Count(x => x.Result == null) > 0 ? "Pending" : "Completed";
                                         item.TotalQuestions = questions.Count;
                                         item.TotalQuestionsAttempted = questions.Count(x => x.Result != null);
