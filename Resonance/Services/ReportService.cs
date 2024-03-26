@@ -11,6 +11,7 @@ using ResoClassAPI.Models.Domain;
 using ResoClassAPI.Services.Interfaces;
 using ResoClassAPI.Utilities;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ResoClassAPI.Services
 {
@@ -81,6 +82,7 @@ namespace ResoClassAPI.Services
                                     var questions = chapterQuestions.Where(x => x.ChapterId == chapter.Id && x.AssessmentLevelId == level.Id).ToList();
                                     if (questions != null && questions.Count > 0)
                                     {
+                                        item.AssessmentId = assessmentSessions.First(x => x.ChapterId == chapter.Id && x.AssessmentLevelId == level.Id && x.EndTime != null).Id;
                                         item.Status = questions.Count(x => x.Result == null) > 0 ? "Pending" : "Completed";
                                         item.TotalQuestions = questions.Count;
                                         item.TotalQuestionsAttempted = questions.Count(x => x.Result != null);
@@ -155,6 +157,7 @@ namespace ResoClassAPI.Services
                                     var questions = chapterQuestions.Where(x => x.TopicId == topic.Id && x.DifficultyLevelId == level.Id).ToList();
                                     if (questions != null && questions.Count > 0)
                                     {
+                                        item.AssessmentId = assessmentSessions.First(x => x.TopicId == topic.Id && x.AssessmentLevelId == level.Id && x.EndTime != null).Id;
                                         item.Status = questions.Count(x => x.Result == null) > 0 ? "Pending" : "Completed";
                                         item.TotalQuestions = questions.Count;
                                         item.TotalQuestionsAttempted = questions.Count(x => x.Result != null);
@@ -232,6 +235,7 @@ namespace ResoClassAPI.Services
                                     var questions = topicQuestions.Where(x => x.SubTopicId == subTopic.Id && x.DifficultyLevelId == level.Id).ToList();
                                     if (questions != null && questions.Count > 0)
                                     {
+                                        item.AssessmentId = assessmentSessions.First(x => x.SubTopicId == subTopic.Id && x.AssessmentLevelId == level.Id && x.EndTime != null).Id;
                                         item.Status = questions.Count(x => x.Result == null) > 0 ? "Pending" : "Completed";
                                         item.TotalQuestions = questions.Count;
                                         item.TotalQuestionsAttempted = questions.Count(x => x.Result != null);

@@ -11,6 +11,8 @@ public partial class VwSessionResult
 
     public long AssessmentSessionId { get; set; }
 
+    public string AssessmentType { get; set; } = null!;
+
     public string CorrectAnswer { get; set; } = null!;
 
     public long? DifficultyLevelId { get; set; }

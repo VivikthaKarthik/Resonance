@@ -157,7 +157,7 @@ namespace ResoClassAPI.Services
                             var chapter = dbContext.Chapters.First(x => x.Id == id);
                             response.Questions = await GetRandomQuestions(id, "Chapter", response.TotalQuestions, levelId);
                             response.AssessmentName = "CWT_" + chapter.Name + "_" + DateTime.Now.ToString("yyyyMMddHHmmssffff");
-                            response.AssessmentId = await CreateNewSession(response.Questions, levelId, response.AssessmentName, id, null, null);
+                            response.AssessmentId = await CreateNewSession(response.Questions, levelId, "CWT", response.AssessmentName, id, null, null);
                         }
                         else if(session.EndTime == null)
                         {
@@ -170,26 +170,6 @@ namespace ResoClassAPI.Services
                         {
                             throw new Exception("Already completed this level");
                         }
-
-                        //long assessmentId = 0;
-                        //if (dbContext.AssessmentSessions.Any(x => x.AssessmentLevelId == levelId && x.StudentId == currentUser.UserId && x.EndTime != null))
-                        //{
-                        //    assessmentId = dbContext.AssessmentSessions.First(x => x.AssessmentLevelId == levelId && x.StudentId == currentUser.UserId).Id;
-
-                        //    var questionIds = dbContext.AssessmentSessionQuestions.Where(x=>x.AssessmentSessionId == assessmentId).Select(x => x.Id);
-
-                        //    response.Questions = new List<QuestionData>();
-                        //    foreach (var questionId in questionIds)
-                        //    {
-                        //        response.Questions.Add(GetExistingQuestion(questionId));
-                        //    }
-                        //}
-                        //else
-                        //{
-                        //    var chapter = dbContext.Chapters.First(x => x.Id == id);
-                        //    response.Questions = await GetRandomQuestions(id, "Chapter", response.TotalQuestions, levelId);
-                        //    response.AssessmentId = await CreateNewSession(response.Questions, levelId, "CWT_" + chapter.Name + "_" + DateTime.Now.ToString("yyyyMMddHHmmssffff"));
-                        //}
                     }
                 }
             }
@@ -269,7 +249,7 @@ namespace ResoClassAPI.Services
                             var topic = dbContext.Topics.First(x => x.Id == id);
                             response.Questions = await GetRandomQuestions(id, "Topic", response.TotalQuestions, levelId);
                             response.AssessmentName = "TWT_" + topic.Name + "_" + DateTime.Now.ToString("yyyyMMddHHmmssffff");
-                            response.AssessmentId = await CreateNewSession(response.Questions, levelId, response.AssessmentName, topic.ChapterId, id, null);
+                            response.AssessmentId = await CreateNewSession(response.Questions, levelId, "TWT", response.AssessmentName, null, id, null);
                         }
                         else if (session.EndTime == null)
                         {
@@ -318,7 +298,7 @@ namespace ResoClassAPI.Services
                             var topic = dbContext.Topics.First(x => x.Id == subTopic.TopicId);
                             response.Questions = await GetRandomQuestions(id, "SubTopic", response.TotalQuestions, levelId);
                             response.AssessmentName = "QPT_" + subTopic.Name + "_" + DateTime.Now.ToString("yyyyMMddHHmmssffff");
-                            response.AssessmentId = await CreateNewSession(response.Questions, levelId, response.AssessmentName, topic.ChapterId, topic.Id, id);
+                            response.AssessmentId = await CreateNewSession(response.Questions, levelId, "QPT", response.AssessmentName, null, null, id);
                         }
                         else if (session.EndTime == null)
                         {
@@ -391,7 +371,7 @@ namespace ResoClassAPI.Services
             return updated;
         }
 
-        private async Task<long> CreateNewSession(List<QuestionData> questions, long assessmentLevelId, string assessmentName, long? chapterId, long? topicId, long? subTopicId)
+        private async Task<long> CreateNewSession(List<QuestionData> questions, long assessmentLevelId,string assessmentType, string assessmentName, long? chapterId, long? topicId, long? subTopicId)
         {
             var currentUser = authService.GetCurrentUser();
             long newAssessmentId = 0;
@@ -405,6 +385,7 @@ namespace ResoClassAPI.Services
                 newSession.AssessmentLevelId = assessmentLevelId;
                 newSession.StudentId = currentUser.UserId;
                 newSession.StartTime = DateTime.UtcNow;
+                newSession.AssessmentType = assessmentType;
                 newSession.ChapterId = chapterId; 
                 newSession.TopicId = topicId; 
                 newSession.SubTopicId = subTopicId;
@@ -413,13 +394,11 @@ namespace ResoClassAPI.Services
                 newAssessmentId = newSession.Id;
 
                 List<AssessmentSessionQuestion> assessmentSessionQuestions = new List<AssessmentSessionQuestion>();
-                var difficultyLevels = dbContext.DifficultyLevels.ToList();
                 foreach (var question in questions)
                 {
                     AssessmentSessionQuestion assessmentSessionQuestion = new AssessmentSessionQuestion();
                     assessmentSessionQuestion.AssessmentSessionId = newAssessmentId;
                     assessmentSessionQuestion.QuestionId = question.Id;
-                    assessmentSessionQuestion.DifficultyLevelId = difficultyLevels.First(x => x.Name == question.DifficultyLevel).Id;
                     assessmentSessionQuestion.TimeToComplete = 0;
                     assessmentSessionQuestions.Add(assessmentSessionQuestion);
                 }

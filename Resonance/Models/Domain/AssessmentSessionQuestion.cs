@@ -11,8 +11,6 @@ public partial class AssessmentSessionQuestion
 
     public long QuestionId { get; set; }
 
-    public long DifficultyLevelId { get; set; }
-
     public string? SelectedAnswer { get; set; }
 
     public bool? Result { get; set; }

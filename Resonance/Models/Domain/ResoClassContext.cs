@@ -122,6 +122,7 @@ public partial class ResoClassContext : DbContext
         {
             entity.ToTable("AssessmentSession");
 
+            entity.Property(e => e.AssessmentType).HasMaxLength(3);
             entity.Property(e => e.EndTime).HasColumnType("datetime");
             entity.Property(e => e.StartTime).HasColumnType("datetime");
 
@@ -672,6 +673,7 @@ public partial class ResoClassContext : DbContext
                 .ToView("vwSessionResults");
 
             entity.Property(e => e.AssessmentLevel).HasMaxLength(20);
+            entity.Property(e => e.AssessmentType).HasMaxLength(3);
             entity.Property(e => e.DifficultyLevel).HasMaxLength(20);
             entity.Property(e => e.EndTime).HasColumnType("datetime");
             entity.Property(e => e.SelectedAnswer).HasMaxLength(10);
