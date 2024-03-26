@@ -78,17 +78,14 @@ namespace ResoClassAPI.Services
                                     AssessmentLevelReportDto item = new AssessmentLevelReportDto();
                                     item.Id = level.Id;
                                     item.Name = level.Name;
-                                    if (chapterQuestions != null && chapterQuestions.Count > 0)
+                                    var questions = chapterQuestions.Where(x => x.ChapterId == chapter.Id && x.AssessmentLevelId == level.Id).ToList();
+                                    if (questions != null && questions.Count > 0)
                                     {
-                                        item.Status = "Completed";
-                                        var questions = chapterQuestions.Where(x => x.ChapterId == chapter.Id && x.AssessmentLevelId == level.Id).ToList();
-                                        if (questions != null && questions.Count > 0)
-                                        {
-                                            item.TotalQuestions = questions.Count;
-                                            item.TotalQuestionsAttempted = questions.Count(x => x.Result != null);
-                                            item.TotalCorrect = questions.Count(x => x.Result != null && x.Result == true);
-                                            item.TotalWrong = questions.Count(x => x.Result != null && x.Result == false);
-                                        }
+                                        item.Status = questions.Count(x => x.Result == null) > 0 ? "Pending" : "Completed";
+                                        item.TotalQuestions = questions.Count;
+                                        item.TotalQuestionsAttempted = questions.Count(x => x.Result != null);
+                                        item.TotalCorrect = questions.Count(x => x.Result != null && x.Result == true);
+                                        item.TotalWrong = questions.Count(x => x.Result != null && x.Result == false);
                                     }
                                     else
                                     {
@@ -155,17 +152,14 @@ namespace ResoClassAPI.Services
                                     AssessmentLevelReportDto item = new AssessmentLevelReportDto();
                                     item.Id = level.Id;
                                     item.Name = level.Name;
-                                    if (chapterQuestions != null && chapterQuestions.Count > 0)
+                                    var questions = chapterQuestions.Where(x => x.TopicId == topic.Id && x.DifficultyLevelId == level.Id).ToList();
+                                    if (questions != null && questions.Count > 0)
                                     {
-                                        item.Status = "Completed";
-                                        var questions = chapterQuestions.Where(x => x.TopicId == topic.Id && x.DifficultyLevelId == level.Id).ToList();
-                                        if (questions != null && questions.Count > 0)
-                                        {
-                                            item.TotalQuestions = questions.Count;
-                                            item.TotalQuestionsAttempted = questions.Count(x => x.Result != null);
-                                            item.TotalCorrect = questions.Count(x => x.Result != null && x.Result == true);
-                                            item.TotalWrong = questions.Count(x => x.Result != null && x.Result == false);
-                                        }
+                                        item.Status = questions.Count(x => x.Result == null) > 0 ? "Pending" : "Completed";
+                                        item.TotalQuestions = questions.Count;
+                                        item.TotalQuestionsAttempted = questions.Count(x => x.Result != null);
+                                        item.TotalCorrect = questions.Count(x => x.Result != null && x.Result == true);
+                                        item.TotalWrong = questions.Count(x => x.Result != null && x.Result == false);
                                     }
                                     else
                                     {
@@ -235,17 +229,14 @@ namespace ResoClassAPI.Services
                                     AssessmentLevelReportDto item = new AssessmentLevelReportDto();
                                     item.Id = level.Id;
                                     item.Name = level.Name;
-                                    if (topicQuestions != null && topicQuestions.Count > 0)
+                                    var questions = topicQuestions.Where(x => x.SubTopicId == subTopic.Id && x.DifficultyLevelId == level.Id).ToList();
+                                    if (questions != null && questions.Count > 0)
                                     {
-                                        item.Status = "Completed";
-                                        var questions = topicQuestions.Where(x => x.SubTopicId == subTopic.Id && x.DifficultyLevelId == level.Id).ToList();
-                                        if (questions != null && questions.Count > 0)
-                                        {
-                                            item.TotalQuestions = questions.Count;
-                                            item.TotalQuestionsAttempted = questions.Count(x => x.Result != null);
-                                            item.TotalCorrect = questions.Count(x => x.Result != null && x.Result == true);
-                                            item.TotalWrong = questions.Count(x => x.Result != null && x.Result == false);
-                                        }
+                                        item.Status = questions.Count(x => x.Result == null) > 0 ? "Pending" : "Completed";
+                                        item.TotalQuestions = questions.Count;
+                                        item.TotalQuestionsAttempted = questions.Count(x => x.Result != null);
+                                        item.TotalCorrect = questions.Count(x => x.Result != null && x.Result == true);
+                                        item.TotalWrong = questions.Count(x => x.Result != null && x.Result == false);
                                     }
                                     else
                                     {
