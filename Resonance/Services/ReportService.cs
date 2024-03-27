@@ -364,9 +364,9 @@ namespace ResoClassAPI.Services
                         if (chapterQuestions != null && chapterQuestions.Count > 0)
                         {
                             report.AverageTimeSpentOnEachQuestion = chapterQuestions.Sum(x => x.TimeToComplete) / chapterQuestions.Count;
-                            report.AverageTimeSpentOnEasyQuestions = chapterQuestions.Where(x=>x.DifficultyLevelId == 1000001).Sum(x => x.TimeToComplete) / chapterQuestions.Count;
-                            report.AverageTimeSpentOnMediumQuestions = chapterQuestions.Where(x => x.DifficultyLevelId == 1000002).Sum(x => x.TimeToComplete) / chapterQuestions.Count;
-                            report.AverageTimeSpentOnDifficultQuestions = chapterQuestions.Where(x => x.DifficultyLevelId == 1000003).Sum(x => x.TimeToComplete) / chapterQuestions.Count;
+                            report.AverageTimeSpentOnEasyQuestions = chapterQuestions.Where(x=>x.DifficultyLevelId == 1000001).Sum(x => x.TimeToComplete) / chapterQuestions.Where(x => x.DifficultyLevelId == 1000001).Count();
+                            report.AverageTimeSpentOnMediumQuestions = chapterQuestions.Where(x => x.DifficultyLevelId == 1000002).Sum(x => x.TimeToComplete) / chapterQuestions.Where(x => x.DifficultyLevelId == 1000002).Count();
+                            report.AverageTimeSpentOnDifficultQuestions = chapterQuestions.Where(x => x.DifficultyLevelId == 1000003).Sum(x => x.TimeToComplete) / chapterQuestions.Where(x => x.DifficultyLevelId == 1000003).Count();
                         }
 
                         report.Reports = new List<ItemWiseTimeAnalysisReportDto>();
@@ -430,9 +430,9 @@ namespace ResoClassAPI.Services
                         if (chapterQuestions != null && chapterQuestions.Count > 0)
                         {
                             report.AverageTimeSpentOnEachQuestion = chapterQuestions.Sum(x => x.TimeToComplete) / chapterQuestions.Count;
-                            report.AverageTimeSpentOnEasyQuestions = chapterQuestions.Where(x => x.DifficultyLevelId == 1000001).Sum(x => x.TimeToComplete) / chapterQuestions.Count;
-                            report.AverageTimeSpentOnMediumQuestions = chapterQuestions.Where(x => x.DifficultyLevelId == 1000002).Sum(x => x.TimeToComplete) / chapterQuestions.Count;
-                            report.AverageTimeSpentOnDifficultQuestions = chapterQuestions.Where(x => x.DifficultyLevelId == 1000003).Sum(x => x.TimeToComplete) / chapterQuestions.Count;
+                            report.AverageTimeSpentOnEasyQuestions = chapterQuestions.Where(x => x.DifficultyLevelId == 1000001).Sum(x => x.TimeToComplete) / chapterQuestions.Where(x => x.DifficultyLevelId == 1000001).Count();
+                            report.AverageTimeSpentOnMediumQuestions = chapterQuestions.Where(x => x.DifficultyLevelId == 1000002).Sum(x => x.TimeToComplete) / chapterQuestions.Where(x => x.DifficultyLevelId == 1000002).Count();
+                            report.AverageTimeSpentOnDifficultQuestions = chapterQuestions.Where(x => x.DifficultyLevelId == 1000003).Sum(x => x.TimeToComplete) / chapterQuestions.Where(x => x.DifficultyLevelId == 1000003).Count();
                         }
 
                         report.Reports = new List<ItemWiseTimeAnalysisReportDto>();
@@ -497,9 +497,9 @@ namespace ResoClassAPI.Services
                         if (topicQuestions != null && topicQuestions.Count > 0)
                         {
                             report.AverageTimeSpentOnEachQuestion = topicQuestions.Sum(x => x.TimeToComplete) / topicQuestions.Count;
-                            report.AverageTimeSpentOnEasyQuestions = topicQuestions.Where(x => x.DifficultyLevelId == 1000001).Sum(x => x.TimeToComplete) / topicQuestions.Count;
-                            report.AverageTimeSpentOnMediumQuestions = topicQuestions.Where(x => x.DifficultyLevelId == 1000002).Sum(x => x.TimeToComplete) / topicQuestions.Count;
-                            report.AverageTimeSpentOnDifficultQuestions = topicQuestions.Where(x => x.DifficultyLevelId == 1000003).Sum(x => x.TimeToComplete) / topicQuestions.Count;
+                            report.AverageTimeSpentOnEasyQuestions = topicQuestions.Where(x => x.DifficultyLevelId == 1000001).Sum(x => x.TimeToComplete) / topicQuestions.Where(x => x.DifficultyLevelId == 1000001).Count();
+                            report.AverageTimeSpentOnMediumQuestions = topicQuestions.Where(x => x.DifficultyLevelId == 1000002).Sum(x => x.TimeToComplete) / topicQuestions.Where(x => x.DifficultyLevelId == 1000002).Count();
+                            report.AverageTimeSpentOnDifficultQuestions = topicQuestions.Where(x => x.DifficultyLevelId == 1000003).Sum(x => x.TimeToComplete) / topicQuestions.Where(x => x.DifficultyLevelId == 1000003).Count();
                         }
 
                         report.Reports = new List<ItemWiseTimeAnalysisReportDto>();
